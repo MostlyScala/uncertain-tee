@@ -1,5 +1,25 @@
-*.class
-*.log
+# sbt
+target/
+project/plugins/project/
+boot/
+lib_managed/
+src_managed/
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# vim
+*.sw?
+
+# intellij
+.idea/
+
+# ignore [ce]tags files
+tags
+
+# metals
+.metals/
+.bsp/
+.bloop/
+metals.sbt
+.vscode
+
+# npm
+node_modules/
