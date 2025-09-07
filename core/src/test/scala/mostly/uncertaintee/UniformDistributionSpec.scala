@@ -8,7 +8,7 @@ class UniformDistributionSpec extends RngSuite {
   // Tolerance for comparing floating-point statistical properties.
   // With 100k samples, we expect statistical estimates to be reasonably close to their
   // true theoretical values.
-  private val tolerance   = 0.1
+  private val tolerance   = 0.05
 
   // --- Statistical Properties Tests ---
 
@@ -152,10 +152,10 @@ class UniformDistributionSpec extends RngSuite {
     val isAbove8 = uniform > 8.0 // Theoretical P(true) is 0.2
 
     // Test a hypothesis that should be accepted.
-    assert(isAbove8.probability(exceeds = 0.15, confidenceLevel = 0.95), "Should be confident that P(uniform > 8) exceeds 15%")
+    assert(isAbove8.probability(exceeds = 0.15), "Should be confident that P(uniform > 8) exceeds 15%")
 
     // Test a hypothesis that should be rejected.
-    assert(!isAbove8.probability(exceeds = 0.25, confidenceLevel = 0.95), "Should not be confident that P(uniform > 8) exceeds 25%")
+    assert(!isAbove8.probability(exceeds = 0.25), "Should not be confident that P(uniform > 8) exceeds 25%")
   }
 
   // --- Correlation Tests (Crucial for `Uncertain`'s core logic) ---

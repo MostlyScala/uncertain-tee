@@ -8,7 +8,7 @@ class NormalGaussianDistributionSpec extends RngSuite {
   // Tolerance for comparing floating-point statistical properties.
   // With 100k samples, we expect statistical estimates to be reasonably close to their
   // true theoretical values.
-  private val tolerance   = 0.1
+  private val tolerance   = 0.05
 
   // --- Statistical Properties Tests ---
 
@@ -196,10 +196,10 @@ class NormalGaussianDistributionSpec extends RngSuite {
     // This hypothesis should be accepted.
     val isAbove85 = iq > (mean - stdDev) // Theoretical P(true) is ~0.841
 
-    assert(isAbove85.probability(exceeds = 0.8, confidenceLevel = 0.99), "Should be confident that P(iq > 85) exceeds 80%")
+    assert(isAbove85.probability(exceeds = 0.8), "Should be confident that P(iq > 85) exceeds 80%")
 
     // Conversely, a hypothesis that the probability exceeds 0.9 should be rejected.
-    assert(!isAbove85.probability(exceeds = 0.9, confidenceLevel = 0.99), "Should not be confident that P(iq > 85) exceeds 90%")
+    assert(!isAbove85.probability(exceeds = 0.9), "Should not be confident that P(iq > 85) exceeds 90%")
   }
 
   // --- Correlation Tests (Crucial for `Uncertain`'s core logic) ---

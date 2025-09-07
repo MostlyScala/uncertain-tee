@@ -6,7 +6,7 @@ class PoissonDistributionSpec extends RngSuite {
 
   private val sampleCount = 100_000
   // Tolerance for comparing floating-point statistical properties.
-  private val tolerance   = 0.1
+  private val tolerance   = 0.05
 
   // --- Statistical Properties Tests ---
 

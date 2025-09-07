@@ -13,9 +13,6 @@ import scala.util.Random
   *
   * @example
   *   {{{
-  * // A default source of randomness is provided via a `given`
-  * given Random = new Random()
-  *
   * // Define an uncertain speed with a normal distribution (mean 5.0, std dev Two)
   * val speed = Uncertain.normal(5.0, Two)
   *
@@ -66,7 +63,7 @@ sealed abstract class Uncertain[T] {
     *
     * @example
     *   {{{
-    * given Random = new Random()
+    *
     * val x = Uncertain.normal(10, 2)
     * val y = x - x // y.sample() will always return 0.0
     *   }}}
@@ -86,7 +83,6 @@ sealed abstract class Uncertain[T] {
     *
     * @example
     *   {{{
-    * given Random = new Random()
     * val speedMph = Uncertain.uniform(50, 70)
     * val speedKph = speedMph.map(_ * 1.60934) // Converts each speed sample to KPH
     *   }}}
@@ -109,7 +105,6 @@ sealed abstract class Uncertain[T] {
     * @example
     *   {{{
     * // Model the result of a coin flip determining which die to roll
-    * given Random = new Random()
     * val isHeads = Uncertain.bernoulli(0.5)
     * val rollResult = isHeads.flatMap { wasHeads =>
     * if (wasHeads) Uncertain.uniform(1, 6).map(_.round.toInt) // 6-sided die
@@ -131,7 +126,6 @@ sealed abstract class Uncertain[T] {
     *
     * @example
     *   {{{
-    * given Random = new Random()
     * val speed = Uncertain.normal(5.0, Two)
     * val firstTenSamples = speed.iterator.take(10).toList
     *   }}}
@@ -141,11 +135,14 @@ sealed abstract class Uncertain[T] {
   /** Collects a specified number of samples into a list.
     *
     * @param n
-    *   The number of samples to take.
+    *   The number of samples to take. Must be non-negative.
     * @return
     *   A `List[T]` containing `n` samples.
     */
-  def take(n: Int): List[T] = iterator.take(n).toList
+  def take(n: Int): List[T] = {
+    require(n >= 0, "Number of samples to take must be non-negative.")
+    iterator.take(n).toList
+  }
 }
 
 // precise doubles for common values utilized throughout the library
@@ -292,15 +289,18 @@ object Uncertain {
     */
   def point[T](value: T): Uncertain[T] = Uncertain(() => value)
 
-  /** Creates a mixture model from a list of uncertain components and optional weights.
+  /** Creates a mixture model from a list of uncertain components and weights.
+    *
+    * [[categorical]] chooses from a set of plain values, while [[mixture]] chooses from a set of other Uncertain distributions.
+    *
+    * In essence, mixture is a higher-level concept that is built using categorical and flatMap to create a new distribution by blending others.
     *
     * This implementation correctly preserves correlations by using a categorical distribution and flatMap, ensuring that component selection and evaluation
     * happen within the same computation graph.
     *
     * @param components
-    *   A list of `Uncertain` distributions to mix.
-    * @param weights
-    *   An optional list of weights for each component. If `None`, components are weighted equally.
+    *   A map of `Uncertain` distributions to their respective weights. The map must not be empty, and all weights must be non-negative and sum to a positive
+    *   number.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -308,30 +308,30 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Mixture_model Mixture Model]]
     */
-  // TODO take Map[Uncertain[T], Double] as input, or vararg with tuples of (Uncertain[T], Double),
-  //  and add a new method `mixture` that take a list of Uncertain[T] and calls this with equal weighting.
-  def mixture[T](components: List[Uncertain[T]], weights: Option[List[Double]] = None)(using random: Random = new Random()): Uncertain[T] = {
+  def mixture[T](components: Map[Uncertain[T], Double])(using random: Random = new Random()): Uncertain[T] = {
     require(components.nonEmpty, "At least one component is required for a mixture model.")
-    if (components.length == 1) return components.head
-    val componentWeights = weights.getOrElse(List.fill(components.length)(One))
-    require(
-      components.length == componentWeights.length,
-      "The number of weights must match the number of components."
-    )
+    require(components.values.forall(_ >= 0), "Mixture weights cannot be negative.")
+    val totalWeight = components.values.sum
+    require(totalWeight > 0, "Mixture weights must sum to a positive number.")
 
-    // 1. Create a categorical distribution to select a component.
-    val totalWeight = componentWeights.sum
-    val outcomes    = components
-      .zip(componentWeights)
-      .map { case (component, weight) =>
-        component -> (weight / totalWeight)
-      }
-      .toMap
+    if (components.size == 1) return components.head._1
+    categorical(components)(using random).flatMap(identity)
+  }
 
-    val selector: Uncertain[Uncertain[T]] = categorical(outcomes)(using random)
-
-    // 2. Use flatMap to evaluate the selected component within the same context.
-    selector.flatMap(chosenComponent => chosenComponent)
+  /** Creates a mixture model from a list of uncertain components with equal weighting.
+    *
+    * @param components
+    *   A list of `Uncertain` distributions to mix. Must not be empty.
+    * @param random
+    *   The source of randomness, provided implicitly.
+    * @return
+    *   A new `Uncertain[T]` representing the mixture distribution.
+    * @see
+    *   [[mixture]]
+    */
+  def equalMixture[T](components: List[Uncertain[T]])(using random: Random = new Random()): Uncertain[T] = {
+    require(components.nonEmpty, "At least one component is required for an equal mixture model.")
+    mixture(components.map((x: Uncertain[T]) => x -> One).toMap)(using random)
   }
 
   /** Creates an uncertain distribution by sampling uniformly from a list of observed data.
@@ -339,29 +339,35 @@ object Uncertain {
     * @example
     *   {{{
     * val surveyResults = List(3, 5, 4, 5, 5, 2)
-    * val rating = Uncertain.empirical(surveyResults).get
+    * val rating = Uncertain.empirical(surveyResults)
     *   }}}
     * @param data
-    *   The list of data points to sample from.
+    *   The list of data points to sample from. Must not be empty.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
-    *   An `Option[Uncertain[T]]` which is `None` if the data list is empty.
+    *   An `Uncertain[T]` representing the empirical distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Empirical_distribution_function Empirical Distribution Function]]
     */
-  def empirical[T](data: List[T])(using random: Random = new Random()): Option[Uncertain[T]] =
-    if (data.isEmpty) None
-    else Some(Uncertain(() => data(random.nextInt(data.length))))
+  def empirical[T](data: List[T])(using random: Random = new Random()): Uncertain[T] = {
+    require(data.nonEmpty, "At least one data point is required for an empirical distribution.")
+    Uncertain(() => data(random.nextInt(data.length)))
+  }
 
-  /** Creates a categorical distribution from a map of outcomes to their probabilities.
+  /** Creates a categorical distribution from a map of outcomes to their probabilities. The probabilities will be normalized to sum to 1.
     *
     * @example
     *   {{{
+    * // The following probabilities (0.7, 0.2, 0.1) sum to 1.0
     * val weather = Uncertain.categorical(Map("Sunny" -> 0.7, "Cloudy" -> 0.2, "Rain" -> 0.1))
+    *
+    * // The following weights (7, 2, 1) will be normalized to the probabilities above
+    * val sameWeather = Uncertain.categorical(Map("Sunny" -> 7.0, "Cloudy" -> 2.0, "Rain" -> 1.0))
     *   }}}
     * @param outcomes
-    *   A map where keys are outcomes and values are their probabilities (weights).
+    *   A map where keys are outcomes and values are their probabilities (weights). The map must not be empty, all weights must be non-negative and sum to a
+    *   positive number.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -371,11 +377,12 @@ object Uncertain {
     */
   def categorical[T](outcomes: Map[T, Double])(using random: Random = new Random()): Uncertain[T] = {
     require(outcomes.nonEmpty, "Categorical distribution must have at least one outcome")
-    require(math.abs(outcomes.values.sum - One) < 1e-9, "Probabilities must sum to 1.0")
-
-    val outcomesList    = outcomes.toList
-    val cumulativeProbs = outcomesList.map(_._2).scanLeft(Zero)(_ + _).tail
-    val paired          = outcomesList.map(_._1).zip(cumulativeProbs)
+    require(outcomes.forall(_._2 >= 0), "Probabilities cannot be negative")
+    val totalWeight        = outcomes.values.sum
+    require(totalWeight > 0, "Probabilities must sum to a positive number")
+    val normalizedOutcomes = outcomes.map((outcome, weight) => (outcome, weight / totalWeight))
+    val cumulativeProbs    = normalizedOutcomes.values.scanLeft(Zero)(_ + _).tail
+    val paired             = normalizedOutcomes.keys.zip(cumulativeProbs)
 
     val sampler: () => T = () => {
       val u = random.nextDouble()
@@ -390,7 +397,7 @@ object Uncertain {
     * @param mean
     *   The mean (μ) of the distribution.
     * @param standardDeviation
-    *   The standard deviation (σ) of the distribution.
+    *   The standard deviation (σ) of the distribution. Must be non-negative.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -398,22 +405,27 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Normal_distribution Normal Distribution]]
     */
-  def normal(mean: Double, standardDeviation: Double)(using random: Random = new Random()): Uncertain[Double] =
+  def normal(mean: Double, standardDeviation: Double)(using random: Random = new Random()): Uncertain[Double] = {
+    require(standardDeviation >= 0, "Standard deviation cannot be negative.")
     Uncertain { () =>
-      // Box-Muller transform
-      var u1 = Zero
-      while (u1 == Zero) u1 = random.nextDouble() // Avoid log(0) which is -Infinity
-      val u2 = random.nextDouble()
-      val z0 = sqrt(MinusTwo * log(u1)) * cos(Two * Pi * u2)
-      mean + standardDeviation * z0
+      if (standardDeviation == 0) mean
+      else {
+        // Box-Muller transform for generating standard normal samples
+        var u1 = Zero
+        while (u1 == Zero) u1 = random.nextDouble() // Avoid log(0) which is -Infinity
+        val u2 = random.nextDouble()
+        val z0 = sqrt(MinusTwo * log(u1)) * cos(Two * Pi * u2)
+        mean + standardDeviation * z0
+      }
     }
+  }
 
   /** Creates a continuous Uniform distribution.
     *
     * @param min
     *   The lower bound of the distribution (inclusive).
     * @param max
-    *   The upper bound of the distribution (exclusive).
+    *   The upper bound of the distribution (exclusive). Must be >= min.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -421,13 +433,15 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Continuous_uniform_distribution Continuous Uniform Distribution]]
     */
-  def uniform(min: Double, max: Double)(using random: Random = new Random()): Uncertain[Double] =
+  def uniform(min: Double, max: Double)(using random: Random = new Random()): Uncertain[Double] = {
+    require(max >= min, s"max ($max) must be greater than or equal to min ($min).")
     Uncertain(() => min + random.nextDouble() * (max - min))
+  }
 
   /** Creates an Exponential distribution.
     *
     * @param rate
-    *   The rate parameter (λ).
+    *   The rate parameter (λ), which must be positive.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -435,17 +449,19 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Exponential_distribution Exponential Distribution]]
     */
-  def exponential(rate: Double)(using random: Random = new Random()): Uncertain[Double] =
+  def exponential(rate: Double)(using random: Random = new Random()): Uncertain[Double] = {
+    require(rate > 0, "Rate (lambda) must be positive.")
     Uncertain { () =>
       var u = Zero
       while (u == Zero) u = random.nextDouble() // Avoid log(0) which is -Infinity
       -log(u) / rate
     }
+  }
 
   /** Creates a Bernoulli distribution, which is a distribution of a single boolean trial.
     *
     * @param probability
-    *   The probability of the outcome being `true`.
+    *   The probability of the outcome being `true`. Must be between 0.0 and 1.0.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -453,8 +469,10 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Bernoulli_distribution Bernoulli Distribution]]
     */
-  def bernoulli(probability: Double)(using random: Random = new Random()): Uncertain[Boolean] =
+  def bernoulli(probability: Double)(using random: Random = new Random()): Uncertain[Boolean] = {
+    require(probability >= 0 && probability <= 1, s"Probability ($probability) must be between 0 and 1.")
     Uncertain(() => random.nextDouble() < probability)
+  }
 
   /** Creates a Kumaraswamy distribution.
     *
@@ -501,9 +519,9 @@ object Uncertain {
   /** Creates a Binomial distribution, representing the number of successes in a sequence of independent experiments.
     *
     * @param trials
-    *   The number of trials (n).
+    *   The number of trials (n), which must be non-negative.
     * @param probability
-    *   The probability of success for each trial (p).
+    *   The probability of success for each trial (p), which must be between 0.0 and 1.0.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -511,13 +529,16 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Binomial_distribution Binomial Distribution]]
     */
-  def binomial(trials: Int, probability: Double)(using random: Random = new Random()): Uncertain[Int] =
+  def binomial(trials: Int, probability: Double)(using random: Random = new Random()): Uncertain[Int] = {
+    require(trials >= 0, "Number of trials cannot be negative.")
+    require(probability >= 0 && probability <= 1, s"Probability ($probability) must be between 0 and 1.")
     Uncertain(() => (0 until trials).count(_ => random.nextDouble() < probability))
+  }
 
   /** Creates a Poisson distribution, expressing the probability of a given number of events occurring in a fixed interval.
     *
     * @param lambda
-    *   The average number of events (λ).
+    *   The average number of events (λ), which must be non-negative.
     * @param random
     *   The source of randomness, provided implicitly.
     * @return
@@ -525,18 +546,21 @@ object Uncertain {
     * @see
     *   [[https://en.wikipedia.org/wiki/Poisson_distribution Poisson Distribution]]
     */
-  def poisson(lambda: Double)(using random: Random = new Random()): Uncertain[Int] = Uncertain { () =>
+  def poisson(lambda: Double)(using random: Random = new Random()): Uncertain[Int] = {
+    require(lambda >= 0, "Lambda (rate) cannot be negative.")
     if (lambda == Zero) {
-      0
+      Uncertain.point(0)
     } else {
-      val L = exp(-lambda)
-      var k = 0
-      var p = One
-      while (p > L) {
-        k += 1
-        p *= random.nextDouble()
+      Uncertain { () =>
+        val L = exp(-lambda)
+        var k = 0
+        var p = One
+        while (p > L) {
+          k += 1
+          p *= random.nextDouble()
+        }
+        k - 1
       }
-      k - 1
     }
   }
 }
@@ -552,7 +576,6 @@ extension [T](uncertain: Uncertain[T]) {
     *
     * @example
     *   {{{
-    * given Random = new Random()
     * val x = Uncertain.bernoulli(0.5)
     * val areSame = x === x // always true
     *   }}}
@@ -633,113 +656,203 @@ extension (lhs: Uncertain[Boolean]) {
     rhsSample <- rhs
   } yield lhsSample && rhsSample
 
-  /** Performs a sample-wise logical OR on two uncertain booleans, preserving correlation. */
   def ||(rhs: Uncertain[Boolean]): Uncertain[Boolean] = for {
     lhsSample <- lhs
     rhsSample <- rhs
   } yield lhsSample || rhsSample
 
-  /** Evaluates if the probability of this uncertain boolean being `true` exceeds a given threshold. This is the primary mechanism for uncertain conditionals.
-    * It uses SPRT for efficiency.
+  /** Evaluates if the probability of this uncertain boolean being `true` exceeds a given threshold.
+    *
+    * This method uses a Sequential Probability Ratio Test (SPRT) to efficiently test the one-sided hypothesis H₁: P(true) > threshold vs H₀: P(true) ≤
+    * threshold.
     *
     * @example
     *   {{{
-    * given Random = new Random()
+    *
     * val speed = Uncertain.normal(65, 5)
     * val isSpeeding = speed > 60
-    * // Test the hypothesis: Is the probability of speeding > 80%?
+    * // Test: Is P(speeding) > 0.8 with 95% confidence?
     * if (isSpeeding.probability(exceeds = 0.8)) {
-    * println("There is a high probability of speeding.")
+    *   println("High confidence that speeding probability exceeds 80%")
     * }
     *   }}}
+    *
     * @param exceeds
-    *   The probability threshold to test against (e.g., 0.9 for 90%).
-    * @param confidenceLevel
-    *   The desired statistical confidence for the decision (e.g., 0.95 for 95% confidence).
+    *   The probability threshold to test against. Must be between 0.0 and 1.0.
+    * @param alpha
+    *   Type I error rate (probability of false positive). Must be between 0.0 and 1.0.
+    * @param beta
+    *   Type II error rate (probability of false negative). Must be between 0.0 and 1.0.
+    * @param delta
+    *   The effect size - how much greater than threshold we want to detect. Defaults to 0.1 * (1 - threshold) for reasonable power.
     * @param maxSamples
-    *   A safeguard to prevent infinite sampling if a decision cannot be reached.
+    *   Maximum samples before fallback to fixed-sample test. Must be positive.
     * @return
-    *   `true` if we are confident the probability exceeds the threshold, `false` otherwise.
-    * @see
-    *   [[https://en.wikipedia.org/wiki/Hypothesis_testing Hypothesis Testing]]
+    *   `true` if we reject H₀ in favor of H₁ (p > threshold), `false` otherwise.
     */
-  def probability(exceeds: Double, confidenceLevel: Double = 0.95, maxSamples: Int = 10_000): Boolean = {
-    val result = evaluateHypothesis(exceeds, confidenceLevel, maxSamples)
+  def probability(
+    exceeds: Double,
+    alpha: Double = 0.05,
+    beta: Double = 0.05,
+    delta: Option[Double] = None,
+    maxSamples: Int = 10_000
+  ): Boolean = {
+    require(exceeds >= 0 && exceeds <= 1, s"Threshold ($exceeds) must be between 0 and 1.")
+    require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1 (exclusive).")
+    require(beta > 0 && beta < 1, s"Beta ($beta) must be between 0 and 1 (exclusive).")
+    require(maxSamples > 0, "Maximum samples must be positive.")
+
+    val effectSize = delta.getOrElse(math.max(0.01, 0.1 * (1.0 - exceeds)))
+    require(exceeds + effectSize <= 1.0, s"Threshold + effect size (${exceeds + effectSize}) must be ≤ 1.0")
+
+    val result = evaluateHypothesis(exceeds, alpha, beta, effectSize, maxSamples)
     result.decision
   }
 
-  /** A convenient shorthand for `probability(exceeds = 0.5)`. Determines if the uncertain boolean is more likely `true` than `false`.
-    *
-    * @example
-    *   {{{
-    * given Random = new Random()
-    * val speed = Uncertain.normal(65, 10)
-    * if ((speed > 68).isProbable()) {
-    * println("It is more likely than not that the speed is over 68.")
-    * }
-    *   }}}
-    */
-  def isProbable(confidenceLevel: Double = 0.95): Boolean =
-    probability(0.5, confidenceLevel)
+  /** Convenient shorthand for `probability(exceeds = 0.5)` with default error rates. */
+  def isProbable(alpha: Double = 0.05, beta: Double = 0.05): Boolean =
+    probability(0.5, alpha, beta)
 
-  /** Performs a Sequential Probability Ratio Test (SPRT) to test the hypothesis that P(true) > `threshold`.
+  /** Performs a Sequential Probability Ratio Test for H₁: p > p₀ vs H₀: p ≤ p₀.
+    *
+    * The test uses two composite hypotheses:
+    *   - H₀: p ≤ p₀ (represented by p = p₀)
+    *   - H₁: p > p₀ (represented by p = p₁ = p₀ + δ)
+    *
+    * The SPRT sequentially computes the likelihood ratio and stops when there's sufficient evidence for either hypothesis.
     *
     * @param threshold
-    *   The probability threshold for the hypothesis (H1: p > threshold, H0: p <= threshold).
-    * @param confidenceLevel
-    *   The desired confidence level (1 - α).
-    * @param maxSamples
-    *   The maximum number of samples to draw before making a default decision.
-    * @param epsilon
-    *   The indifference region around the threshold.
+    *   The null hypothesis probability (p₀)
     * @param alpha
-    *   The Type I error rate (false positive). Defaults to `1.0 - confidenceLevel`.
+    *   Type I error rate P(reject H₀ | H₀ true)
     * @param beta
-    *   The Type II error rate (false negative). Defaults to `alpha`.
-    * @param batchSize
-    *   The number of samples to draw in each iteration.
+    *   Type II error rate P(accept H₀ | H₁ true)
+    * @param delta
+    *   Effect size: p₁ = p₀ + δ
+    * @param maxSamples
+    *   Fallback to prevent infinite sampling
     * @return
-    *   A `HypothesisResult` containing the decision, estimated probability, and samples used.
-    * @see
-    *   [[https://en.wikipedia.org/wiki/Sequential_probability_ratio_test Sequential Probability Ratio Test]]
+    *   HypothesisResult with decision, estimated probability, and sample count
     */
   def evaluateHypothesis(
     threshold: Double,
-    confidenceLevel: Double,
-    maxSamples: Int,
-    epsilon: Double = 0.05,
-    alpha: Option[Double] = None,
-    beta: Option[Double] = None,
-    batchSize: Int = 10
+    alpha: Double,
+    beta: Double,
+    delta: Double,
+    maxSamples: Int
   ): HypothesisResult = {
-    val alphaError = alpha.getOrElse(One - confidenceLevel)
-    val betaError  = beta.getOrElse(alphaError)
-    val A          = log(betaError / (One - alphaError))
-    val B          = log((One - betaError) / alphaError)
-    val p0         = math.max(Zero, math.min(One, threshold - epsilon))
-    val p1         = math.max(Zero, math.min(One, threshold + epsilon))
-    var successes  = 0
-    var samples    = 0
+    require(threshold >= 0 && threshold <= 1, s"Threshold ($threshold) must be between 0 and 1.")
+    require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1 (exclusive).")
+    require(beta > 0 && beta < 1, s"Beta ($beta) must be between 0 and 1 (exclusive).")
+    require(delta > 0, s"Effect size delta ($delta) must be positive.")
+    require(threshold + delta <= 1.0, s"Threshold + delta (${threshold + delta}) must be ≤ 1.0")
+    require(maxSamples > 0, "Maximum samples must be positive.")
+
+    val p0 = threshold
+    val p1 = threshold + delta
+
+    // SPRT decision boundaries
+    val A = log(beta / (1.0 - alpha)) // Accept H₀ if LLR ≤ A
+    val B = log((1.0 - beta) / alpha) // Accept H₁ if LLR ≥ B
+
+    var successes = 0
+    var samples   = 0
+
     while (samples < maxSamples) {
-      val currentBatchSize = math.min(batchSize, maxSamples - samples)
-      val batchSuccesses   = (0 until currentBatchSize).count(_ => lhs.sample())
-      successes += batchSuccesses
-      samples += currentBatchSize
-      val n                = samples
-      val x                = successes
-      val p0c              = math.max(1e-10, math.min(One - 1e-10, p0))
-      val p1c              = math.max(1e-10, math.min(One - 1e-10, p1))
-      val llr              = x * log(p1c / p0c) + (n - x) * log((One - p1c) / (One - p0c))
-      if (llr <= A) {
-        val p = successes.toDouble / samples
-        return HypothesisResult(false, p, confidenceLevel, samples)
-      } else if (llr >= B) {
-        val p = successes.toDouble / samples
-        return HypothesisResult(true, p, confidenceLevel, samples)
+      // Draw a sample
+      val sample = lhs.sample()
+      if (sample) successes += 1
+      samples += 1
+
+      // Compute log-likelihood ratio
+      // LLR = log(L(p₁)/L(p₀)) = Σᵢ log(p₁/p₀) + Σᵢ log((1-p₁)/(1-p₀))
+      //     = x·log(p₁/p₀) + (n-x)·log((1-p₁)/(1-p₀))
+      val x = successes
+      val n = samples
+
+      val llr = if (p0 > 0 && p0 < 1 && p1 > 0 && p1 < 1) {
+        x * log(p1 / p0) + (n - x) * log((1.0 - p1) / (1.0 - p0))
+      } else {
+        // Handle boundary cases
+        if (p0 == 0.0) {
+          if (x > 0) Double.PositiveInfinity else (n - x) * log(1.0 - p1)
+        } else if (p0 == 1.0) {
+          if (x < n) Double.NegativeInfinity else x * log(p1)
+        } else if (p1 == 0.0) {
+          if (x > 0) Double.NegativeInfinity else (n - x) * log(1.0 - p0)
+        } else { // p1 == 1.0
+          if (x < n) Double.PositiveInfinity else x * log(1.0 / p0)
+        }
       }
+
+      // Make decision based on boundaries
+      if (llr <= A) {
+        // Accept H₀: p ≤ threshold
+        val estimatedP = successes.toDouble / samples
+        return HypothesisResult(
+          decision = false,
+          probability = estimatedP,
+          confidenceLevel = 1.0 - alpha,
+          samplesUsed = samples
+        )
+      } else if (llr >= B) {
+        // Accept H₁: p > threshold
+        val estimatedP = successes.toDouble / samples
+        return HypothesisResult(
+          decision = true,
+          probability = estimatedP,
+          confidenceLevel = 1.0 - alpha,
+          samplesUsed = samples
+        )
+      }
+
+      // Continue sampling if A < LLR < B
     }
-    val finalP     = successes.toDouble / samples
-    HypothesisResult(finalP > threshold, finalP, confidenceLevel, samples)
+
+    // Fallback: use normal approximation if max samples reached
+    val pHat = successes.toDouble / samples
+    val se   = sqrt(pHat * (1.0 - pHat) / samples)
+
+    if (se > 0) {
+      // One-sided z-test: H₀: p ≤ threshold vs H₁: p > threshold
+      val z         = (pHat - threshold) / se
+      val criticalZ = approximateNormalQuantile(1.0 - alpha)
+      val decision  = z > criticalZ
+
+      HypothesisResult(
+        decision = decision,
+        probability = pHat,
+        confidenceLevel = 1.0 - alpha,
+        samplesUsed = samples
+      )
+    } else {
+      // Degenerate case: all samples identical
+      HypothesisResult(
+        decision = pHat > threshold,
+        probability = pHat,
+        confidenceLevel = 1.0 - alpha,
+        samplesUsed = samples
+      )
+    }
+  }
+
+  /** Approximates the quantile function of standard normal distribution using Beasley-Springer-Moro algorithm */
+  private def approximateNormalQuantile(p: Double): Double = {
+    require(p > 0 && p < 1, "Probability must be between 0 and 1 (exclusive)")
+
+    if (p < 0.5) {
+      -approximateNormalQuantile(1.0 - p)
+    } else {
+      val t  = sqrt(-2.0 * log(1.0 - p))
+      val c0 = 2.515517
+      val c1 = 0.802853
+      val c2 = 0.010328
+      val d1 = 1.432788
+      val d2 = 0.189269
+      val d3 = 0.001308
+
+      t - (c0 + c1 * t + c2 * t * t) / (1.0 + d1 * t + d2 * t * t + d3 * t * t * t)
+    }
   }
 }
 
@@ -748,32 +861,38 @@ extension [T](uncertain: Uncertain[T]) {
 
   /** Estimates the mode of the distribution by sampling.
     *
+    * This method is intended for discrete distributions (e.g., `Int`, `Boolean`, `String`). It finds the most frequently occurring sample; for continuous
+    * distributions (like `Uncertain.normal` or `Uncertain.uniform`), where each sample is likely to be unique, this method may produce a statistically
+    * meaningless result.
+    *
     * @param sampleCount
-    *   The number of samples to use for the estimation.
+    *   The number of samples to use for the estimation. Must be positive.
     * @return
-    *   An `Option[T]` containing the most frequent sample, or `None` if no samples are drawn.
+    *   The most frequent sample.
     * @see
     *   [[https://en.wikipedia.org/wiki/Mode_(statistics) Mode (statistics)]]
     */
-  def mode(sampleCount: Int = 1000): Option[T] = {
-    val samples = uncertain.take(sampleCount)
-    if (samples.isEmpty) None
-    else {
-      val counts = samples.groupBy(identity).view.mapValues(_.length)
-      counts.maxByOption(_._2).map(_._1)
-    }
+  def mode(sampleCount: Int = 1000): T = {
+    require(sampleCount > 0, "Sample count must be positive.")
+    uncertain
+      .take(sampleCount)
+      .groupBy(identity)
+      .view
+      .maxBy((_, elems) => elems.length)
+      ._1
   }
 
   /** Generates a frequency map (histogram) of sample values.
     *
     * @param sampleCount
-    *   The number of samples to use.
+    *   The number of samples to use. Must be positive.
     * @return
     *   A `Map[T, Int]` where keys are sample values and values are their frequencies.
     * @see
     *   [[https://en.wikipedia.org/wiki/Histogram Histogram]]
     */
   def histogram(sampleCount: Int = 1000): Map[T, Int] = {
+    require(sampleCount > 0, "Sample count must be positive.")
     val samples = uncertain.take(sampleCount)
     samples.groupBy(identity).view.mapValues(_.length).toMap
   }
@@ -781,13 +900,14 @@ extension [T](uncertain: Uncertain[T]) {
   /** Estimates the Shannon entropy of the distribution by sampling.
     *
     * @param sampleCount
-    *   The number of samples to use.
+    *   The number of samples to use. Must be positive.
     * @return
     *   The estimated entropy in bits.
     * @see
     *   [[https://en.wikipedia.org/wiki/Entropy_(information_theory) Entropy (information theory)]]
     */
   def entropy(sampleCount: Int = 1000): Double = {
+    require(sampleCount > 0, "Sample count must be positive.")
     val samples = uncertain.take(sampleCount)
     val counts  = samples.groupBy(identity).values.map(_.length)
     val total   = samples.length.toDouble
@@ -798,7 +918,7 @@ extension [T](uncertain: Uncertain[T]) {
   }
 }
 
-/** Numeric instance for Boolean to support statistical operations.
+/** Numeric instance for Boolean to support statistical operations
   *
   * @note
   *   dangerous to use in any generic context that assumes standard arithmetic laws!
@@ -819,18 +939,18 @@ extension [T](uncertain: Uncertain[T]) {
   *
   * Logic utilising this instance should *mainly* convert to/from Boolean values, and not perform arithmetic operations.
   */
-private given whiteLieBooleanNumeric: Numeric[Boolean] = new Numeric[Boolean] {
-  def compare(x: Boolean, y: Boolean): Int      = x.compareTo(y)
-  def fromInt(x: Int): Boolean                  = x != 0
-  def minus(x: Boolean, y: Boolean): Boolean    = x && !y // XOR Boolean algebra
-  def negate(x: Boolean): Boolean               = !x
-  def plus(x: Boolean, y: Boolean): Boolean     = x || y  // OR
-  def times(x: Boolean, y: Boolean): Boolean    = x && y
-  def toDouble(x: Boolean): Double              = if (x) Numeric[Double].one else Numeric[Double].zero
-  def toFloat(x: Boolean): Float                = if (x) Numeric[Float].one else Numeric[Float].zero
-  def toInt(x: Boolean): Int                    = if (x) Numeric[Int].one else Numeric[Int].zero
-  def toLong(x: Boolean): Long                  = if (x) Numeric[Long].one else Numeric[Long].zero
-  def parseString(str: String): Option[Boolean] = str.toBooleanOption
+private[this] given whiteLieBooleanNumeric: Numeric[Boolean] = new Numeric[Boolean] {
+  override def compare(x: Boolean, y: Boolean): Int      = x.compareTo(y)
+  override def fromInt(x: Int): Boolean                  = x != 0
+  override def minus(x: Boolean, y: Boolean): Boolean    = x ^ y  // Logical XOR
+  override def negate(x: Boolean): Boolean               = !x
+  override def plus(x: Boolean, y: Boolean): Boolean     = x || y // Logical OR
+  override def times(x: Boolean, y: Boolean): Boolean    = x && y // Logical AND
+  override def toDouble(x: Boolean): Double              = if (x) Numeric[Double].one else Numeric[Double].zero
+  override def toFloat(x: Boolean): Float                = if (x) Numeric[Float].one else Numeric[Float].zero
+  override def toInt(x: Boolean): Int                    = if (x) Numeric[Int].one else Numeric[Int].zero
+  override def toLong(x: Boolean): Long                  = if (x) Numeric[Long].one else Numeric[Long].zero
+  override def parseString(str: String): Option[Boolean] = str.toBooleanOption
 }
 
 /** Extension methods for numeric operations and statistics on `Uncertain[T]`. */
@@ -839,17 +959,17 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
   /** Estimates the expected value (mean) of the distribution by sampling.
     *
     * @param sampleCount
-    *   The number of samples to use for the estimation.
+    *   The number of samples to use for the estimation. Must be positive.
     * @return
     *   The estimated mean as a `Double`.
     * @see
     *   [[https://en.wikipedia.org/wiki/Expected_value Expected Value]]
     */
   def expectedValue(sampleCount: Int = 1000): Double = {
-    if (sampleCount <= 0) return Zero // TODO or Option.empty, or a precondition?
+    require(sampleCount > 0, "Sample count must be positive to calculate expected value.")
     val samples = lhs.take(sampleCount).map(num.toDouble)
     // Convert each sample to a Double *before* summing to ensure correct arithmetic,
-    // avoiding the ambiguous `Numeric[Boolean].plus` (which is defined as logical OR)
+    // avoiding the ambiguous `Numeric[Boolean].plus`
     val sum     = samples.sum
     sum / samples.length.toDouble
   }
@@ -857,26 +977,51 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
   /** An alias for `expectedValue`. */
   def mean(sampleCount: Int = 1000): Double = expectedValue(sampleCount)
 
-  /** Estimates the standard deviation of the distribution by sampling.
+  /** Estimates the population standard deviation of the distribution by sampling.
+    *
+    * This method assumes the drawn samples represent the entire population
+    *
+    * If you are estimating the standard deviation of a larger population from a smaller sample, use `sampleStandardDeviation`.
     *
     * @param sampleCount
-    *   The number of samples to use for the estimation.
+    *   The number of samples to use for the estimation. Must be at least 1.
     * @return
-    *   The estimated standard deviation as a `Double`.
+    *   The estimated population standard deviation as a `Double`
     * @see
-    *   [[https://en.wikipedia.org/wiki/Standard_deviation Standard Deviation]]
+    *   [[https://en.wikipedia.org/wiki/Standard_deviation#Population_standard_deviation_of_a_finite_population Population Standard Deviation]]
+    * @see
+    *   `sampleStandardDeviation`
     */
-  def standardDeviation(sampleCount: Int = 1000): Double = {
-    // TODO instead of NaN, requre >= 2 samples
-    if (sampleCount < 2) return Double.NaN // Sample variance is undefined for n < 2
+  def populationStandardDeviation(sampleCount: Int = 1000): Double = {
+    require(sampleCount > 0, "Sample count must be positive to calculate population standard deviation.")
+    val samples  = lhs.take(sampleCount).map(num.toDouble)
+    val meanVal  = samples.sum / samples.length
+    val variance = samples.foldLeft(Zero) { (acc, sample) =>
+      val diff = sample - meanVal
+      acc + diff * diff
+    } / samples.length // Use n for population standard deviation
 
-    val samples = lhs.take(sampleCount).map(num.toDouble)
+    sqrt(variance)
+  }
 
-    // 1. Calculate the mean from THIS sample set
-    val sum     = samples.sum
-    val meanVal = sum / samples.length
-
-    // 2. Calculate variance using the same samples and the calculated mean
+  /** Estimates the sample standard deviation of the distribution.
+    *
+    * This method applies Bessel's correction, using a denominator of `n-1` (where n is the sample count), which provides an unbiased estimate of the variance
+    * of a larger, underlying population.
+    *
+    * @param sampleCount
+    *   The number of samples to use for the estimation. Must be at least 2.
+    * @return
+    *   The estimated sample standard deviation as a `Double`.
+    * @see
+    *   [[https://en.wikipedia.org/wiki/Bessel's_correction Bessel's Correction]]
+    * @see
+    *   `populationStandardDeviation`
+    */
+  def sampleStandardDeviation(sampleCount: Int = 1000): Double = {
+    require(sampleCount >= 2, "Sample count must be at least 2 to calculate sample standard deviation.")
+    val samples  = lhs.take(sampleCount).map(num.toDouble)
+    val meanVal  = samples.sum / samples.length
     val variance = samples.foldLeft(Zero) { (acc, sample) =>
       val diff = sample - meanVal
       acc + diff * diff
@@ -884,6 +1029,22 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
 
     sqrt(variance)
   }
+
+  /** Estimates the standard deviation of the distribution by sampling. It delegates to [[sampleStandardDeviation]] (as opposed to
+    * [[populationStandardDeviation]]
+    *
+    * @param sampleCount
+    *   The number of samples to use for the estimation.
+    * @return
+    *   The estimated standard deviation as a `Double`.
+    * @see
+    *   `sampleStandardDeviation`
+    * @see
+    *   `populationStandardDeviation`
+    * @see
+    *   [[https://en.wikipedia.org/wiki/Standard_deviation Standard Deviation]]
+    */
+  def standardDeviation(sampleCount: Int = 1000): Double = sampleStandardDeviation(sampleCount)
 
   /** Performs sample-wise addition, preserving correlation. */
   def +(rhs: Uncertain[T]): Uncertain[T] = for {
@@ -919,24 +1080,24 @@ extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
   /** Estimates the confidence interval of the distribution using the percentile method on samples.
     *
     * @param confidence
-    *   The desired confidence level (e.g., 0.95 for a 95% CI).
+    *   The desired confidence level (e.g., 0.95 for a 95% CI). Must be between 0 and 1 (exclusive).
     * @param sampleCount
-    *   The number of samples to use for the estimation.
+    *   The number of samples to use for the estimation. Must be positive.
     * @return
-    *   A tuple `(lowerBound, upperBound)`. Returns `(None, None)` if not enough samples can be drawn.
+    *   A tuple `(lowerBound, upperBound)`.
     * @see
     *   [[https://en.wikipedia.org/wiki/Confidence_interval Confidence Interval]]
     */
-  def confidenceInterval(confidence: Double = 0.95, sampleCount: Int = 1000): Option[(T, T)] = {
-    if (sampleCount <= 0) return None
+  def confidenceInterval(confidence: Double = 0.95, sampleCount: Int = 1000): (T, T) = {
+    require(confidence > 0 && confidence < 1, "Confidence must be between 0 and 1 (exclusive).")
+    require(sampleCount > 0, "Sample count must be positive.")
     val samples    = uncertain.take(sampleCount).sorted
-    if (samples.isEmpty) return None
     val alpha      = One - confidence
     val lowerIndex = ((alpha / Two) * samples.length).toInt
     val upperIndex = ((One - alpha / Two) * samples.length).toInt - 1
     val safeLower  = math.max(0, math.min(lowerIndex, samples.length - 1))
     val safeUpper  = math.max(0, math.min(upperIndex, samples.length - 1))
-    Some((samples(safeLower), samples(safeUpper)))
+    (samples(safeLower), samples(safeUpper))
   }
 
   /** Estimates the Cumulative Distribution Function (CDF) at a given value. This is the probability that a sample will be less than or equal to `value`.
@@ -944,14 +1105,14 @@ extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
     * @param value
     *   The value at which to evaluate the CDF.
     * @param sampleCount
-    *   The number of samples to use for the estimation.
+    *   The number of samples to use for the estimation. Must be positive.
     * @return
     *   The estimated probability P(X <= value).
     * @see
     *   [[https://en.wikipedia.org/wiki/Cumulative_distribution_function Cumulative Distribution Function]]
     */
   def cdf(value: T, sampleCount: Int = 1000): Double = {
-    if (sampleCount <= 0) return Zero
+    require(sampleCount > 0, "Sample count must be positive to estimate CDF.")
     val samples   = uncertain.take(sampleCount)
     val successes = samples.count(ord.lteq(_, value))
     successes.toDouble / sampleCount
@@ -973,14 +1134,18 @@ extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
   * @param samplesUsed
   *   The number of samples required to reach a decision.
   */
-final case class HypothesisResult(decision: Boolean, probability: Double, confidenceLevel: Double, samplesUsed: Int)
+final case class HypothesisResult(
+  decision: Boolean,
+  probability: Double,
+  confidenceLevel: Double,
+  samplesUsed: Int
+)
 
 /** A context for a single top-level `sample()` call, used to memoize values from leaf nodes. This is the key to preserving correlation. When an expression like
   * `x - x` is evaluated, the `SampleContext` ensures that the node for `x` is only sampled once, and its value is reused.
   */
 final class SampleContext {
   private val memoizedValues: mutable.Map[UUID, Any] = mutable.Map.empty
-
-  def getValue[T](id: UUID): Option[T]      = memoizedValues.get(id).map(_.asInstanceOf[T])
-  def setValue[T](id: UUID, value: T): Unit = memoizedValues(id) = value
+  def getValue[T](id: UUID): Option[T]               = memoizedValues.get(id).map(_.asInstanceOf[T])
+  def setValue[T](id: UUID, value: T): Unit          = memoizedValues(id) = value
 }
