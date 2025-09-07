@@ -17,8 +17,12 @@ interesting!)
 ## Quick Start
 
 ```scala
-/** An example application demonstrating the library's features. */
+
+import mostly.uncertaintee.*
+
 object UncertainExample extends App {
+  // Randomness can be controlled by providing an implicit instance; if not provided, code will default to `new Random()`
+  given Random = new Random()
 
   // Basic distributions
   println("\n--- Basic Example ---")
@@ -33,23 +37,44 @@ object UncertainExample extends App {
     println("90% confident you're going fast")
   }
 
-
-
-  // shorthand for checking if P(condition) > 0.5.
+  // Implicit conditional: a shorthand for checking if P(condition) > 0.5.
   if ((speed > 4.0).isProbable()) {
     println("More likely than not you're going fast")
   }
+
+  // Statistics
   println(f"Expected time: ${time.expectedValue(5000)}%.2f")
   println(f"Speed std dev: ${speed.standardDeviation()}%.2f")
   speed.confidenceInterval().foreach { case (low, high) =>
     println(f"Speed 95%% Confidence Interval: ($low%.2f, $high%.2f)")
   }
 
+  // Map
+  println("--- `.map` preserves correlation ---")
   val x: Uncertain[Double] = Uncertain.normal(10, 2)
   val y: Uncertain[Double] = x.map(_ * 2)
-  val z: Uncertain[Double] = y - y + 20.0 // y won't be sampled twice even when referenced twice; it's memoized within the same computation graph.
+  val z: Uncertain[Double] = y - y + 20.0
   println(s"10 samples of (x*2 - x*2 + 20): ${z.take(10)}")
-}
+
+  // --- Demonstrating controllable randomness ---
+  println("\n--- Demonstrating Controllable Randomness ---")
+  println("By providing a 'given Random' with a fixed seed, we get reproducible results.")
+
+  def generateSeededSamples(): List[Double] = {
+    // This `given` is lexically scoped to this method.
+    // All `Uncertain` factory methods called within this scope will use this specific `Random` instance.
+    given seededRandom: Random = new Random(12345L)
+
+    val dist = Uncertain.normal(10, 2)
+    dist.take(5)
+  }
+
+  val samples1 = generateSeededSamples()
+  val samples2 = generateSeededSamples()
+
+  println(s"First run with seed 12345:  ${samples1.map(v => f"$v%.3f")}")
+  println(s"Second run with seed 12345: ${samples2.map(v => f"$v%.3f")}")
+  println(s"The results are identical: ${samples1 == samples2}")
 ```
 
 ### Technical details

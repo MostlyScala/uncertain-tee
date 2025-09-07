@@ -13,8 +13,11 @@ import scala.util.Random
   *
   * @example
   *   {{{
-  * // Define an uncertain speed with a normal distribution (mean 5.0, std dev 2.0)
-  * val speed = Uncertain.normal(5.0, 2.0)
+  * // A default source of randomness is provided via a `given`
+  * given Random = new Random()
+  *
+  * // Define an uncertain speed with a normal distribution (mean 5.0, std dev Two)
+  * val speed = Uncertain.normal(5.0, Two)
   *
   * // Perform a hypothesis test: is there a 90% probability that the speed exceeds 4.0?
   * if (speed.gt(4.0).probability(exceeds = 0.9)) {
@@ -63,6 +66,7 @@ sealed abstract class Uncertain[T] {
     *
     * @example
     *   {{{
+    * given Random = new Random()
     * val x = Uncertain.normal(10, 2)
     * val y = x - x // y.sample() will always return 0.0
     *   }}}
@@ -82,6 +86,7 @@ sealed abstract class Uncertain[T] {
     *
     * @example
     *   {{{
+    * given Random = new Random()
     * val speedMph = Uncertain.uniform(50, 70)
     * val speedKph = speedMph.map(_ * 1.60934) // Converts each speed sample to KPH
     *   }}}
@@ -104,6 +109,7 @@ sealed abstract class Uncertain[T] {
     * @example
     *   {{{
     * // Model the result of a coin flip determining which die to roll
+    * given Random = new Random()
     * val isHeads = Uncertain.bernoulli(0.5)
     * val rollResult = isHeads.flatMap { wasHeads =>
     * if (wasHeads) Uncertain.uniform(1, 6).map(_.round.toInt) // 6-sided die
@@ -125,7 +131,8 @@ sealed abstract class Uncertain[T] {
     *
     * @example
     *   {{{
-    * val speed = Uncertain.normal(5.0, 2.0)
+    * given Random = new Random()
+    * val speed = Uncertain.normal(5.0, Two)
     * val firstTenSamples = speed.iterator.take(10).toList
     *   }}}
     */
@@ -141,35 +148,99 @@ sealed abstract class Uncertain[T] {
   def take(n: Int): List[T] = iterator.take(n).toList
 }
 
+// precise doubles for common values utilized throughout the library
+private[this] val Zero: Double     = Numeric[Double].fromInt(0)
+private[this] val One: Double      = Numeric[Double].fromInt(1)
+private[this] val Two: Double      = Numeric[Double].fromInt(2)
+private[this] val MinusTwo: Double = Numeric[Double].fromInt(-2)
+
 // =================================================================================================
 // Computation Graph Nodes
 // =================================================================================================
 
-/** A node in the computation graph, representing an operation or a source of uncertainty. It is covariant. */
+/** A node in the computation graph, representing an operation or a source of uncertainty.
+  *
+  * This is the fundamental building block for lazy, correlated, uncertain values. Each `Uncertain` instance contains a reference to a `ComputationNode` that
+  * represents its structure. The graph is evaluated **only** when a sample is requested.
+  */
 sealed private[uncertaintee] trait ComputationNode[+T] {
-  def evaluate(context: SampleContext): T
-  def evaluate(): T = this.evaluate(new SampleContext())
+
+  /** Evaluates this node and any dependent nodes within a given sampling context.
+    *
+    * This is the core method that executes the computation graph.
+    *
+    * The `SampleContext` is passed down through the graph to ensure that any shared leaf nodes are sampled only once, thus preserving correlation.
+    *
+    * @param context
+    *   The context for the current sampling operation (used for memoization, to preserve correlation).
+    * @return
+    *   The resulting sampled value of type `T`.
+    */
+  def evaluate(context: SampleContext = new SampleContext): T
 }
 
-/** A leaf node in the computation graph, representing an original source of uncertainty (e.g., from `Uncertain.normal`). */
+/** A leaf node in the computation graph, representing an original source of uncertainty.
+  *
+  * This node holds a sampling function (`sampler`) and a unique identifier (`id`).
+  *
+  * It is the primary mechanism for preserving correlation.
+  *
+  * When evaluated, it first checks the `SampleContext` to see if it has already been sampled for the current evaluation run.
+  *
+  * @param id
+  *   A unique identifier for this specific source of uncertainty.
+  * @param sampler
+  *   The function that generates a single random sample (e.g., from a normal distribution) which will be memoized
+  * @tparam T
+  *   The type of the value being sampled.
+  */
 final private[uncertaintee] case class ComputationLeaf[T](id: UUID, sampler: () => T) extends ComputationNode[T] {
   override def evaluate(context: SampleContext): T =
-    context.getValue[T](id) match {
-      case Some(cached) => cached // Return memoized value if already sampled in this context
-      case None         =>
+    context
+      .getValue[T](id)
+      .getOrElse {
         val value = sampler()
         context.setValue(id, value) // Store the value for this context
         value
-    }
+      }
 }
 
-/** A unary operation node, used to implement `map`. It applies a function to the result of a source node. */
+/** A unary operation node, used to implement `.map()`.
+  *
+  * This node represents the application of a simple, deterministic function to the result of another node (`source`).
+  *
+  * It acts as a transformation step in the computation graph.
+  *
+  * @param source
+  *   The upstream node to evaluate first.
+  * @param operation
+  *   The function to apply to the result of the source node.
+  * @tparam A
+  *   The input type from the source node.
+  * @tparam B
+  *   The output type after the operation is applied.
+  */
 final private[uncertaintee] case class ComputationUnaryOperation[A, +B](source: ComputationNode[A], operation: A => B) extends ComputationNode[B] {
   override def evaluate(context: SampleContext): B = operation(source.evaluate(context))
 }
 
-/** A chaining operation node, used to implement `flatMap`. It evaluates a source node and then uses the result to generate a new computation graph, which is
-  * then evaluated within the same context.
+/** A chaining operation node, used to implement `.flatMap()`.
+  *
+  * This node is used for probabilistic dependencies, where the structure of a subsequent computation depends on the sampled value of a prior one.
+  *
+  * It evaluates its `source` node, uses the result to generate a new `Uncertain` value (and thus a new computation subgraph), and then evaluates that new
+  * subgraph within the *same* `SampleContext`.
+  *
+  * This ensures that correlations are preserved across the `flatMap` boundary.
+  *
+  * @param source
+  *   The upstream node to evaluate first.
+  * @param f
+  *   The function that takes the result of the source node and returns the next `Uncertain` value in the chain.
+  * @tparam A
+  *   The input type from the source node.
+  * @tparam B
+  *   The output type of the entire chained operation.
   */
 final private[uncertaintee] case class ComputationFlatMap[A, B](source: ComputationNode[A], f: A => Uncertain[B]) extends ComputationNode[B] {
   override def evaluate(context: SampleContext): B = {
@@ -194,8 +265,8 @@ object Uncertain {
     * @return
     *   A new `Uncertain[T]` instance.
     */
-  def apply[T](sampler: () => T): Uncertain[T] = {
-    val id = UUID.randomUUID()
+  def apply[T](sampler: () => T)(using random: Random = new Random()): Uncertain[T] = {
+    val id = UUID.nameUUIDFromBytes(random.nextBytes(16))
     val s  = sampler
     new Uncertain[T] {
       override val sampler: () => T         = s
@@ -230,16 +301,19 @@ object Uncertain {
     *   A list of `Uncertain` distributions to mix.
     * @param weights
     *   An optional list of weights for each component. If `None`, components are weighted equally.
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   A new `Uncertain[T]` representing the mixture distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Mixture_model Mixture Model]]
     */
-  def mixture[T](components: List[Uncertain[T]], weights: Option[List[Double]] = None): Uncertain[T] = {
+  // TODO take Map[Uncertain[T], Double] as input, or vararg with tuples of (Uncertain[T], Double),
+  //  and add a new method `mixture` that take a list of Uncertain[T] and calls this with equal weighting.
+  def mixture[T](components: List[Uncertain[T]], weights: Option[List[Double]] = None)(using random: Random = new Random()): Uncertain[T] = {
     require(components.nonEmpty, "At least one component is required for a mixture model.")
     if (components.length == 1) return components.head
-
-    val componentWeights = weights.getOrElse(List.fill(components.length)(1.0))
+    val componentWeights = weights.getOrElse(List.fill(components.length)(One))
     require(
       components.length == componentWeights.length,
       "The number of weights must match the number of components."
@@ -254,7 +328,7 @@ object Uncertain {
       }
       .toMap
 
-    val selector: Uncertain[Uncertain[T]] = categorical(outcomes)
+    val selector: Uncertain[Uncertain[T]] = categorical(outcomes)(using random)
 
     // 2. Use flatMap to evaluate the selected component within the same context.
     selector.flatMap(chosenComponent => chosenComponent)
@@ -269,14 +343,16 @@ object Uncertain {
     *   }}}
     * @param data
     *   The list of data points to sample from.
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Option[Uncertain[T]]` which is `None` if the data list is empty.
     * @see
     *   [[https://en.wikipedia.org/wiki/Empirical_distribution_function Empirical Distribution Function]]
     */
-  def empirical[T](data: List[T]): Option[Uncertain[T]] =
+  def empirical[T](data: List[T])(using random: Random = new Random()): Option[Uncertain[T]] =
     if (data.isEmpty) None
-    else Some(Uncertain(() => data(Random.nextInt(data.length))))
+    else Some(Uncertain(() => data(random.nextInt(data.length))))
 
   /** Creates a categorical distribution from a map of outcomes to their probabilities.
     *
@@ -286,24 +362,27 @@ object Uncertain {
     *   }}}
     * @param outcomes
     *   A map where keys are outcomes and values are their probabilities (weights).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An Uncertain[T]
     * @see
     *   [[https://en.wikipedia.org/wiki/Categorical_distribution Categorical Distribution]]
     */
-  def categorical[T](outcomes: Map[T, Double]): Uncertain[T] = {
+  def categorical[T](outcomes: Map[T, Double])(using random: Random = new Random()): Uncertain[T] = {
     require(outcomes.nonEmpty, "Categorical distribution must have at least one outcome")
-    require(math.abs(outcomes.values.sum - 1.0) < 1e-9, "Probabilities must sum to 1.0")
+    require(math.abs(outcomes.values.sum - One) < 1e-9, "Probabilities must sum to 1.0")
 
     val outcomesList    = outcomes.toList
-    val cumulativeProbs = outcomesList.map(_._2).scanLeft(0.0)(_ + _).tail
+    val cumulativeProbs = outcomesList.map(_._2).scanLeft(Zero)(_ + _).tail
     val paired          = outcomesList.map(_._1).zip(cumulativeProbs)
 
     val sampler: () => T = () => {
-      val u = Random.nextDouble()
+      val u = random.nextDouble()
       paired.find { case (_, cumProb) => u <= cumProb }.get._1
     }
-    Uncertain(sampler, ComputationLeaf[T](UUID.randomUUID(), sampler))
+
+    Uncertain(sampler)
   }
 
   /** Creates a Normal (Gaussian) distribution.
@@ -312,17 +391,20 @@ object Uncertain {
     *   The mean (μ) of the distribution.
     * @param standardDeviation
     *   The standard deviation (σ) of the distribution.
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Double]` representing the normal distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Normal_distribution Normal Distribution]]
     */
-  def normal(mean: Double, standardDeviation: Double): Uncertain[Double] =
+  def normal(mean: Double, standardDeviation: Double)(using random: Random = new Random()): Uncertain[Double] =
     Uncertain { () =>
       // Box-Muller transform
-      val u1 = Iterator.continually(Random.nextDouble()).filter(d => d != 0.0 && d != 1.0).take(1).toList.head
-      val u2 = Iterator.continually(Random.nextDouble()).filter(d => d != 0.0 && d != 1.0).take(1).toList.head
-      val z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * Pi * u2)
+      var u1 = Zero
+      while (u1 == Zero) u1 = random.nextDouble() // Avoid log(0) which is -Infinity
+      val u2 = random.nextDouble()
+      val z0 = sqrt(MinusTwo * log(u1)) * cos(Two * Pi * u2)
       mean + standardDeviation * z0
     }
 
@@ -332,37 +414,47 @@ object Uncertain {
     *   The lower bound of the distribution (inclusive).
     * @param max
     *   The upper bound of the distribution (exclusive).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Double]` representing the uniform distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Continuous_uniform_distribution Continuous Uniform Distribution]]
     */
-  def uniform(min: Double, max: Double): Uncertain[Double] =
-    Uncertain(() => min + Random.nextDouble() * (max - min))
+  def uniform(min: Double, max: Double)(using random: Random = new Random()): Uncertain[Double] =
+    Uncertain(() => min + random.nextDouble() * (max - min))
 
   /** Creates an Exponential distribution.
     *
     * @param rate
     *   The rate parameter (λ).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Double]` representing the exponential distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Exponential_distribution Exponential Distribution]]
     */
-  def exponential(rate: Double): Uncertain[Double] =
-    Uncertain(() => -log(Random.nextDouble()) / rate)
+  def exponential(rate: Double)(using random: Random = new Random()): Uncertain[Double] =
+    Uncertain { () =>
+      var u = Zero
+      while (u == Zero) u = random.nextDouble() // Avoid log(0) which is -Infinity
+      -log(u) / rate
+    }
 
   /** Creates a Bernoulli distribution, which is a distribution of a single boolean trial.
     *
     * @param probability
     *   The probability of the outcome being `true`.
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Boolean]`.
     * @see
     *   [[https://en.wikipedia.org/wiki/Bernoulli_distribution Bernoulli Distribution]]
     */
-  def bernoulli(probability: Double): Uncertain[Boolean] =
-    Uncertain(() => Random.nextDouble() < probability)
+  def bernoulli(probability: Double)(using random: Random = new Random()): Uncertain[Boolean] =
+    Uncertain(() => random.nextDouble() < probability)
 
   /** Creates a Kumaraswamy distribution.
     *
@@ -370,18 +462,20 @@ object Uncertain {
     *   The `a` shape parameter (> 0).
     * @param b
     *   The `b` shape parameter (> 0).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Double]` representing the Kumaraswamy distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Kumaraswamy_distribution Kumaraswamy Distribution]]
     */
-  def kumaraswamy(a: Double, b: Double): Uncertain[Double] = {
+  def kumaraswamy(a: Double, b: Double)(using random: Random = new Random()): Uncertain[Double] = {
     require(a > 0 && b > 0, "Kumaraswamy distribution parameters must be positive")
-    val reciprocalA = 1.0 / a
-    val reciprocalB = 1.0 / b
+    val reciprocalA = One / a
+    val reciprocalB = One / b
     Uncertain { () =>
-      val u = Random.nextDouble() * (1.0 - Double.MinPositiveValue) + Double.MinPositiveValue
-      pow(1.0 - pow(1.0 - u, reciprocalB), reciprocalA)
+      val u = random.nextDouble() * (One - Double.MinPositiveValue) + Double.MinPositiveValue
+      pow(One - pow(One - u, reciprocalB), reciprocalA)
     }
   }
 
@@ -389,16 +483,18 @@ object Uncertain {
     *
     * @param scale
     *   The scale parameter (σ > 0).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Double]` representing the Rayleigh distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Rayleigh_distribution Rayleigh Distribution]]
     */
-  def rayleigh(scale: Double): Uncertain[Double] = {
+  def rayleigh(scale: Double)(using random: Random = new Random()): Uncertain[Double] = {
     require(scale > 0, "Rayleigh distribution scale parameter must be positive")
     Uncertain { () =>
-      val u = Random.nextDouble() * (1.0 - Double.MinPositiveValue) + Double.MinPositiveValue
-      scale * sqrt(-2.0 * log(1.0 - u))
+      val u = random.nextDouble() * (One - Double.MinPositiveValue) + Double.MinPositiveValue
+      scale * sqrt(-Two * log(One - u))
     }
   }
 
@@ -408,32 +504,40 @@ object Uncertain {
     *   The number of trials (n).
     * @param probability
     *   The probability of success for each trial (p).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Int]` representing the binomial distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Binomial_distribution Binomial Distribution]]
     */
-  def binomial(trials: Int, probability: Double): Uncertain[Int] =
-    Uncertain(() => (0 until trials).count(_ => Random.nextDouble() < probability))
+  def binomial(trials: Int, probability: Double)(using random: Random = new Random()): Uncertain[Int] =
+    Uncertain(() => (0 until trials).count(_ => random.nextDouble() < probability))
 
   /** Creates a Poisson distribution, expressing the probability of a given number of events occurring in a fixed interval.
     *
     * @param lambda
     *   The average number of events (λ).
+    * @param random
+    *   The source of randomness, provided implicitly.
     * @return
     *   An `Uncertain[Int]` representing the Poisson distribution.
     * @see
     *   [[https://en.wikipedia.org/wiki/Poisson_distribution Poisson Distribution]]
     */
-  def poisson(lambda: Double): Uncertain[Int] = Uncertain { () =>
-    val L = exp(-lambda)
-    var k = 0
-    var p = 1.0
-    while (p > L) {
-      k += 1
-      p *= Random.nextDouble()
+  def poisson(lambda: Double)(using random: Random = new Random()): Uncertain[Int] = Uncertain { () =>
+    if (lambda == Zero) {
+      0
+    } else {
+      val L = exp(-lambda)
+      var k = 0
+      var p = One
+      while (p > L) {
+        k += 1
+        p *= random.nextDouble()
+      }
+      k - 1
     }
-    k - 1
   }
 }
 
@@ -448,6 +552,7 @@ extension [T](uncertain: Uncertain[T]) {
     *
     * @example
     *   {{{
+    * given Random = new Random()
     * val x = Uncertain.bernoulli(0.5)
     * val areSame = x === x // always true
     *   }}}
@@ -539,6 +644,7 @@ extension (lhs: Uncertain[Boolean]) {
     *
     * @example
     *   {{{
+    * given Random = new Random()
     * val speed = Uncertain.normal(65, 5)
     * val isSpeeding = speed > 60
     * // Test the hypothesis: Is the probability of speeding > 80%?
@@ -557,7 +663,7 @@ extension (lhs: Uncertain[Boolean]) {
     * @see
     *   [[https://en.wikipedia.org/wiki/Hypothesis_testing Hypothesis Testing]]
     */
-  def probability(exceeds: Double, confidenceLevel: Double = 0.95, maxSamples: Int = 10000): Boolean = {
+  def probability(exceeds: Double, confidenceLevel: Double = 0.95, maxSamples: Int = 10_000): Boolean = {
     val result = evaluateHypothesis(exceeds, confidenceLevel, maxSamples)
     result.decision
   }
@@ -566,6 +672,7 @@ extension (lhs: Uncertain[Boolean]) {
     *
     * @example
     *   {{{
+    * given Random = new Random()
     * val speed = Uncertain.normal(65, 10)
     * if ((speed > 68).isProbable()) {
     * println("It is more likely than not that the speed is over 68.")
@@ -605,12 +712,12 @@ extension (lhs: Uncertain[Boolean]) {
     beta: Option[Double] = None,
     batchSize: Int = 10
   ): HypothesisResult = {
-    val alphaError = alpha.getOrElse(1.0 - confidenceLevel)
+    val alphaError = alpha.getOrElse(One - confidenceLevel)
     val betaError  = beta.getOrElse(alphaError)
-    val A          = log(betaError / (1.0 - alphaError))
-    val B          = log((1.0 - betaError) / alphaError)
-    val p0         = math.max(0.0, math.min(1.0, threshold - epsilon))
-    val p1         = math.max(0.0, math.min(1.0, threshold + epsilon))
+    val A          = log(betaError / (One - alphaError))
+    val B          = log((One - betaError) / alphaError)
+    val p0         = math.max(Zero, math.min(One, threshold - epsilon))
+    val p1         = math.max(Zero, math.min(One, threshold + epsilon))
     var successes  = 0
     var samples    = 0
     while (samples < maxSamples) {
@@ -620,9 +727,9 @@ extension (lhs: Uncertain[Boolean]) {
       samples += currentBatchSize
       val n                = samples
       val x                = successes
-      val p0c              = math.max(1e-10, math.min(1.0 - 1e-10, p0))
-      val p1c              = math.max(1e-10, math.min(1.0 - 1e-10, p1))
-      val llr              = x * log(p1c / p0c) + (n - x) * log((1.0 - p1c) / (1.0 - p0c))
+      val p0c              = math.max(1e-10, math.min(One - 1e-10, p0))
+      val p1c              = math.max(1e-10, math.min(One - 1e-10, p1))
+      val llr              = x * log(p1c / p0c) + (n - x) * log((One - p1c) / (One - p0c))
       if (llr <= A) {
         val p = successes.toDouble / samples
         return HypothesisResult(false, p, confidenceLevel, samples)
@@ -684,11 +791,46 @@ extension [T](uncertain: Uncertain[T]) {
     val samples = uncertain.take(sampleCount)
     val counts  = samples.groupBy(identity).values.map(_.length)
     val total   = samples.length.toDouble
-    counts.foldLeft(0.0) { (acc, count) =>
+    counts.foldLeft(Zero) { (acc, count) =>
       val p = count / total
       acc - (if (p > 0) p * log(p) / log(2) else 0)
     }
   }
+}
+
+/** Numeric instance for Boolean to support statistical operations.
+  *
+  * @note
+  *   dangerous to use in any generic context that assumes standard arithmetic laws!
+  *
+  * Maps Boolean values to their standard numeric representation:
+  *   - case true -> 1
+  *   - case false -> 0
+  *
+  * This enables statistical methods like mean() and expectedValue() on Uncertain[Boolean].
+  *
+  * This is not a true numeric algebra, because Boolean algebra breaks on addition/subtraction/etc.
+  *
+  * If we wanted plus to be arithmetic addition: true would be 1, false would be 0. Then the operations would look like this:
+  *
+  *   - false + false -> 0 + 0 = 0
+  *   - false * true + false -> 1 + 0 = 1
+  *   - true * true + true -> 1 + 1 = 2 -> Nonsensical
+  *
+  * Logic utilising this instance should *mainly* convert to/from Boolean values, and not perform arithmetic operations.
+  */
+private given whiteLieBooleanNumeric: Numeric[Boolean] = new Numeric[Boolean] {
+  def compare(x: Boolean, y: Boolean): Int      = x.compareTo(y)
+  def fromInt(x: Int): Boolean                  = x != 0
+  def minus(x: Boolean, y: Boolean): Boolean    = x && !y // XOR Boolean algebra
+  def negate(x: Boolean): Boolean               = !x
+  def plus(x: Boolean, y: Boolean): Boolean     = x || y  // OR
+  def times(x: Boolean, y: Boolean): Boolean    = x && y
+  def toDouble(x: Boolean): Double              = if (x) Numeric[Double].one else Numeric[Double].zero
+  def toFloat(x: Boolean): Float                = if (x) Numeric[Float].one else Numeric[Float].zero
+  def toInt(x: Boolean): Int                    = if (x) Numeric[Int].one else Numeric[Int].zero
+  def toLong(x: Boolean): Long                  = if (x) Numeric[Long].one else Numeric[Long].zero
+  def parseString(str: String): Option[Boolean] = str.toBooleanOption
 }
 
 /** Extension methods for numeric operations and statistics on `Uncertain[T]`. */
@@ -704,10 +846,12 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
     *   [[https://en.wikipedia.org/wiki/Expected_value Expected Value]]
     */
   def expectedValue(sampleCount: Int = 1000): Double = {
-    val samples = lhs.take(sampleCount)
-    if (samples.isEmpty) return 0.0
-    val sum     = samples.foldLeft(num.zero)((acc, x) => num.plus(acc, x))
-    num.toDouble(sum) / samples.length
+    if (sampleCount <= 0) return Zero // TODO or Option.empty, or a precondition?
+    val samples = lhs.take(sampleCount).map(num.toDouble)
+    // Convert each sample to a Double *before* summing to ensure correct arithmetic,
+    // avoiding the ambiguous `Numeric[Boolean].plus` (which is defined as logical OR)
+    val sum     = samples.sum
+    sum / samples.length.toDouble
   }
 
   /** An alias for `expectedValue`. */
@@ -726,15 +870,15 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
     // TODO instead of NaN, requre >= 2 samples
     if (sampleCount < 2) return Double.NaN // Sample variance is undefined for n < 2
 
-    val samples = lhs.take(sampleCount)
+    val samples = lhs.take(sampleCount).map(num.toDouble)
 
     // 1. Calculate the mean from THIS sample set
-    val sum     = samples.foldLeft(num.zero)((acc, x) => num.plus(acc, x))
-    val meanVal = num.toDouble(sum) / samples.length
+    val sum     = samples.sum
+    val meanVal = sum / samples.length
 
     // 2. Calculate variance using the same samples and the calculated mean
-    val variance = samples.foldLeft(0.0) { (acc, sample) =>
-      val diff = num.toDouble(sample) - meanVal
+    val variance = samples.foldLeft(Zero) { (acc, sample) =>
+      val diff = sample - meanVal
       acc + diff * diff
     } / (samples.length - 1) // Use n-1 for sample standard deviation
 
@@ -787,9 +931,9 @@ extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
     if (sampleCount <= 0) return None
     val samples    = uncertain.take(sampleCount).sorted
     if (samples.isEmpty) return None
-    val alpha      = 1.0 - confidence
-    val lowerIndex = ((alpha / 2.0) * samples.length).toInt
-    val upperIndex = ((1.0 - alpha / 2.0) * samples.length).toInt - 1
+    val alpha      = One - confidence
+    val lowerIndex = ((alpha / Two) * samples.length).toInt
+    val upperIndex = ((One - alpha / Two) * samples.length).toInt - 1
     val safeLower  = math.max(0, math.min(lowerIndex, samples.length - 1))
     val safeUpper  = math.max(0, math.min(upperIndex, samples.length - 1))
     Some((samples(safeLower), samples(safeUpper)))
@@ -807,7 +951,7 @@ extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
     *   [[https://en.wikipedia.org/wiki/Cumulative_distribution_function Cumulative Distribution Function]]
     */
   def cdf(value: T, sampleCount: Int = 1000): Double = {
-    if (sampleCount <= 0) return 0.0
+    if (sampleCount <= 0) return Zero
     val samples   = uncertain.take(sampleCount)
     val successes = samples.count(ord.lteq(_, value))
     successes.toDouble / sampleCount
@@ -839,40 +983,4 @@ final class SampleContext {
 
   def getValue[T](id: UUID): Option[T]      = memoizedValues.get(id).map(_.asInstanceOf[T])
   def setValue[T](id: UUID, value: T): Unit = memoizedValues(id) = value
-}
-
-/** An example application demonstrating the library's features. */
-object UncertainExample extends App {
-  // Showcasing the fixed correlation for map
-  println("--- Demonstrating map correlation fix ---")
-  val x: Uncertain[Double] = Uncertain.normal(10, 2)
-  val y: Uncertain[Double] = x.map(_ * 2) // y is now properly correlated with x
-  // z should always be exactly 20, because the same sample from x is used to derive y.
-  val z: Uncertain[Double] = y - y + 20.0
-  println(s"10 samples of (x*2 - x*2 + 20): ${z.take(10)}")
-
-  // Basic distributions
-  println("\n--- Basic Example ---")
-  val speed    = Uncertain.normal(5.0, 2.0)
-  val distance = Uncertain.uniform(100.0, 200.0)
-
-  // Arithmetic operations are composed into a computation graph.
-  val time = distance / speed
-
-  // Conditional probability using hypothesis testing with symbolic operators.
-  if ((speed > 4.0).probability(exceeds = 0.9)) {
-    println("90% confident you're going fast")
-  }
-
-  // Implicit conditional: a shorthand for checking if P(condition) > 0.5.
-  if ((speed > 4.0).isProbable()) {
-    println("More likely than not you're going fast")
-  }
-
-  // Statistics
-  println(f"Expected time: ${time.expectedValue(5000)}%.2f")
-  println(f"Speed std dev: ${speed.standardDeviation()}%.2f")
-  speed.confidenceInterval().foreach { case (low, high) =>
-    println(f"Speed 95%% Confidence Interval: ($low%.2f, $high%.2f)")
-  }
 }
