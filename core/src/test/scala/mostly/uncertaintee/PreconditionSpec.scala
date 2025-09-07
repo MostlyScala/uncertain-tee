@@ -12,7 +12,7 @@ class PreconditionSpec extends RngSuite {
 
   // --- Top-Level Method Preconditions ---
 
-  test("`take` should throw IllegalArgumentException for negative sample counts") {
+  rngTest("`take` should throw IllegalArgumentException for negative sample counts") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.take(-1)
     }
@@ -20,69 +20,69 @@ class PreconditionSpec extends RngSuite {
 
   // --- Factory Method Preconditions ---
 
-  test("`mixture` should throw IllegalArgumentException for empty component map") {
+  rngTest("`mixture` should throw IllegalArgumentException for empty component map") {
     intercept[IllegalArgumentException] {
       Uncertain.mixture(Map.empty[Uncertain[Double], Double])
     }
   }
 
-  test("`mixture` should throw IllegalArgumentException for negative weights") {
+  rngTest("`mixture` should throw IllegalArgumentException for negative weights") {
     intercept[IllegalArgumentException] {
       val components = Map(Uncertain.point(1.0) -> 1.0, Uncertain.point(2.0) -> -0.5)
       Uncertain.mixture(components)
     }
   }
 
-  test("`mixture` should throw IllegalArgumentException if weights sum to zero") {
+  rngTest("`mixture` should throw IllegalArgumentException if weights sum to zero") {
     intercept[IllegalArgumentException] {
       val components = Map(Uncertain.point(1.0) -> 0.0, Uncertain.point(2.0) -> 0.0)
       Uncertain.mixture(components)
     }
   }
 
-  test("`equalMixture` should throw IllegalArgumentException for empty component list") {
+  rngTest("`equalMixture` should throw IllegalArgumentException for empty component list") {
     intercept[IllegalArgumentException] {
       Uncertain.equalMixture(List.empty[Uncertain[Double]])
     }
   }
 
-  test("`empirical` should throw IllegalArgumentException for empty data list") {
+  rngTest("`empirical` should throw IllegalArgumentException for empty data list") {
     intercept[IllegalArgumentException] {
       Uncertain.empirical(List.empty[Double])
     }
   }
 
-  test("`categorical` should throw IllegalArgumentException for empty outcomes map") {
+  rngTest("`categorical` should throw IllegalArgumentException for empty outcomes map") {
     intercept[IllegalArgumentException] {
       Uncertain.categorical(Map.empty[String, Double])
     }
   }
 
-  test("`categorical` should throw IllegalArgumentException for negative probabilities") {
+  rngTest("`categorical` should throw IllegalArgumentException for negative probabilities") {
     intercept[IllegalArgumentException] {
       Uncertain.categorical(Map("A" -> 1.0, "B" -> -0.5))
     }
   }
 
-  test("`categorical` should throw IllegalArgumentException if probabilities sum to zero") {
+  rngTest("`categorical` should throw IllegalArgumentException if probabilities sum to zero") {
     intercept[IllegalArgumentException] {
       Uncertain.categorical(Map("A" -> 0.0, "B" -> 0.0))
     }
   }
 
-  test("`normal` should throw IllegalArgumentException for negative standard deviation") {
+  rngTest("`normal` should throw IllegalArgumentException for negative standard deviation") {
     intercept[IllegalArgumentException] {
       Uncertain.normal(0.0, -1.0)
     }
   }
 
-  test("`uniform` should throw IllegalArgumentException if max is less than min") {
+  rngTest("`uniform` should throw IllegalArgumentException if max is less than min") {
     intercept[IllegalArgumentException] {
       Uncertain.uniform(10.0, 0.0)
     }
   }
 
-  test("`exponential` should throw IllegalArgumentException for non-positive rate") {
+  rngTest("`exponential` should throw IllegalArgumentException for non-positive rate") {
     intercept[IllegalArgumentException] {
       Uncertain.exponential(0.0)
     }
@@ -91,7 +91,7 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`bernoulli` should throw IllegalArgumentException for probability outside [0, 1]") {
+  rngTest("`bernoulli` should throw IllegalArgumentException for probability outside [0, 1]") {
     intercept[IllegalArgumentException] {
       Uncertain.bernoulli(-0.1)
     }
@@ -100,7 +100,7 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`kumaraswamy` should throw IllegalArgumentException for non-positive parameters") {
+  rngTest("`kumaraswamy` should throw IllegalArgumentException for non-positive parameters") {
     intercept[IllegalArgumentException] {
       Uncertain.kumaraswamy(0.0, 1.0)
     }
@@ -109,7 +109,7 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`rayleigh` should throw IllegalArgumentException for non-positive scale") {
+  rngTest("`rayleigh` should throw IllegalArgumentException for non-positive scale") {
     intercept[IllegalArgumentException] {
       Uncertain.rayleigh(0.0)
     }
@@ -118,13 +118,13 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`binomial` should throw IllegalArgumentException for negative trials") {
+  rngTest("`binomial` should throw IllegalArgumentException for negative trials") {
     intercept[IllegalArgumentException] {
       Uncertain.binomial(-1, 0.5)
     }
   }
 
-  test("`binomial` should throw IllegalArgumentException for probability outside [0, 1]") {
+  rngTest("`binomial` should throw IllegalArgumentException for probability outside [0, 1]") {
     intercept[IllegalArgumentException] {
       Uncertain.binomial(10, -0.1)
     }
@@ -133,7 +133,7 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`poisson` should throw IllegalArgumentException for negative lambda") {
+  rngTest("`poisson` should throw IllegalArgumentException for negative lambda") {
     intercept[IllegalArgumentException] {
       Uncertain.poisson(-1.0)
     }
@@ -141,7 +141,7 @@ class PreconditionSpec extends RngSuite {
 
   // --- Extension Method Preconditions ---
 
-  test("`probability` should throw IllegalArgumentException for invalid `exceeds` value") {
+  rngTest("`probability` should throw IllegalArgumentException for invalid `exceeds` value") {
     intercept[IllegalArgumentException] {
       dummyUncertainBoolean.probability(exceeds = -0.1)
     }
@@ -150,49 +150,49 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`probability` should throw IllegalArgumentException for non-positive `maxSamples`") {
+  rngTest("`probability` should throw IllegalArgumentException for non-positive `maxSamples`") {
     intercept[IllegalArgumentException] {
       dummyUncertainBoolean.probability(exceeds = 0.5, maxSamples = 0)
     }
   }
-  
-  test("`mode` should throw IllegalArgumentException for non-positive sample count") {
+
+  rngTest("`mode` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.mode(0)
     }
   }
 
-  test("`histogram` should throw IllegalArgumentException for non-positive sample count") {
+  rngTest("`histogram` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.histogram(0)
     }
   }
 
-  test("`entropy` should throw IllegalArgumentException for non-positive sample count") {
+  rngTest("`entropy` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.entropy(0)
     }
   }
 
-  test("`expectedValue` should throw IllegalArgumentException for non-positive sample count") {
+  rngTest("`expectedValue` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.expectedValue(0)
     }
   }
 
-  test("`populationStandardDeviation` should throw IllegalArgumentException for non-positive sample count") {
+  rngTest("`populationStandardDeviation` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.populationStandardDeviation(0)
     }
   }
 
-  test("`sampleStandardDeviation` should throw IllegalArgumentException for sample count less than 2") {
+  rngTest("`standardDeviation` should throw IllegalArgumentException for sample count less than 2") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.sampleStandardDeviation(1)
+      dummyUncertainDouble.standardDeviation(1)
     }
   }
 
-  test("`confidenceInterval` should throw IllegalArgumentException for invalid confidence level") {
+  rngTest("`confidenceInterval` should throw IllegalArgumentException for invalid confidence level") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.confidenceInterval(confidence = 0.0)
     }
@@ -201,13 +201,13 @@ class PreconditionSpec extends RngSuite {
     }
   }
 
-  test("`confidenceInterval` should throw IllegalArgumentException for non-positive sample count") {
+  rngTest("`confidenceInterval` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.confidenceInterval(sampleCount = 0)
     }
   }
 
-  test("`cdf` should throw IllegalArgumentException for non-positive sample count") {
+  rngTest("`cdf` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       dummyUncertainDouble.cdf(0.5, 0)
     }
