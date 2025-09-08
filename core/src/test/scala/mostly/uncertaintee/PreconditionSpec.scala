@@ -6,20 +6,12 @@ import scala.util.Random
 
 class PreconditionSpec extends RngSuite {
 
-  // A dummy uncertain value for testing extension methods
-  private val dummyUncertainBoolean: Uncertain[Boolean] = Uncertain.bernoulli(0.5)(using new Random(42L))
-  private val dummyUncertainDouble: Uncertain[Double] = Uncertain.uniform(0.0, 1.0)(using new Random(42L))
-
-  // --- Top-Level Method Preconditions ---
-
   rngTest("`take` should throw IllegalArgumentException for negative sample counts") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.take(-1)
+      Uncertain.uniform(0.0, 1.0).take(-1)
     }
   }
-
-  // --- Factory Method Preconditions ---
-
+  
   rngTest("`mixture` should throw IllegalArgumentException for empty component map") {
     intercept[IllegalArgumentException] {
       Uncertain.mixture(Map.empty[Uncertain[Double], Double])
@@ -143,74 +135,73 @@ class PreconditionSpec extends RngSuite {
 
   rngTest("`probability` should throw IllegalArgumentException for invalid `exceeds` value") {
     intercept[IllegalArgumentException] {
-      dummyUncertainBoolean.probability(exceeds = -0.1)
+      Uncertain.bernoulli(0.5).probability(exceeds = -0.1)
     }
     intercept[IllegalArgumentException] {
-      dummyUncertainBoolean.probability(exceeds = 1.1)
+      Uncertain.bernoulli(0.5).probability(exceeds = 1.1)
     }
   }
 
   rngTest("`probability` should throw IllegalArgumentException for non-positive `maxSamples`") {
     intercept[IllegalArgumentException] {
-      dummyUncertainBoolean.probability(exceeds = 0.5, maxSamples = 0)
+      Uncertain.bernoulli(0.5).probability(exceeds = 0.5, maxSamples = 0)
     }
   }
 
   rngTest("`mode` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.mode(0)
+      Uncertain.uniform(0.0, 1.0).mode(0)
     }
   }
 
   rngTest("`histogram` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.histogram(0)
+      Uncertain.uniform(0.0, 1.0).histogram(0)
     }
   }
 
   rngTest("`entropy` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.entropy(0)
+      Uncertain.uniform(0.0, 1.0).entropy(0)
     }
   }
 
   rngTest("`expectedValue` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.expectedValue(0)
+      Uncertain.uniform(0.0, 1.0).expectedValue(0)
     }
   }
 
   rngTest("`populationStandardDeviation` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.populationStandardDeviation(0)
+      Uncertain.uniform(0.0, 1.0).populationStandardDeviation(0)
     }
   }
 
   rngTest("`standardDeviation` should throw IllegalArgumentException for sample count less than 2") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.standardDeviation(1)
+      Uncertain.uniform(0.0, 1.0).standardDeviation(1)
     }
   }
 
   rngTest("`confidenceInterval` should throw IllegalArgumentException for invalid confidence level") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.confidenceInterval(confidence = 0.0)
+      Uncertain.uniform(0.0, 1.0).confidenceInterval(confidence = 0.0)
     }
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.confidenceInterval(confidence = 1.0)
+      Uncertain.uniform(0.0, 1.0).confidenceInterval(confidence = 1.0)
     }
   }
 
   rngTest("`confidenceInterval` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.confidenceInterval(sampleCount = 0)
+      Uncertain.uniform(0.0, 1.0).confidenceInterval(sampleCount = 0)
     }
   }
 
   rngTest("`cdf` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      dummyUncertainDouble.cdf(0.5, 0)
+      Uncertain.uniform(0.0, 1.0).cdf(0.5, 0)
     }
   }
 }
-

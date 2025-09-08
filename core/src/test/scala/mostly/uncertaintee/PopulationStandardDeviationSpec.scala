@@ -7,11 +7,13 @@ import scala.math.{abs, pow, sqrt}
 class PopulationStandardDeviationSpec extends RngSuite {
 
   private val sampleCount = 100_000
-  private val tolerance   = 0.05
+  private val tolerance   = 0.01
 
   // --- Statistical Properties Tests ---
 
-  rngTest("populationStandardDeviation for a normal distribution should approximate the theoretical standard deviation") {
+  rngTest(
+    "populationStandardDeviation for a normal distribution should approximate the theoretical standard deviation"
+  ) {
     val mean       = 10.0
     val stdDev     = 2.5
     val normalDist = Uncertain.normal(mean, stdDev)
@@ -21,11 +23,14 @@ class PopulationStandardDeviationSpec extends RngSuite {
     val theoreticalStdDev = stdDev
     val estimatedStdDev   = normalDist.populationStandardDeviation(sampleCount)
 
-    val hint = s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for N($mean, $stdDev)."
+    val hint =
+      s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for N($mean, $stdDev)."
     assert(abs(estimatedStdDev - theoreticalStdDev) < tolerance, hint)
   }
 
-  rngTest("populationStandardDeviation for a uniform distribution should approximate its theoretical standard deviation") {
+  rngTest(
+    "populationStandardDeviation for a uniform distribution should approximate its theoretical standard deviation"
+  ) {
     val min         = 0.0
     val max         = 12.0
     val uniformDist = Uncertain.uniform(min, max)
@@ -37,7 +42,8 @@ class PopulationStandardDeviationSpec extends RngSuite {
     val theoreticalStdDev   = sqrt(theoreticalVariance)
     val estimatedStdDev     = uniformDist.populationStandardDeviation(sampleCount)
 
-    val hint = s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for U($min, $max)."
+    val hint =
+      s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for U($min, $max)."
     assert(abs(estimatedStdDev - theoreticalStdDev) < tolerance, hint)
   }
 

@@ -8,7 +8,7 @@ class StandardDeviationSpec extends RngSuite {
 
   private val sampleCountForTrials = 100 // Smallish sample size to highlight the effect of Bessel's correction.
   private val numTrials            = 10_000
-  private val tolerance            = 0.05
+  private val tolerance            = 0.01
 
   // --- Bessel's Correction Test ---
 

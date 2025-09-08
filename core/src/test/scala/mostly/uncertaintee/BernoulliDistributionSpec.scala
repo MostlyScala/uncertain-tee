@@ -7,7 +7,7 @@ import scala.math.{abs, pow, sqrt}
 class BernoulliDistributionSpec extends RngSuite {
 
   private val sampleCount = 100_000
-  private val tolerance   = 0.05
+  private val tolerance   = 0.01
 
   // --- Statistical Properties Tests ---
 

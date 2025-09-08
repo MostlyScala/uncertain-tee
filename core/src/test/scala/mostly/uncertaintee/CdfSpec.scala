@@ -7,7 +7,7 @@ import scala.math.*
 class CdfSpec extends RngSuite {
 
   private val sampleCount = 100_000
-  private val tolerance   = 0.05
+  private val tolerance   = 0.01
 
   // --- Continuous Distribution Tests ---
 
