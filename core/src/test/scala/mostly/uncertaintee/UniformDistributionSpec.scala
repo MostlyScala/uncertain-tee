@@ -5,9 +5,6 @@ import scala.math.{abs, pow, sqrt}
 class UniformDistributionSpec extends RngSuite {
 
   private val sampleCount = 100_000
-  // Tolerance for comparing floating-point statistical properties.
-  // With 100k samples, we expect statistical estimates to be reasonably close to their
-  // true theoretical values.
   private val tolerance   = 0.05
 
   // --- Statistical Properties Tests ---

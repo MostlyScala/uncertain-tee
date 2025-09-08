@@ -7,8 +7,6 @@ import scala.math.{abs, pow, sqrt}
 class BernoulliDistributionSpec extends RngSuite {
 
   private val sampleCount = 100_000
-  // Tolerance for comparing floating-point statistical properties.
-  // With 100k samples, we expect to be reasonably close to the true value.
   private val tolerance   = 0.05
 
   // --- Statistical Properties Tests ---
