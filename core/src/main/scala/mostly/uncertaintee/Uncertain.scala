@@ -25,7 +25,7 @@ import scala.util.Random
   *
   * // Check if we're probably speeding (limit is 60 mph)
   * if (speed.gt(60).isProbable()) {
-  *   println("You're probably speeding")
+  * println("You're probably speeding")
   * }
   *
   * // Math works naturally - uncertainty propagates
@@ -41,7 +41,7 @@ import scala.util.Random
   *
   * val improvement = testRate - controlRate
   * if (improvement.gt(0.0).probability(exceeds = 0.95)) {
-  *   println("Test variant is significantly better!")
+  * println("Test variant is significantly better!")
   * }
   *   }}}
   *
@@ -111,8 +111,8 @@ sealed abstract class Uncertain[T] {
     *   {{{
     * val isGoodWeather = Uncertain.bernoulli(0.7)  // 70% chance of good weather
     * val attendance = isGoodWeather.flatMap { good =>
-    *   if (good) Uncertain.normal(100, 10)  // Good weather: 100 ± 10 people
-    *   else Uncertain.normal(60, 15)        // Bad weather: 60 ± 15 people
+    * if (good) Uncertain.normal(100, 10)  // Good weather: 100 ± 10 people
+    * else Uncertain.normal(60, 15)        // Bad weather: 60 ± 15 people
     * }
     *   }}}
     *
@@ -260,7 +260,7 @@ object Uncertain {
     *   {{{
     * // 30% chance of 1, 70% chance of 2
     * val custom = Uncertain { () =>
-    *   if (Random.nextDouble() < 0.3) 1 else 2
+    * if (Random.nextDouble() < 0.3) 1 else 2
     * }
     *   }}}
     *
@@ -320,8 +320,8 @@ object Uncertain {
     * val offPeakTraffic = Uncertain.normal(30, 8)   // Quiet times
     *
     * val serverLoad = Uncertain.mixture(Map(
-    *   peakTraffic -> 0.3,     // 30% of time it's peak hours
-    *   offPeakTraffic -> 0.7   // 70% of time it's off-peak
+    * peakTraffic -> 0.3,     // 30% of time it's peak hours
+    * offPeakTraffic -> 0.7   // 70% of time it's off-peak
     * ))
     *   }}}
     *
@@ -395,9 +395,9 @@ object Uncertain {
     *   User behavior model:
     *   {{{
     * val userAction = Uncertain.categorical(Map(
-    *   "click_button" -> 0.6,
-    *   "scroll_down" -> 0.3,
-    *   "leave_page" -> 0.1
+    * "click_button" -> 0.6,
+    * "scroll_down" -> 0.3,
+    * "leave_page" -> 0.1
     * ))
     *   }}}
     *
@@ -629,6 +629,26 @@ object Uncertain {
 }
 
 // =================================================================================================
+// Typeclasses
+// =================================================================================================
+
+/** A typeclass for types that can be safely converted to a Double for statistical analysis. */
+trait StatisticallyConvertible[T] {
+  def toDouble(value: T): Double
+}
+
+object StatisticallyConvertible {
+
+  /** Any type T that is already Numeric can be converted. */
+  given statisticalNumeric[T](using num: Numeric[T]): StatisticallyConvertible[T] =
+    (value: T) => num.toDouble(value)
+
+  /** The specific conversion rule for Boolean: true -> 1.0, false -> 0.0. */
+  given statisticalBool: StatisticallyConvertible[Boolean] =
+    (value: Boolean) => if (value) 1.0 else 0.0
+}
+
+// =================================================================================================
 // Extensions
 // =================================================================================================
 
@@ -789,7 +809,7 @@ extension (lhs: Uncertain[Boolean]) {
     *   {{{
     * val testIsBetter = testConversion.gt(controlConversion)
     * if (testIsBetter.probability(exceeds = 0.95)) {
-    *   println("We're 95%+ confident the test is better")
+    * println("We're 95%+ confident the test is better")
     * }
     *   }}}
     *
@@ -799,7 +819,7 @@ extension (lhs: Uncertain[Boolean]) {
     * val serverLoad = Uncertain.normal(0.7, 0.15)
     * val overloaded = serverLoad.gt(0.9)
     * if (overloaded.probability(exceeds = 0.1)) {
-    *   println("More than 10% chance of overload - add capacity")
+    * println("More than 10% chance of overload - add capacity")
     * }
     *   }}}
     *
@@ -842,7 +862,7 @@ extension (lhs: Uncertain[Boolean]) {
     *   {{{
     * val willSucceed = Uncertain.bernoulli(0.7)
     * if (willSucceed.isProbable()) {
-    *   println("Go for it!")  // 70% > 50%, so this will print
+    * println("Go for it!")  // 70% > 50%, so this will print
     * }
     *   }}}
     */
@@ -1017,27 +1037,8 @@ extension [T](uncertain: Uncertain[T]) {
   }
 }
 
-/** Internal: Enables Boolean values to be used in numeric operations.
-  *
-  * Maps true → 1, false → 0 for statistical calculations like mean(). Note: This breaks normal arithmetic laws - use
-  * only for statistics!
-  */
-private[this] given whiteLieBooleanNumeric: Numeric[Boolean] = new Numeric[Boolean] {
-  override def compare(x: Boolean, y: Boolean): Int      = x.compareTo(y)
-  override def fromInt(x: Int): Boolean                  = x != 0
-  override def minus(x: Boolean, y: Boolean): Boolean    = x ^ y  // XOR
-  override def negate(x: Boolean): Boolean               = !x
-  override def plus(x: Boolean, y: Boolean): Boolean     = x || y // OR
-  override def times(x: Boolean, y: Boolean): Boolean    = x && y // AND
-  override def toDouble(x: Boolean): Double              = if (x) One else Zero
-  override def toFloat(x: Boolean): Float                = if (x) 1.0f else 0.0f
-  override def toInt(x: Boolean): Int                    = if (x) 1 else 0
-  override def toLong(x: Boolean): Long                  = if (x) 1L else 0L
-  override def parseString(str: String): Option[Boolean] = str.toBooleanOption
-}
-
-/** Arithmetic operations and statistics for uncertain numeric values. */
-extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
+/** Statistical methods for uncertain values that can be represented numerically. */
+extension [T](uncertain: Uncertain[T])(using sc: StatisticallyConvertible[T]) {
 
   /** Estimates the average (expected) value by sampling.
     *
@@ -1055,7 +1056,7 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
     */
   def expectedValue(sampleCount: Int = 1000): Double = {
     require(sampleCount > 0, "Sample count must be positive.")
-    val samples = lhs.take(sampleCount).map(num.toDouble)
+    val samples = uncertain.take(sampleCount).map(sc.toDouble)
     samples.sum / samples.length.toDouble
   }
 
@@ -1074,7 +1075,7 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
     */
   def populationStandardDeviation(sampleCount: Int = 1000): Double = {
     require(sampleCount > 0, "Sample count must be positive.")
-    val samples  = lhs.take(sampleCount).map(num.toDouble)
+    val samples  = uncertain.take(sampleCount).map(sc.toDouble)
     val meanVal  = samples.sum / samples.length
     val variance = samples.foldLeft(Zero) { (acc, sample) =>
       val diff = sample - meanVal
@@ -1096,7 +1097,7 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
     */
   def standardDeviation(sampleCount: Int = 1000): Double = {
     require(sampleCount >= 2, "Need at least 2 samples for sample standard deviation.")
-    val samples  = lhs.take(sampleCount).map(num.toDouble)
+    val samples  = uncertain.take(sampleCount).map(sc.toDouble)
     val meanVal  = samples.sum / samples.length
     val variance = samples.foldLeft(Zero) { (acc, sample) =>
       val diff = sample - meanVal
@@ -1105,7 +1106,10 @@ extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
 
     sqrt(variance)
   }
+}
 
+/** Arithmetic operations for uncertain numeric values. */
+extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
   // Arithmetic operations between uncertain values
 
   /** Adds two uncertain values sample-by-sample.
