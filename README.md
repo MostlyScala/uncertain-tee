@@ -34,7 +34,7 @@ The library provides several ways to create uncertain values:
 ```scala 3
 // From common distributions
 val temperature = Uncertain.normal(72.0, 3.0) // Normal distribution
-val diceRoll = Uncertain.uniform(1.0, 7.0) // Uniform between 1-6
+val diceRoll = Uncertain.uniform(1, 7) // Uniform between 1-6 
 val coinFlip = Uncertain.bernoulli(0.5) // True/false with 50% chance
 
 // From observed data
