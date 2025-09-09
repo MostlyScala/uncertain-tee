@@ -34,8 +34,8 @@ sealed abstract class Uncertain[T] {
   /** The function that generates a single random sample from the distribution. */
   val sampler: () => T
 
-  /** Internal computation graph node - handles lazy evaluation and correlation preservation. */
-  val node: ComputationTree[T]
+  /** Internal computation tree node - handles lazy evaluation and correlation preservation. */
+  val computationTree: ComputationTree[T]
 
   /** Gets one sample from this uncertain value.
     *
@@ -45,7 +45,7 @@ sealed abstract class Uncertain[T] {
     * @return
     *   A single sample of type T
     */
-  def sample(): T = node.evaluate()
+  def sample(): T = computationTree.evaluate()
 
   /** Transforms each sample using a function.
     *
@@ -57,7 +57,7 @@ sealed abstract class Uncertain[T] {
     *   New uncertain value with the function applied
     */
   def map[U](f: T => U): Uncertain[U] = {
-    val newNode = ComputationMap(this.node, f)
+    val newNode = ComputationMap(this.computationTree, f)
     Uncertain(() => newNode.evaluate(), newNode)
   }
 
@@ -71,11 +71,11 @@ sealed abstract class Uncertain[T] {
     *   New uncertain value representing the chained computation
     */
   def flatMap[U](f: T => Uncertain[U]): Uncertain[U] = {
-    val newNode = ComputationFlatMap(this.node, f)
+    val newNode = ComputationFlatMap(this.computationTree, f)
     Uncertain(() => newNode.evaluate(), newNode)
   }
 
-  /** Returns an endless stream of samples. */
+  /** Returns an endless iterator of samples. */
   def iterator: Iterator[T] = Iterator.continually(sample())
 
   /** Collects multiple samples into a list.
@@ -89,6 +89,75 @@ sealed abstract class Uncertain[T] {
     require(n >= 0, "Number of samples must be non-negative.")
     iterator.take(n).toList
   }
+
+  /** Filters the uncertain value by applying a predicate while preserving correlation.
+    *
+    * <strong>Q:</strong> Why does this return Uncertain[Option[T]] instead of Uncertain[T]?
+    *
+    * <strong>A:</strong> This library's core guarantee is correlation preservation: multiple references to the same
+    * uncertain value always yield the same sample. Using rejection sampling (resampling until the predicate passes)
+    * would break this fundamental property.
+    *
+    * Consider what would happen with rejection sampling:
+    * {{{
+    *   val x = Uncertain.normal(0, 1)
+    *   val positive = x.rejectionFilter(_ > 0)  // hypothetical broken version
+    *
+    *   // These would be DIFFERENT values, breaking correlation:
+    *   val pair = (positive.sample(), positive.sample())  // e.g. (0.5, 1.8)
+    *
+    *   // Even worse in computations:
+    *   val shouldBeZero = for {
+    *     a <- positive
+    *     b <- positive
+    *   } yield a - b  // Would NOT be zero!
+    * }}}
+    *
+    * Instead, this method transforms each sample deterministically:
+    *   - If the sample passes the predicate → `Some(value)`
+    *   - If the sample fails the predicate → `None`
+    *   - '''Same input always produces the same output'''
+    *
+    * @example
+    *   Correlation is maintained with the Option-based approach:
+    *   {{{
+    *   val uncertainInt = Uncertain.uniform(-10, 11).map(_.toInt)
+    *   val maybePositive: Uncertain[Option[Int]] = uncertainInt.filter(_ > 0)
+    *
+    *   // Because correlation is preserved, this will always be consistent:
+    *   val correlatedResult = for {
+    *     a <- maybePositive
+    *     b <- maybePositive
+    *   } yield (a, b)
+    *
+    *   // Always returns (Some(x), Some(x)) or (None, None)
+    *   // Never returns (Some(5), Some(2)) or (Some(3), None)
+    *   correlatedResult.sample()
+    *   }}}
+    * @example
+    *   Handle filtered results explicitly:
+    *   {{{
+    *   val speed = Uncertain.normal(65, 10)
+    *   val validSpeed = speed.filter(s => s > 0 && s < 200)
+    *
+    *   val processed = validSpeed.flatMap {
+    *     case Some(s) => computeEnergyFromSpeed(s)
+    *     case None    => Uncertain.point(0.0)  // default for invalid speeds
+    *   }
+    *   }}}
+    * @param keepWhen
+    *   The function to test each sample. Returns `true` to keep the value (in a `Some`), `false` to discard it
+    *   (resulting in `None`).
+    * @return
+    *   A new `Uncertain[Option[T]]` that contains `Some(value)` if the predicate passed for that sample, and `None` if
+    *   the predicate failed. Correlation with the original uncertain value is preserved.
+    */
+  def filter(keepWhen: T => Boolean): Uncertain[Option[T]] =
+    this.map {
+      case t if keepWhen(t) => Some(t)
+      case _                => None
+    }
+
 }
 
 /** Factory for creating uncertain values from various distributions and data sources. */
@@ -105,8 +174,8 @@ object Uncertain {
     val id = UUID.nameUUIDFromBytes(random.nextBytes(16))
     val s  = sampler
     new Uncertain[T] {
-      override val sampler: () => T         = s
-      override val node: ComputationTree[T] = ComputationLeaf(id = id, sampler = s)
+      override val sampler: () => T                    = s
+      override val computationTree: ComputationTree[T] = ComputationLeaf(id = id, sampler = s)
     }
   }
 
@@ -114,8 +183,8 @@ object Uncertain {
   private[uncertaintee] def apply[T](sampler: () => T, computationNode: ComputationTree[T]): Uncertain[T] = {
     val s = sampler
     new Uncertain[T] {
-      override val sampler: () => T         = s
-      override val node: ComputationTree[T] = computationNode
+      override val sampler: () => T                    = s
+      override val computationTree: ComputationTree[T] = computationNode
     }
   }
 

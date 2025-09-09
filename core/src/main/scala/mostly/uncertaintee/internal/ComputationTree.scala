@@ -23,7 +23,7 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
     case ComputationFlatMap(source, f)     =>
       val sourceValue    = source.evaluate(context)
       val innerUncertain = f(sourceValue)
-      innerUncertain.node.evaluate(context)
+      innerUncertain.computationTree.evaluate(context)
   }
 }
 
