@@ -10,17 +10,17 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
 
   /** Evaluates this node within a sampling context. */
   def evaluate(context: SampleContext = new SampleContext): T = this match {
-    case ComputationLeaf(id, sampler)      =>
+    case ComputationLeaf(id, sampler)          =>
       context
-        .getValue[T](id)
+        .getSample[T](id)
         .getOrElse {
-          val value = sampler()
-          context.setValue(id, value)
-          value
+          val sample = sampler()
+          context.setSample(id, sample)
+          sample
         }
-    case ComputationMap(source, operation) =>
+    case ComputationMapping(source, operation) =>
       operation(source.evaluate(context))
-    case ComputationFlatMap(source, f)     =>
+    case ComputationFlatMapping(source, f)     =>
       val sourceValue    = source.evaluate(context)
       val innerUncertain = f(sourceValue)
       innerUncertain.computationTree.evaluate(context)
@@ -34,20 +34,20 @@ final private[uncertaintee] case class ComputationLeaf[T](
 ) extends ComputationTree[T]
 
 /** Represents applying a function to an uncertain value (used by `map`). */
-final private[uncertaintee] case class ComputationMap[A, B](
-  source: ComputationTree[A],
-  operation: A => B
+final private[uncertaintee] case class ComputationMapping[T, B](
+  source: ComputationTree[T],
+  fromT2B: T => B
 ) extends ComputationTree[B]
 
 /** Represents chaining uncertain computations (used by `flatMap`). */
-final private[uncertaintee] case class ComputationFlatMap[A, B](
-  source: ComputationTree[A],
-  f: A => Uncertain[B]
+final private[uncertaintee] case class ComputationFlatMapping[T, B](
+  source: ComputationTree[T],
+  fromT2UncertainB: T => Uncertain[B]
 ) extends ComputationTree[B]
 
 /** Context for preserving correlation during sampling. */
 final private[uncertaintee] class SampleContext {
   private val memoizedValues: mutable.Map[UUID, Any] = mutable.Map.empty
-  def getValue[T](id: UUID): Option[T]               = memoizedValues.get(id).map(_.asInstanceOf[T])
-  def setValue[T](id: UUID, value: T): Unit          = memoizedValues(id) = value
+  def getSample[T](id: UUID): Option[T]              = memoizedValues.get(id).map(_.asInstanceOf[T])
+  def setSample[T](id: UUID, sample: T): Unit        = memoizedValues(id) = sample
 }

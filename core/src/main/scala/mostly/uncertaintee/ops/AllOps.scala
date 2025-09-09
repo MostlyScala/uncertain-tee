@@ -8,4 +8,4 @@ package mostly.uncertaintee.ops
   *    import mostly.uncertaintee.syntax.*
   * }}}
   */
-trait AllOps extends ArithmeticOps with BooleanOps with ComparisonOps with StatisticalOps
+trait AllOps extends ArithmeticOps with BooleanOps with ComparisonOps with OptionalOps with NestedOps with StatisticalOps

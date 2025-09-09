@@ -1,15 +1,16 @@
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.*
+import mostly.uncertaintee.StatisticallyConvertible.given
 
 import scala.math.*
 
 /** {{{
- *    import mostly.uncertaintee.syntax.statistical.*
- *    // or just import all the syntax
- *    import mostly.uncertaintee.syntax.*
- * }}}
- */
+  *    import mostly.uncertaintee.syntax.statistical.*
+  *    // or just import all the syntax
+  *    import mostly.uncertaintee.syntax.*
+  * }}}
+  */
 trait StatisticalOps {
 
   /** Summary statistics and analysis methods for uncertain values. */
@@ -95,5 +96,21 @@ trait StatisticalOps {
       val successes = samples.count(ord.lteq(_, value))
       successes.toDouble / sampleCount
     }
+  }
+
+  extension [T](uncertainOption: Uncertain[Option[T]]) {
+
+    /** Calculates the probability that the Option is a `Some`.
+      *
+      * This is useful for understanding the success rate of a [[Uncertain.filter]]
+      */
+    def probabilityOfSuccess(sampleCount: Int = 1000): Double =
+      uncertainOption.map(_.isDefined).mean(sampleCount)
+
+    /** Calculates the probability that the Option is a `None`.
+      */
+    def probabilityOfFailure(sampleCount: Int = 1000): Double =
+      uncertainOption.map(_.isEmpty).mean(sampleCount)
+
   }
 }

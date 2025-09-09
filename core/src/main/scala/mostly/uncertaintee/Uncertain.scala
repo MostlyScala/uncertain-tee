@@ -14,16 +14,21 @@ import scala.util.Random
   * @example
   *   Basic usage:
   *   {{{
-  * // To use operators like +, -, >, etc.
-  * import mostly.uncertaintee.syntax.all.*
+  *     import mostly.uncertaintee.Uncertain
+  *    import mostly.uncertaintee.syntax.*
   *
-  * // Create uncertain speed with measurement error
-  * val speed = Uncertain.normal(65.0, 5.0)  // 65 mph ± 5 mph
+  *    // Create uncertain speed with measurement error
+  *    val speed    = Uncertain.normal(65.0, 5.0)  // 65 mph ± 5 mph
+  *    val speedKph = speed.map(_ * 1.609344)      // kph
   *
-  * // Check if we're probably speeding (limit is 60 mph)
-  * if ((speed > 60).isProbable()) {
-  * println("You're probably speeding")
-  * }
+  *    // Check if we're _probably_ speeding (limit is 60 kph)
+  *    if ((speed > 60).isProbable()) {
+  *       println("You're probably speeding")
+  *    }
+  *    // Check if we're 95% confident that you're speeding
+  *    if ((speed > 60).probability(exceeds = 0.95)) {
+  *       println("You're probably speeding")
+  *    }
   *   }}}
   *
   * @tparam T
@@ -32,10 +37,10 @@ import scala.util.Random
 sealed abstract class Uncertain[T] {
 
   /** The function that generates a single random sample from the distribution. */
-  val sampler: () => T
+  private[uncertaintee] val sampler: () => T
 
-  /** Internal computation tree node - handles lazy evaluation and correlation preservation. */
-  val computationTree: ComputationTree[T]
+  /** Internal, computation graph (/tree) - handles lazy evaluation and correlation preservation. */
+  private[uncertaintee] val computationTree: ComputationTree[T]
 
   /** Gets one sample from this uncertain value.
     *
@@ -57,7 +62,7 @@ sealed abstract class Uncertain[T] {
     *   New uncertain value with the function applied
     */
   def map[U](f: T => U): Uncertain[U] = {
-    val newNode = ComputationMap(this.computationTree, f)
+    val newNode = ComputationMapping(this.computationTree, f)
     Uncertain(() => newNode.evaluate(), newNode)
   }
 
@@ -71,10 +76,10 @@ sealed abstract class Uncertain[T] {
     *   New uncertain value representing the chained computation
     */
   def flatMap[U](f: T => Uncertain[U]): Uncertain[U] = {
-    val newNode = ComputationFlatMap(this.computationTree, f)
+    val newNode = ComputationFlatMapping(this.computationTree, f)
     Uncertain(() => newNode.evaluate(), newNode)
   }
-
+  
   /** Returns an endless iterator of samples. */
   def iterator: Iterator[T] = Iterator.continually(sample())
 
@@ -179,12 +184,12 @@ object Uncertain {
     }
   }
 
-  /** Internal constructor with pre-defined computation node. */
-  private[uncertaintee] def apply[T](sampler: () => T, computationNode: ComputationTree[T]): Uncertain[T] = {
+  /** Internal constructor with pre-defined computation. */
+  private[uncertaintee] def apply[T](sampler: () => T, underlying: ComputationTree[T]): Uncertain[T] = {
     val s = sampler
     new Uncertain[T] {
       override val sampler: () => T                    = s
-      override val computationTree: ComputationTree[T] = computationNode
+      override val computationTree: ComputationTree[T] = underlying
     }
   }
 
