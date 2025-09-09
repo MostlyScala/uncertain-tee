@@ -3,11 +3,11 @@ package mostly.uncertaintee.ops
 import mostly.uncertaintee.Uncertain
 
 /** {{{
- *    import mostly.uncertaintee.syntax.comparison.*
- *    // or just import all the syntax
- *    import mostly.uncertaintee.syntax.*
- * }}}
- */
+  *    import mostly.uncertaintee.syntax.comparison.*
+  *    // or just import all the syntax
+  *    import mostly.uncertaintee.syntax.*
+  * }}}
+  */
 trait ComparisonOps {
 
   /** Equality comparisons for uncertain values. */

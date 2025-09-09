@@ -12,8 +12,11 @@ package object uncertaintee {
     *   import mostly.uncertaintee.syntax.all.*
     *
     *   // If you want to pick-and-mix:
+    *   import mostly.uncertaintee.syntax.all.*
     *   import mostly.uncertaintee.syntax.arithmetic.*
     *   import mostly.uncertaintee.syntax.boolean.*
+    *   import mostly.uncertaintee.syntax.functional.*
+    *   import mostly.uncertaintee.syntax.optionalOps.*
     *   import mostly.uncertaintee.syntax.comparison.*
     *   import mostly.uncertaintee.syntax.statistical.*
     * }}}
@@ -23,6 +26,8 @@ package object uncertaintee {
     val arithmetic: ops.ArithmeticOps   = this
     val boolean: ops.BooleanOps         = this
     val comparison: ops.ComparisonOps   = this
+    val functional: ops.FpOps           = this
+    val option: ops.OptionOps           = this
     val statistical: ops.StatisticalOps = this
   }
 
