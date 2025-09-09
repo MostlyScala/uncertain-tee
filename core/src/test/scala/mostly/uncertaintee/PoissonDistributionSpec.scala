@@ -1,5 +1,7 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
+
 import scala.math.{abs, pow, sqrt}
 
 class PoissonDistributionSpec extends RngSuite {
@@ -18,7 +20,8 @@ class PoissonDistributionSpec extends RngSuite {
     val theoreticalMean = lambda
     val sampleMean      = poisson.expectedValue(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Poisson(λ=$lambda)."
+    val hint =
+      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Poisson(λ=$lambda)."
     assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
   }
 
@@ -30,7 +33,8 @@ class PoissonDistributionSpec extends RngSuite {
     val theoreticalVariance = lambda
     val sampleVariance      = pow(poisson.standardDeviation(sampleCount), 2)
 
-    val hint = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Poisson(λ=$lambda)."
+    val hint =
+      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Poisson(λ=$lambda)."
     assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
   }
 
@@ -50,7 +54,9 @@ class PoissonDistributionSpec extends RngSuite {
     assert(abs(sampleSkewness - theoreticalSkewness) < tolerance, hint)
   }
 
-  rngTest("Poisson distribution's sample excess kurtosis should approximate its theoretical excess kurtosis (1/lambda)") {
+  rngTest(
+    "Poisson distribution's sample excess kurtosis should approximate its theoretical excess kurtosis (1/lambda)"
+  ) {
     val lambda  = 10.0
     val poisson = Uncertain.poisson(lambda)
     val samples = poisson.take(sampleCount).map(_.toDouble)
@@ -95,7 +101,10 @@ class PoissonDistributionSpec extends RngSuite {
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
     assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of sum should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
   rngTest("Correlation: an uncertain value subtracted from itself (x - x) should be exactly 0") {
@@ -120,8 +129,14 @@ class PoissonDistributionSpec extends RngSuite {
     val sampleMean   = sum.expectedValue(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleMean - expectedMean) < tolerance,
+      s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean."
+    )
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
 }

@@ -1,5 +1,7 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
+
 import scala.math.abs
 import scala.util.Random
 
@@ -11,10 +13,6 @@ import scala.util.Random
 class RealWorldDomainModelSpec extends RngSuite {
 
   private val sampleCount = 10_000
-  private val tolerance   = 0.01
-
-  private def getMean(u: Uncertain[Double]): Double =
-    u.take(sampleCount).sum / sampleCount
 
   // =================================================================================================
   // 1. E-commerce: A/B Testing
@@ -36,11 +34,19 @@ class RealWorldDomainModelSpec extends RngSuite {
     val conversionB = Uncertain.normal(mean = 0.12, standardDeviation = 0.02) // 12% ± 2%
 
     val testResult = for {
-      a <- conversionA
-      b <- conversionB
-    } yield
-      if (b > a) ABTestResult(VariantB, (b - a) / a)
-      else ABTestResult(VariantA, (a - b) / a)
+      a     <- conversionA
+      b     <- conversionB
+      result = if (b > a)
+                 ABTestResult(
+                   winner = VariantB,
+                   relativeImprovement = (b - a) / a
+                 )
+               else
+                 ABTestResult(
+                   winner = VariantA,
+                   relativeImprovement = (a - b) / a
+                 )
+    } yield result
 
     val samples              = testResult.take(sampleCount)
     val bWins                = samples.count(_.winner == VariantB)
@@ -209,7 +215,7 @@ class RealWorldDomainModelSpec extends RngSuite {
       else Uncertain.point(InsuranceClaim(0.0)) // No claim, zero cost
     }
 
-    val expectedCost = getMean(claimCost.map(_.cost))
+    val expectedCost = claimCost.map(_.cost).mean(sampleCount)
     // Theoretical E[Cost] = P(claim) * E[severity] = 0.05 * 2000 = 100
     assert(
       abs(expectedCost - 100.0) < 10.0,
@@ -363,7 +369,7 @@ class RealWorldDomainModelSpec extends RngSuite {
       years <- yearsRetained
     } yield Customer(spend * years)
 
-    val expectedCLV = getMean(customerCLV.map(_.clv))
+    val expectedCLV = customerCLV.map(_.clv).mean(sampleCount)
     // E[Years] for geometric P(success)=p is p/(1-p) = 0.7/0.3 ≈ 2.33
     // E[CLV] ≈ E[Spend] * E[Years] = 200 * 2.33 ≈ 466
     // This is a rough approximation.

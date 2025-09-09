@@ -3,6 +3,7 @@ package mostly.uncertaintee
 import munit.FunSuite
 
 import scala.math.*
+import mostly.uncertaintee.syntax.*
 
 class CdfSpec extends RngSuite {
 

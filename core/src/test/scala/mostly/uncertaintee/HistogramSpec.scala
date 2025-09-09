@@ -1,5 +1,6 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
 import scala.math.{abs, pow, sqrt}

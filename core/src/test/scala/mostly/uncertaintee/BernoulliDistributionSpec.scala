@@ -3,6 +3,7 @@ package mostly.uncertaintee
 import munit.FunSuite
 
 import scala.math.{abs, pow, sqrt}
+import mostly.uncertaintee.syntax.*
 
 class BernoulliDistributionSpec extends RngSuite {
 

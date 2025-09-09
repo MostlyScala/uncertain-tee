@@ -3,6 +3,7 @@ package mostly.uncertaintee
 import munit.FunSuite
 
 import scala.math.{abs, log}
+import mostly.uncertaintee.syntax.*
 
 class ConfidenceIntervalSpec extends RngSuite {
 

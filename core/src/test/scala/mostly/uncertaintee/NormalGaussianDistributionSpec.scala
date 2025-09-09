@@ -1,5 +1,7 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
+
 import scala.math.{abs, pow, sqrt}
 
 class NormalGaussianDistributionSpec extends RngSuite {
@@ -20,7 +22,8 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val theoreticalMean = mean
     val sampleMean      = normal.expectedValue(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Normal(μ=$mean, σ=$stdDev)."
+    val hint =
+      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Normal(μ=$mean, σ=$stdDev)."
     assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
   }
 
@@ -36,7 +39,8 @@ class NormalGaussianDistributionSpec extends RngSuite {
     // The library's `standardDeviation` returns sqrt(variance), so we square it.
     val sampleVariance      = pow(normal.standardDeviation(sampleCount), 2)
 
-    val hint = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Normal(μ=$mean, σ=$stdDev)."
+    val hint =
+      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Normal(μ=$mean, σ=$stdDev)."
     assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
   }
 
@@ -110,8 +114,16 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val samples          = degenerateNormal.take(10_000)
 
     assert(samples.forall(_ == mean), s"Normal(μ=$mean, σ=0) must always produce the value $mean.")
-    assertEquals(degenerateNormal.expectedValue(10_000), mean, s"The expected value of Normal(μ=$mean, σ=0) must be exactly $mean.")
-    assertEquals(degenerateNormal.standardDeviation(10_000), 0.0, s"The standard deviation of Normal(μ=$mean, σ=0) must be 0.0.")
+    assertEquals(
+      degenerateNormal.expectedValue(10_000),
+      mean,
+      s"The expected value of Normal(μ=$mean, σ=0) must be exactly $mean."
+    )
+    assertEquals(
+      degenerateNormal.standardDeviation(10_000),
+      0.0,
+      s"The standard deviation of Normal(μ=$mean, σ=0) must be 0.0."
+    )
   }
 
   // --- Arithmetic Operations Tests ---
@@ -131,7 +143,10 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
     assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of sum should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
   rngTest("Scaling and shifting a Normal distribution should yield a new Normal distribution") {
@@ -147,8 +162,14 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val sampleMean   = transformed.expectedValue(sampleCount)
     val sampleStdDev = transformed.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of transformed should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of transformed should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleMean - expectedMean) < tolerance,
+      s"Mean of transformed should be $expectedMean, but was $sampleMean."
+    )
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of transformed should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
   rngTest("Dividing a Normal distribution by a scalar should yield a new Normal distribution") {
@@ -163,8 +184,14 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val sampleMean   = transformed.expectedValue(sampleCount)
     val sampleStdDev = transformed.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of transformed should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of transformed should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleMean - expectedMean) < tolerance,
+      s"Mean of transformed should be $expectedMean, but was $sampleMean."
+    )
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of transformed should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
   // --- Comparison and Hypothesis Tests ---
@@ -211,7 +238,11 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val samples = difference.take(sampleCount)
     assert(samples.forall(_ == 0.0), "`x - x` must always evaluate to 0.0 due to correlation.")
     assertEquals(difference.expectedValue(sampleCount), 0.0, "The expected value of `x - x` must be exactly 0.0.")
-    assertEquals(difference.standardDeviation(sampleCount), 0.0, "The standard deviation of `x - x` must be exactly 0.0.")
+    assertEquals(
+      difference.standardDeviation(sampleCount),
+      0.0,
+      "The standard deviation of `x - x` must be exactly 0.0."
+    )
   }
 
   rngTest("Correlation: `x + x` should be equivalent to `2 * x`") {
@@ -228,8 +259,14 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val sampleMean   = sum.expectedValue(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of correlated sum `x+x` should be ${expectedMean}, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of correlated sum `x+x` should be ${expectedStdDev}, but was $sampleStdDev.")
+    assert(
+      abs(sampleMean - expectedMean) < tolerance,
+      s"Mean of correlated sum `x+x` should be ${expectedMean}, but was $sampleMean."
+    )
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of correlated sum `x+x` should be ${expectedStdDev}, but was $sampleStdDev."
+    )
   }
 
   rngTest("Correlation: an uncertain value divided by itself (x / x) should be exactly 1") {

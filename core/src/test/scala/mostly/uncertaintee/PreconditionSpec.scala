@@ -1,5 +1,6 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
 import scala.util.Random
@@ -11,7 +12,7 @@ class PreconditionSpec extends RngSuite {
       Uncertain.uniform(0.0, 1.0).take(-1)
     }
   }
-  
+
   rngTest("`mixture` should throw IllegalArgumentException for empty component map") {
     intercept[IllegalArgumentException] {
       Uncertain.mixture(Map.empty[Uncertain[Double], Double])

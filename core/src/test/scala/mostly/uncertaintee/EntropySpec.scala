@@ -1,6 +1,7 @@
 package mostly.uncertaintee
 
 import munit.FunSuite
+import mostly.uncertaintee.syntax.*
 
 import scala.math.*
 

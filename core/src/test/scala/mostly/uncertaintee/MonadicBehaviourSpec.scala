@@ -1,5 +1,7 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
+
 import scala.math.{abs, pow, sqrt}
 
 class MonadicBehaviourSpec extends RngSuite {

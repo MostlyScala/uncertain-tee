@@ -1,6 +1,7 @@
 package mostly.uncertaintee
 
 import scala.math.abs
+import mostly.uncertaintee.syntax.*
 
 class ComparisonOperationsSpec extends RngSuite {
 

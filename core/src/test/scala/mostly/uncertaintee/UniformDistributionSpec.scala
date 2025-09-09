@@ -1,5 +1,7 @@
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
+
 import scala.math.{abs, pow, sqrt}
 
 class UniformDistributionSpec extends RngSuite {
@@ -19,7 +21,8 @@ class UniformDistributionSpec extends RngSuite {
     val theoreticalMean = (min + max) / 2.0
     val sampleMean      = uniform.expectedValue(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Uniform(a=$min, b=$max)."
+    val hint =
+      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Uniform(a=$min, b=$max)."
     assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
   }
 
@@ -32,7 +35,8 @@ class UniformDistributionSpec extends RngSuite {
     val theoreticalVariance = pow(max - min, 2) / 12.0
     val sampleVariance      = pow(uniform.standardDeviation(sampleCount), 2)
 
-    val hint = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Uniform(a=$min, b=$max)."
+    val hint =
+      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Uniform(a=$min, b=$max)."
     assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
   }
 
@@ -87,7 +91,10 @@ class UniformDistributionSpec extends RngSuite {
 
     val quarterPoint      = min + (max - min) / 4.0 // 2.5
     val cdfAtQuarterPoint = uniform.cdf(quarterPoint, sampleCount)
-    assert(abs(cdfAtQuarterPoint - 0.25) < tolerance, s"CDF at quarter point should be ~0.25, but was $cdfAtQuarterPoint")
+    assert(
+      abs(cdfAtQuarterPoint - 0.25) < tolerance,
+      s"CDF at quarter point should be ~0.25, but was $cdfAtQuarterPoint"
+    )
 
     // CDF should be 0 below the minimum and 1 above the maximum.
     val cdfBelowMin = uniform.cdf(min - 1.0, sampleCount)
@@ -105,8 +112,16 @@ class UniformDistributionSpec extends RngSuite {
     val samples           = degenerateUniform.take(sampleCount)
 
     assert(samples.forall(_ == value), s"Uniform(a=$value, b=$value) must always produce the value $value.")
-    assertEquals(degenerateUniform.expectedValue(sampleCount), value, s"The expected value of Uniform($value, $value) must be exactly $value.")
-    assertEquals(degenerateUniform.standardDeviation(sampleCount), 0.0, s"The standard deviation of Uniform($value, $value) must be 0.0.")
+    assertEquals(
+      degenerateUniform.expectedValue(sampleCount),
+      value,
+      s"The expected value of Uniform($value, $value) must be exactly $value."
+    )
+    assertEquals(
+      degenerateUniform.standardDeviation(sampleCount),
+      0.0,
+      s"The standard deviation of Uniform($value, $value) must be 0.0."
+    )
   }
 
   // --- Arithmetic Operations Tests ---
@@ -125,7 +140,10 @@ class UniformDistributionSpec extends RngSuite {
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
     assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of sum should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
   // --- Comparison and Hypothesis Tests ---
@@ -139,7 +157,10 @@ class UniformDistributionSpec extends RngSuite {
     // Due to symmetry, the probability of a sample being greater than the midpoint is 0.5.
     val isGreaterThanMidpoint = uniform > midpoint
     val sampleProbability     = isGreaterThanMidpoint.expectedValue(sampleCount)
-    assert(abs(sampleProbability - 0.5) < tolerance, s"P(uniform > midpoint) should be ~0.5, but was $sampleProbability")
+    assert(
+      abs(sampleProbability - 0.5) < tolerance,
+      s"P(uniform > midpoint) should be ~0.5, but was $sampleProbability"
+    )
   }
 
   rngTest("Hypothesis test `probability(exceeds=...)` should correctly identify probabilities") {
@@ -179,8 +200,14 @@ class UniformDistributionSpec extends RngSuite {
     val sampleMean   = sum.expectedValue(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean.")
-    assert(abs(sampleStdDev - expectedStdDev) < tolerance, s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev.")
+    assert(
+      abs(sampleMean - expectedMean) < tolerance,
+      s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean."
+    )
+    assert(
+      abs(sampleStdDev - expectedStdDev) < tolerance,
+      s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev."
+    )
   }
 
   rngTest("Correlation: an uncertain value divided by itself (x / x) should be exactly 1") {

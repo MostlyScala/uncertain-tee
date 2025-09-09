@@ -3,7 +3,7 @@ package mostly.uncertaintee
 import munit.FunSuite
 
 import scala.math.{abs, pow, sqrt}
-
+import mostly.uncertaintee.syntax.*
 class BinomialDistributionSpec extends RngSuite {
 
   private val sampleCount = 100_000
