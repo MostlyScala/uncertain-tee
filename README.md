@@ -8,7 +8,7 @@ Instead of saying "the user will click the button," with `Uncertain[T]` you say 
 will click the button" and write code that handles that uncertainty without needing to hand-roll
 a big block of statistics-calculating-code.
 
-The primary guarantee of this library is **correlation preserving** operations that make combinging, calculating and
+The primary guarantee of this library is **correlation preserving** operations that make combining, calculating and
 composing `Uncertain[T]` instances safe and correct. The core idea revolves around the monadic `Uncertain[T]` (it
 provides a constructor and a `.map` and a `.flatMap`) that uses a memoized computation graph internally to preserve
 correlation.
