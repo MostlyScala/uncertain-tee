@@ -1,22 +1,38 @@
 # Uncertain[T] - Working with Probabilistic Data
 
-## What is this library?
-
 `Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
 any value that has uncertainty. Instead of just working with single values, you work with *distributions* of possible
 values.
 
-Instead of saying "the user will click the button," with Uncertain[T]  you say "there's a 75% chance the user
+Instead of saying "the user will click the button," with `Uncertain[T]` you say "there's a 75% chance the user
 will click the button" and write code that handles that uncertainty without needing to hand-roll
 a big block of statistics-calculating-code.
 
-Amongst other features of the library, it provides `.map` and `.flatMap` (and therefor for-comprehensions) for
-probabilistic computing, all centered around the core data type of `Uncertain[T]` - which ends up being quite legible in
-application code compared to writing out "raw" statistical math by hand.
+The primary guarantee of this library is **correlation preserving** operations that make combinging, calculating and
+composing `Uncertain[T]` instances safe and correct. The core idea revolves around the monadic `Uncertain[T]` (it
+provides a constructor and a `.map` and a `.flatMap`) that uses a memoized computation graph internally to preserve
+correlation.
+This makes it very flexible - as well as allow composition via for-comprehensions, leading to very legible
+code despite a complex statistical domain.
+
+## Installation
+
+🦺🚧🏗️- library is still under construction/testing, not yet released to the wild.
+
+| Build Tool    | Instruction                                                              |
+|:--------------|:-------------------------------------------------------------------------|
+| **sbt**       | `libraryDependencies += "mostly" %% "uncertain-tee" % NOT_YET_RELEASED"` |
+| **mill**      | `ivy"mostly::uncertain-tee:NOT_YET_RELEASED"`                            |
+| **scala-cli** | `//> using dep "mostly::uncertain-tee:NOT_YET_RELEASED"`                 |
 
 ## Quick Start
 
+**Quick start example**
+
 ```scala 3
+import mostly.uncertaintee.Uncertain
+import mostly.uncertaintee.syntax.*
+
 // Create an uncertain speed with some measurement error
 val speed = Uncertain.normal(65.0, 5.0) // mean=65 mph, std dev=5 mph
 
@@ -29,8 +45,6 @@ if (speed.gt(60).isProbable()) {
 val (low, high) = speed.confidenceInterval(0.95)
 println(s"95% confident speed is between $low and $high mph")
 ```
-
-## Core Concepts
 
 ### Creating Uncertain Values
 
@@ -264,6 +278,138 @@ val testValue = Uncertain.normal(10, 1)(Random(42))
 // Results will be consistent across test runs
 ```
 
+## API Reference
+
+All functionality here is available via following two imports
+
+```scala 3
+import mostly.uncertaintee.Uncertain // brings in the core data type
+import mostly.uncertaintee.syntax.* // brings in all syntax below
+```
+
+### **`Uncertain[T]` Methods**
+
+These are the fundamental methods available on any `Uncertain[T]` instance.
+
+| Method                                                                                                                           | Description                                                             | Example Use                                             |
+|:---------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------|:--------------------------------------------------------|
+| [`u.sample()`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)   | Retrieves a single random sample from the distribution.                 | `val singleRoll = diceRoll.sample()`                    |
+| [`u.map(f)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)     | Transforms the value within the `Uncertain` container using a function. | `val speedKph = speedMph.map(_ * 1.609)`                |
+| [`u.flatMap(f)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala) | Chains dependent uncertain computations together.                       | `val attendance = weatherIsGood.flatMap(isGood => ...)` |
+| [`u.filter(p)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)  | Filters the uncertain value, returning an `Uncertain[Option[T]]`.       | `val validSpeed = speed.filter(s => s > 0 && s < 130)`  |
+| [`u.iterator`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)   | Returns an infinite iterator of samples from the distribution.          | `val firstTenSamples = speed.iterator.take(10).toList`  |
+| [`u.take(n)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)    | Collects a specified number of samples into a list.                     | `val samples = speed.take(1000)`                        |
+
+---
+
+### **Constructing an `Uncertain[T]` instance**
+
+| Method                                                                                                                                               | Description                                                                    | Example Use                                                                 |
+|:-----------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------|:----------------------------------------------------------------------------|
+| [`Uncertain[T](sampler)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)            | Creates an `Uncertain` from a custom sampling function.                        | `val custom = Uncertain(() => math.random() * 10)`                          |
+| [`Uncertain.point(value)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)           | Creates an `Uncertain` value that is always the same constant value.           | `val fixedValue = Uncertain.point(42)`                                      |
+| [`Uncertain.normal(mean, stdDev)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)   | Creates a normal (Gaussian) distribution.                                      | `val temp = Uncertain.normal(72, 3)`                                        |
+| [`Uncertain.uniform(min, max)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)      | Creates a uniform distribution.                                                | `val diceRoll = Uncertain.uniform(1, 7)`                                    |
+| [`Uncertain.bernoulli(probability)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala) | Creates a true/false distribution with a given probability of `true`.          | `val coinFlip = Uncertain.bernoulli(0.5)`                                   |
+| [`Uncertain.empirical(data)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)        | Creates a distribution by sampling from a collection of observed data.         | `val nextRating = Uncertain.empirical(List(4, 5, 3, 5))`                    |
+| [`Uncertain.categorical(outcomes)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)  | Creates a distribution from a map of outcomes to their probabilities.          | `val weather = Uncertain.categorical(Map("Sunny" -> 0.7, "Rainy" -> 0.3))`  |
+| [`Uncertain.mixture(components)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)    | Creates a mixture of different uncertain distributions with specified weights. | `val userCount = Uncertain.mixture(Map(peakHours -> 0.3, offHours -> 0.7))` |
+| [`Uncertain.sequence(uncertains)`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/Uncertain.scala)   | Converts a `List[Uncertain[T]]` into a single `Uncertain[List[T]]`.            | `val allRolls = Uncertain.sequence(List(die1, die2))`                       |
+
+---
+
+### **Operations on Uncertain**
+
+#### **Arithmetic Operations**
+
+They are brought in specifically by
+`import mostly.uncertaintee.syntax.arithmetic.*`.
+
+| Method                                                                                                                        | Description                                                           | Example Use                                                    |
+|:------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------|:---------------------------------------------------------------|
+| [`+`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ArithmeticOps.scala) | Adds two uncertain values or an uncertain value and a constant.       | `val total = Uncertain.normal(10, 1) + Uncertain.normal(5, 2)` |
+| [`-`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ArithmeticOps.scala) | Subtracts two uncertain values or a constant from an uncertain value. | `val difference = Uncertain.normal(10, 1) - 5.0`               |
+| [`*`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ArithmeticOps.scala) | Multiplies two uncertain values or an uncertain value by a constant.  | `val area = uncertainWidth * uncertainHeight`                  |
+| [`/`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ArithmeticOps.scala) | Divides an uncertain value by another or by a constant.               | `val ratio = Uncertain.normal(100, 5) / 10.0`                  |
+
+---
+
+#### **Boolean and Logical Operations**
+
+These methods enable logical operations and statistical hypothesis testing on `Uncertain[Boolean]` values. They are
+brought in specifically by `import mostly.uncertaintee.syntax.boolean.*`.
+
+| Method                                                                                                                               | Description                                                                             | Example Use                                                             |
+|:-------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------|:------------------------------------------------------------------------|
+| [`unary_!`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/BooleanOps.scala)     | Performs a logical NOT on an uncertain boolean.                                         | `val isFailure = !isSuccess`                                            |
+| [`&&`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/BooleanOps.scala)          | Performs a logical AND between two uncertain booleans.                                  | `val bothTrue = Uncertain.bernoulli(0.8) && Uncertain.bernoulli(0.5)`   |
+| [\|\|](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/BooleanOps.scala)          | Performs a logical OR between two uncertain booleans.                                   | `val atLeastOneTrue = a \|\| b`                                         |
+| [`probability`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/BooleanOps.scala) | Tests if the probability of the uncertain boolean being true exceeds a given threshold. | `val isConfident = conversionRate.gt(0.10).probability(exceeds = 0.95)` |
+| [`isProbable`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/BooleanOps.scala)  | A shorthand to check if the probability of being true is greater than 50%.              | `if (isProfitable.isProbable()) { ... }`                                |
+
+---
+
+#### **Comparison Operations**
+
+These methods provide comparison operators for `Uncertain` values. They are brought in specifically by
+`import mostly.uncertaintee.syntax.comparison.*`.
+
+| Method                                                                                                                          | Description                                                             | Example Use                                |
+|:--------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------|:-------------------------------------------|
+| [`===`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ComparisonOps.scala) | Compares two uncertain values for equality on a sample-by-sample basis. | `val areSame = dieRoll1 === dieRoll2`      |
+| [`!==`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ComparisonOps.scala) | Compares two uncertain values for inequality.                           | `val areDifferent = dieRoll1 !== dieRoll2` |
+| [`>`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ComparisonOps.scala)   | Performs a greater-than comparison.                                     | `val isSpeeding = speed > 60.0`            |
+| [`<`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ComparisonOps.scala)   | Performs a less-than comparison.                                        | `val isBelowFreezing = temp < 0.0`         |
+| [`>=`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ComparisonOps.scala)  | Performs a greater-than-or-equal-to comparison.                         | `val hasEnough = stock >= orderSize`       |
+| [`<=`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/ComparisonOps.scala)  | Performs a less-than-or-equal-to comparison.                            | `val withinLimit = weight <= 100.0`        |
+
+---
+
+#### **Functional Operations**
+
+These methods provide powerful, functional programming-style operators. They are brought in specifically by
+`import mostly.uncertaintee.syntax.functional.*`.
+
+| Method                                                                                                                      | Description                                                                                     | Example Use                                                         |
+|:----------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------|
+| [`product`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/FpOps.scala) | Combines two uncertain values into an uncertain pair `Uncertain[(T, B)]`.                       | `val stats = height.product(weight)`                                |
+| [`zipWith`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/FpOps.scala) | Combines two uncertain values using a provided function.                                        | `val bmi = height.zipWith(weight)(calculateBmi)`                    |
+| [`collect`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/FpOps.scala) | Filters and maps an uncertain value using a partial function, returning `Uncertain[Option[B]]`. | `val sqrtOfPositives = dist.collect { case x if x > 0 => sqrt(x) }` |
+| [`flatten`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/FpOps.scala) | Flattens a nested `Uncertain[Uncertain[T]]` into a single `Uncertain[T]`.                       | `val finalDist = chosenModel.flatten`                               |
+| [`mapN`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/FpOps.scala)    | Applies a function to the results of multiple uncertain values.                                 | `val rect = (width, height).mapN(Rectangle.apply)`                  |
+
+---
+
+#### **Option Operations**
+
+These methods help manage `Uncertain[Option[T]]` values. They are brought in specifically by
+`import mostly.uncertaintee.syntax.option.*`.
+
+| Method                                                                                                                            | Description                                                           | Example Use                                         |
+|:----------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------|:----------------------------------------------------|
+| [`orElse`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/OptionOps.scala)    | Provides a fallback `Uncertain` value to use when a sample is `None`. | `val finalSpeed = validSpeed.orElse(fallbackModel)` |
+| [`getOrElse`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/OptionOps.scala) | Provides a constant default value to use when a sample is `None`.     | `val finalTemp = plausibleTemp.getOrElse(15.0)`     |
+
+---
+
+#### **Statistical Operations**
+
+These methods are for performing statistical analysis on `Uncertain` values. They are brought in specifically by
+`import mostly.uncertaintee.syntax.statistical.*`.
+
+| Method                                                                                                                                                   | Description                                                                                        | Example Use                                                  |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
+| [`mode`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)                        | Finds the most frequently occurring value in a set of samples.                                     | `val mostLikelyOutcome = diceRoll.mode()`                    |
+| [`histogram`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)                   | Creates a map showing the frequency of each sampled value.                                         | `val frequencies = diceRoll.histogram(1000)`                 |
+| [`entropy`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)                     | Estimates the information entropy (randomness) of the distribution in bits.                        | `val randomness = fairCoin.entropy()`                        |
+| [`expectedValue` / `mean`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)      | Estimates the average value of the distribution by sampling.                                       | `val avgSpeed = speed.mean()`                                |
+| [`populationStandardDeviation`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala) | Estimates the standard deviation of the population.                                                | `val popStdDev = distribution.populationStandardDeviation()` |
+| [`standardDeviation`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)           | Estimates the sample standard deviation using Bessel's correction.                                 | `val sampleStdDev = distribution.standardDeviation()`        |
+| [`confidenceInterval`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)          | Estimates an interval that contains the true value with a given confidence.                        | `val (low, high) = speed.confidenceInterval(0.95)`           |
+| [`cdf`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)                         | Estimates the Cumulative Distribution Function (the probability that a sample is ≤ a given value). | `val prob = speed.cdf(60.0)`                                 |
+| [`probabilityOfSuccess`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)        | For `Uncertain[Option[T]]`, calculates the probability of it being a `Some`.                       | `val successRate = filteredValue.probabilityOfSuccess()`     |
+| [`probabilityOfFailure`](https://github.com/MostlyScala/uncertain-tee/tree/main/core/src/main/scala/mostly/uncertaintee/ops/StatisticalOps.scala)        | For `Uncertain[Option[T]]`, calculates the probability of it being a `None`.                       | `val failureRate = filteredValue.probabilityOfFailure()`     |
+
 ## Learn more
 
 * It originates from the research paper `Uncertain<T>: A First-Order Type for Uncertain
@@ -276,3 +422,4 @@ val testValue = Uncertain.normal(10, 1)(Random(42))
 * Released under the [MIT license](https://github.com/MostlyScala/uncertain-tee/blob/main/LICENSE])
 * Feel like contributing? Read
   the [Code of Conduct](https://github.com/MostlyScala/uncertain-tee/blob/main/CODE_OF_CONDUCT.md]) first 🙏
+

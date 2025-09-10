@@ -1,7 +1,7 @@
 // https://typelevel.org/sbt-typelevel/faq.html#what-is-a-base-version-anyway
 ThisBuild / tlBaseVersion := "0.1"
 
-ThisBuild / organization     := "mostly"
+ThisBuild / organization     := "mostly "
 ThisBuild / organizationName := "Mostly Codes"
 ThisBuild / startYear        := Some(2025)
 ThisBuild / licenses         := Seq(License.MIT)
