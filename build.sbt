@@ -7,7 +7,8 @@ ThisBuild / startYear        := Some(2025)
 ThisBuild / licenses         := Seq(License.MIT)
 ThisBuild / developers       := List(
   // your GitHub handle and name
-  tlGitHubDev("TobiasRoland", "Tobias Roland")
+  tlGitHubDev("TobiasRoland", "Tobias Roland"),
+  tlGitHubDev("AdamJKing", "Adam King"),
 )
 
 ThisBuild / tlSitePublishBranch := Some("main")
