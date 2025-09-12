@@ -84,8 +84,7 @@ sealed abstract class Uncertain[T] {
     *   New uncertain value with the function applied to each sample
     */
   def map[U](f: T => U): Uncertain[U] = {
-    val newNode = ComputationMapping(this.computationTree, f)
-    Uncertain(() => newNode.evaluate(), newNode)
+    this.flatMap(value => Uncertain(() => f(value)))
   }
 
   /** Chains uncertain computations together (monadic bind operation).
@@ -187,7 +186,7 @@ sealed abstract class Uncertain[T] {
 
   /** Filters the uncertain value by applying a predicate while preserving correlation.
     *
-    * <strong>Q:</strong> Why does this return Uncertain[Option[T]] instead of Uncertain[T]?
+    * <strong>Q:</strong> Why does this return `Uncertain[Option[T]]` instead of `Uncertain[T]`?
     *
     * <strong>A:</strong> This library's core guarantee is correlation preservation: multiple references to the same
     * uncertain value always yield the same sample. Using rejection sampling (resampling until the predicate passes)

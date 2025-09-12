@@ -423,3 +423,20 @@ These methods are for performing statistical analysis on `Uncertain` values. The
 * Feel like contributing? Read
   the [Code of Conduct](https://github.com/MostlyScala/uncertain-tee/blob/main/CODE_OF_CONDUCT.md]) first 🙏
 
+
+
+## Cats Support
+
+The cats-support library exposes the following typeclasses for `Uncertain[T]`; `Functor`, `Applicative`, `Monad`.
+
+Use these instances by including the support module, and the following import:
+
+```scala
+import mostly.uncertaintee.cats.instances.given
+```
+
+| Build Tool    | Instruction                                                              |
+|:--------------|:-------------------------------------------------------------------------|
+| **sbt**       | `libraryDependencies += "mostly" %% "uncertain-tee" % NOT_YET_RELEASED"` |
+| **mill**      | `ivy"mostly::uncertain-tee:NOT_YET_RELEASED"`                            |
+| **scala-cli** | `//> using dep "mostly::uncertain-tee:NOT_YET_RELEASED"`                 |
