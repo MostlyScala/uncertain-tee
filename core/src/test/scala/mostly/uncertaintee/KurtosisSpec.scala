@@ -1,6 +1,7 @@
 package mostly.uncertaintee
 
 import scala.math.{abs, pow, sqrt}
+import mostly.uncertaintee.syntax.*
 
 class KurtosisSpec extends RngSuite {
 

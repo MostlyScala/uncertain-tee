@@ -1,7 +1,7 @@
 package mostly.uncertaintee
 
 import scala.math.{abs, pow, sqrt}
-import mostly.uncertaintee.syntax.all.*
+import mostly.uncertaintee.syntax.*
 
 class ArithmeticOperationsSpec extends RngSuite {
 

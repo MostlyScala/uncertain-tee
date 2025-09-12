@@ -4,7 +4,7 @@ import mostly.uncertaintee.Uncertain
 
 /** {{{
   *    import mostly.uncertaintee.syntax.comparison.*
-  *    // or just import all the syntax
+  *    // or just import all the syntax (recommended)
   *    import mostly.uncertaintee.syntax.*
   * }}}
   */

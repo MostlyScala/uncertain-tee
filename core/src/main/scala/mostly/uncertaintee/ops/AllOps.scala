@@ -12,6 +12,7 @@ trait AllOps
     extends ArithmeticOps
     with BooleanOps
     with ComparisonOps
+    with DistributionOps
     with FpOps
     with OptionOps
     with StatisticalOps

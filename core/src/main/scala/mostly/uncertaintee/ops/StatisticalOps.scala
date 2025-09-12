@@ -7,7 +7,7 @@ import scala.math.*
 
 /** {{{
   *    import mostly.uncertaintee.syntax.statistical.*
-  *    // or just import all the syntax
+  *    // or just import all the syntax (recommended)
   *    import mostly.uncertaintee.syntax.*
   * }}}
   */

@@ -22,13 +22,14 @@ package object uncertaintee {
     * }}}
     */
   object syntax extends ops.AllOps {
-    val all: ops.AllOps                 = this
-    val arithmetic: ops.ArithmeticOps   = this
-    val boolean: ops.BooleanOps         = this
-    val comparison: ops.ComparisonOps   = this
-    val functional: ops.FpOps           = this
-    val option: ops.OptionOps           = this
-    val statistical: ops.StatisticalOps = this
+    val all: ops.AllOps                   = this
+    val arithmetic: ops.ArithmeticOps     = this
+    val boolean: ops.BooleanOps           = this
+    val distribution: ops.DistributionOps = this
+    val comparison: ops.ComparisonOps     = this
+    val functional: ops.FpOps             = this
+    val option: ops.OptionOps             = this
+    val statistical: ops.StatisticalOps   = this
   }
 
   // To avoid any funky accidents where I mistype numbers or round floats or something

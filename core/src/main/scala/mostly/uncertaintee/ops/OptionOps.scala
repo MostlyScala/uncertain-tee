@@ -4,7 +4,7 @@ import mostly.uncertaintee.Uncertain
 
 /** {{{
   * import mostly.uncertaintee.syntax.option.*
-  * // or just import all the syntax
+  * // or just import all the syntax (recommended)
   * import mostly.uncertaintee.syntax.*
   * }}}
   */
@@ -38,7 +38,10 @@ trait OptionOps {
       * @see
       *   [[getOrElse]] for falling back to a plain, constant value instead of another uncertain one.
       */
-    def orElse(fallback: => Uncertain[T]): Uncertain[T] = uncertainOption.flatMap(_.fold(fallback)(Uncertain.point))
+    def orElse(fallback: => Uncertain[T]): Uncertain[T] = uncertainOption.flatMap {
+      case None    => fallback
+      case Some(x) => Uncertain(() => x)
+    }
 
     /** If this uncertain value results in `Some(v)`, the result is `v`. Otherwise, it falls back to the provided
       * default value.
