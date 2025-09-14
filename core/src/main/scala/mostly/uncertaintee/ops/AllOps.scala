@@ -9,10 +9,10 @@ package mostly.uncertaintee.ops
   * }}}
   */
 trait AllOps
-    extends ArithmeticOps
+    extends AllDistributionOps
+    with ArithmeticOps
     with BooleanOps
     with ComparisonOps
-    with DistributionOps
-    with FpOps
+    with FunctionalProgrammingOps
     with OptionOps
     with StatisticalOps

@@ -278,7 +278,7 @@ val testValue = Uncertain.normal(10, 1)(Random(42))
 // Results will be consistent across test runs
 ```
 
-## API Reference
+## API Reference (‼️ out of date, library still WIP ‼️)
 
 All functionality here is available via following two imports
 

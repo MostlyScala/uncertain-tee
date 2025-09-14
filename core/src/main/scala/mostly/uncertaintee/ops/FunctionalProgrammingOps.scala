@@ -10,7 +10,7 @@ import mostly.uncertaintee.Uncertain
   *
   * Adds "advanced" operators to Uncertain (from a classical FP-domain)
   */
-trait FpOps {
+trait FunctionalProgrammingOps {
 
   extension [T](uncertainT: Uncertain[T]) {
 
@@ -141,8 +141,6 @@ trait FpOps {
   // while staying similar to common FP patterns such as seen in the `cats` library.
   // Hence, 22 ts. It's just boilerplate, no real logic here, so a reasonable tradeoff to
   // having to write macros or pull in dependencies.
-  //
-  //
   // ----------
 
   extension [T1](t: Tuple1[Uncertain[T1]]) {

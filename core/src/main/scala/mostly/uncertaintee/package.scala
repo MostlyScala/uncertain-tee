@@ -25,9 +25,9 @@ package object uncertaintee {
     val all: ops.AllOps                   = this
     val arithmetic: ops.ArithmeticOps     = this
     val boolean: ops.BooleanOps           = this
-    val distribution: ops.DistributionOps = this
+    val distribution: ops.AllDistributionOps = this
     val comparison: ops.ComparisonOps     = this
-    val functional: ops.FpOps             = this
+    val functional: ops.FunctionalProgrammingOps             = this
     val option: ops.OptionOps             = this
     val statistical: ops.StatisticalOps   = this
   }
