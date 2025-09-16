@@ -27,6 +27,20 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.test
   )
 
+lazy val `cats-support` = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("cats-support"))
+  .settings(
+    name := "uncertain-tee-cats-support",
+    libraryDependencies ++=
+      Seq(
+        "org.typelevel" %%% "cats-core"        % "2.13.0" % Compile,
+        "org.typelevel"  %% "cats-laws"        % "2.13.0" % Test,
+        "org.typelevel" %%% "discipline-munit" % "2.0.0"  % Test
+      ) ++ Dependencies.test
+  )
+  .dependsOn(core)
+
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
