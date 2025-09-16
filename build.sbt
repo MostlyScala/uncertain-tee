@@ -1,3 +1,4 @@
+import laika.helium.Helium
 // https://typelevel.org/sbt-typelevel/faq.html#what-is-a-base-version-anyway
 ThisBuild / tlBaseVersion := "0.1"
 
@@ -16,6 +17,8 @@ ThisBuild / tlSitePublishBranch := Some("main")
 val scala3 = "3.3.6"
 ThisBuild / crossScalaVersions := Seq(scala3)
 ThisBuild / scalaVersion       := scala3
+
+ThisBuild / tlSiteHelium := Helium.defaults
 
 lazy val root = tlCrossRootProject.aggregate(
   uncertainTee,
