@@ -10,7 +10,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Cogen}
 
 class CatsLawsTest extends DisciplineSuite {
-  private given [A: Arbitrary]: Arbitrary[Uncertain[A]] = Arbitrary(arbitrary[A].map(Uncertain.point))
+  private given [A: Arbitrary]: Arbitrary[Uncertain[A]] = Arbitrary(arbitrary[A].map(x => Uncertain.apply(() => x)))
 
   // Testing the laws for truly uncertain values
   private given [A: Eq]: Eq[Uncertain[A]] with

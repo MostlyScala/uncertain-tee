@@ -11,5 +11,5 @@ object instances {
     override def flatMap[A, B](fa: Uncertain[A])(f: A => Uncertain[B]): Uncertain[B] =
       fa.flatMap(f)
 
-    override def pure[A](x: A): Uncertain[A] = Uncertain.point(x)
+    override def pure[A](x: A): Uncertain[A] = Uncertain.apply(() => x)
 }

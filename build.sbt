@@ -8,7 +8,7 @@ ThisBuild / licenses         := Seq(License.MIT)
 ThisBuild / developers       := List(
   // your GitHub handle and name
   tlGitHubDev("TobiasRoland", "Tobias Roland"),
-  tlGitHubDev("AdamJKing", "Adam King"),
+  tlGitHubDev("AdamJKing", "Adam King")
 )
 
 ThisBuild / tlSitePublishBranch := Some("main")
@@ -17,29 +17,39 @@ val scala3 = "3.3.6"
 ThisBuild / crossScalaVersions := Seq(scala3)
 ThisBuild / scalaVersion       := scala3
 
-lazy val root = tlCrossRootProject.aggregate(core)
+lazy val root = tlCrossRootProject.aggregate(
+  uncertainTee,
+  uncertainTeeCats,
+  uncertainTeeCatsEffect
+)
 
-lazy val core = crossProject(JVMPlatform, JSPlatform)
+lazy val uncertainTee = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
-  .in(file("core"))
+  .in(file("uncertain-tee"))
   .settings(
     name := "uncertain-tee",
     libraryDependencies ++= Dependencies.test
   )
 
-lazy val `cats-support` = crossProject(JVMPlatform, JSPlatform)
+lazy val uncertainTeeCats = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
-  .in(file("cats-support"))
+  .in(file("uncertain-tee-cats"))
   .settings(
-    name := "uncertain-tee-cats-support",
-    libraryDependencies ++=
-      Seq(
-        "org.typelevel" %%% "cats-core"        % "2.13.0" % Compile,
-        "org.typelevel"  %% "cats-laws"        % "2.13.0" % Test,
-        "org.typelevel" %%% "discipline-munit" % "2.0.0"  % Test
-      ) ++ Dependencies.test
+    name := "uncertain-tee-cats",
+    libraryDependencies ++= Dependencies.cats,
+    libraryDependencies ++= Dependencies.test
   )
-  .dependsOn(core)
+  .dependsOn(uncertainTee)
+
+lazy val uncertainTeeCatsEffect = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uncertain-tee-cats-effect"))
+  .settings(
+    name := "uncertain-tee-cats-effect",
+    libraryDependencies ++= Dependencies.catsEffect,
+    libraryDependencies ++= Dependencies.test
+  )
+  .dependsOn(uncertainTeeCats)
 
 lazy val docs = project
   .in(file("site"))
@@ -48,15 +58,25 @@ lazy val docs = project
 lazy val Dependencies = new {
 
   object V {
-    val munit      = "1.1.0"
-    val scalacheck = "1.18.1"
-//     val cats = "2.10.0"
-//     val catsEffect = "3.6.3"
+    val munit      = "1.2.0"
+    val scalacheck = "1.19.0"
+    val cats       = "2.13.0"
+    val catsEffect = "3.6.3"
   }
+
+  val cats = Seq(
+    "org.typelevel" %% "cats-core" % V.cats
+  )
+
+  val catsEffect = cats ++ Seq(
+    "org.typelevel" %% "cats-effect" % V.catsEffect
+  )
 
   val test = Seq(
     "org.scalameta"  %% "munit"            % V.munit      % Test,
     "org.scalameta"  %% "munit-scalacheck" % V.munit      % Test,
-    "org.scalacheck" %% "scalacheck"       % V.scalacheck % Test
+    "org.scalacheck" %% "scalacheck"       % V.scalacheck % Test,
+    "org.typelevel"  %% "cats-laws"        % "2.13.0"     % Test,
+    "org.typelevel"  %% "discipline-munit" % "2.0.0"      % Test
   )
 }
