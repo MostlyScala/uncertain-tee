@@ -5,7 +5,7 @@ ThisBuild / tlBaseVersion := "0.1"
 ThisBuild / organization     := "mostly"
 ThisBuild / organizationName := "Mostly Codes"
 ThisBuild / startYear        := Some(2025)
-ThisBuild / licenses         := Seq(License.MIT)
+ThisBuild / licenses         := Seq(License.Apache2)
 ThisBuild / developers       := List(
   // your GitHub handle and name
   tlGitHubDev("TobiasRoland", "Tobias Roland"),
@@ -61,10 +61,12 @@ lazy val docs = project
 lazy val Dependencies = new {
 
   object V {
-    val munit      = "1.2.0"
-    val scalacheck = "1.19.0"
-    val cats       = "2.13.0"
-    val catsEffect = "3.6.3"
+    val munit           = "1.2.0"
+    val munitDiscipline = "2.0.0"
+    val scalacheck      = "1.19.0"
+    val cats            = "2.13.0"
+    val catsLaws        = "2.13.0"
+    val catsEffect      = "3.6.3"
   }
 
   val cats = Seq(
@@ -76,10 +78,10 @@ lazy val Dependencies = new {
   )
 
   val test = Seq(
-    "org.scalameta"  %% "munit"            % V.munit      % Test,
-    "org.scalameta"  %% "munit-scalacheck" % V.munit      % Test,
-    "org.scalacheck" %% "scalacheck"       % V.scalacheck % Test,
-    "org.typelevel"  %% "cats-laws"        % "2.13.0"     % Test,
-    "org.typelevel"  %% "discipline-munit" % "2.0.0"      % Test
+    "org.scalameta"  %% "munit"            % V.munit           % Test,
+    "org.scalameta"  %% "munit-scalacheck" % V.munit           % Test,
+    "org.scalacheck" %% "scalacheck"       % V.scalacheck      % Test,
+    "org.typelevel"  %% "cats-laws"        % V.catsLaws        % Test,
+    "org.typelevel"  %% "discipline-munit" % V.munitDiscipline % Test
   )
 }
