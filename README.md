@@ -414,12 +414,9 @@ These methods are for performing statistical analysis on `Uncertain` values. The
 
 * It originates from the research paper `Uncertain<T>: A First-Order Type for Uncertain
   Data.` (https://www.microsoft.com/en-us/research/publication/uncertaint-a-first-order-type-for-uncertain-data-2/)
-
 * You can learn more from this excellent Blog Post about the pattern: https://nshipster.com/uncertainty
     * Author of which, @Mattt, has a swift implementation of the Uncertain[T] pattern
       here: https://github.com/mattt/Uncertain
-
-* Released under the [MIT license](https://github.com/MostlyScala/uncertain-tee/blob/main/LICENSE])
 * Feel like contributing? Read
   the [Code of Conduct](https://github.com/MostlyScala/uncertain-tee/blob/main/CODE_OF_CONDUCT.md]) first 🙏
 
