@@ -21,8 +21,9 @@
 
 package mostly.uncertaintee.cats
 
-import cats.{Functor, StackSafeMonad}
+import cats.{Functor, Monoid, StackSafeMonad}
 import mostly.uncertaintee.Uncertain
+import mostly.uncertaintee.syntax.point
 
 object instances {
   given Functor[Uncertain] with
@@ -33,4 +34,11 @@ object instances {
       fa.flatMap(f)
 
     override def pure[A](x: A): Uncertain[A] = Uncertain.apply(() => x)
+
+  given [A](using u: Monoid[A]): Monoid[Uncertain[A]] with
+    override def empty: Uncertain[A] =
+      Uncertain.point(Monoid[A].empty)
+
+    override def combine(x: Uncertain[A], y: Uncertain[A]): Uncertain[A] =
+      x.flatMap(a => y.map(b => Monoid[A].combine(a, b)))
 }

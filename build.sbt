@@ -9,7 +9,8 @@ ThisBuild / licenses         := Seq(License.Apache2)
 ThisBuild / developers       := List(
   // your GitHub handle and name
   tlGitHubDev("TobiasRoland", "Tobias Roland"),
-  tlGitHubDev("AdamJKing", "Adam King")
+  tlGitHubDev("AdamJKing", "Adam King"),
+  tlGitHubDev("smithleej", "Lee Smith")
 )
 
 ThisBuild / tlSitePublishBranch := Some("main")

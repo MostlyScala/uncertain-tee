@@ -424,7 +424,7 @@ These methods are for performing statistical analysis on `Uncertain` values. The
 
 ## Cats Support
 
-The cats-support library exposes the following typeclasses for `Uncertain[T]`; `Functor`, `Applicative`, `Monad`.
+The cats-support library exposes the following typeclasses for `Uncertain[T]`; `Functor`, `Applicative`, `Monad`, `Monoid`.
 
 Use these instances by including the support module, and the following import:
 

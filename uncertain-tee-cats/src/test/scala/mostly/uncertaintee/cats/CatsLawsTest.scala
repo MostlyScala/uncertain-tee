@@ -1,6 +1,7 @@
 package mostly.uncertaintee.cats
 
 import cats.Eq
+import cats.kernel.laws.discipline.MonoidTests
 import cats.laws.discipline.{ApplicativeTests, FunctorTests, MonadTests}
 import cats.syntax.eq.*
 import mostly.uncertaintee.Uncertain
@@ -20,4 +21,5 @@ class CatsLawsTest extends DisciplineSuite {
   checkAll("Uncertain.FunctorLaws", FunctorTests[Uncertain].functor[Int, Int, String])
   checkAll("Uncertain.ApplicativeLaws", ApplicativeTests[Uncertain].applicative[Int, Int, String])
   checkAll("Uncertain.MonadLaws", MonadTests[Uncertain].monad[Int, Int, String])
+  checkAll("Uncertain.MonoidLaws", MonoidTests[Uncertain[Int]].monoid)
 }
