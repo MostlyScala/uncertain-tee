@@ -1,7 +1,6 @@
 package mostly.uncertaintee
 
 import _root_.cats.*
-import _root_.cats.kernel.CommutativeGroup
 import _root_.cats.syntax.all.*
 import mostly.uncertaintee.*
 import mostly.uncertaintee.syntax.point
