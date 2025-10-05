@@ -1,6 +1,7 @@
 package mostly.uncertaintee
 
 import _root_.cats.*
+import _root_.cats.kernel.CommutativeGroup
 import _root_.cats.syntax.all.*
 import mostly.uncertaintee.*
 import mostly.uncertaintee.syntax.point
@@ -44,5 +45,16 @@ package object cats {
         sampleX <- x
         sampleY <- y
       } yield sampleX |+| sampleY
+
+  given uncertainGroup[T](using Group[T]): Group[Uncertain[T]] with {
+    override def empty: Uncertain[T] =
+      Uncertain.point(Group[T].empty)
+
+    override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] =
+      x.flatMap(a => y.map(b => Group[T].combine(a, b)))
+
+    override def inverse(x: Uncertain[T]): Uncertain[T] =
+      x.map(a => Group[T].inverse(a))
+  }
 
 }

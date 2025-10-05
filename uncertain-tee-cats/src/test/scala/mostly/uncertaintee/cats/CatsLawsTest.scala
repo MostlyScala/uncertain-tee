@@ -1,8 +1,8 @@
 package mostly.uncertaintee.cats
 
 import cats.Eq
-import cats.kernel.laws.discipline.MonoidTests
-import cats.laws.discipline.{ApplicativeTests, FunctorTests, MonadTests}
+import cats.laws.discipline.{ApplicativeTests, FunctorTests, MonadTests, SemigroupalTests}
+import cats.kernel.laws.discipline.{GroupTests, MonoidTests}
 import cats.syntax.eq.*
 import mostly.uncertaintee.*
 import munit.DisciplineSuite
@@ -24,5 +24,6 @@ class CatsLawsTest extends DisciplineSuite {
   checkAll("Uncertain.ApplicativeLaws", ApplicativeTests[Uncertain].applicative[Int, Int, String])
   checkAll("Uncertain.MonadLaws", MonadTests[Uncertain].monad[Int, Int, String])
   checkAll("Uncertain.MonoidLaws", MonoidTests[Uncertain[Int]].monoid)
-  checkAll("Uncertain.SemigroupLaws", MonoidTests[Uncertain[Int]].semigroup)
+  checkAll("Uncertain.SemigroupLaws", SemigroupalTests[Uncertain].semigroupal[Int, Int, String])
+  checkAll("Uncertain.GroupLaws", GroupTests[Uncertain[Int]].group)
 }
