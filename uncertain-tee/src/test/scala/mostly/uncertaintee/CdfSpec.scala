@@ -34,7 +34,8 @@ class CdfSpec extends RngSuite {
     // The CDF of a standard normal distribution at its mean (0) is exactly 0.5.
     val theoreticalAtMean = 0.5
     val sampleAtMean      = normalDist.cdf(0.0, sampleCount)
-    val hintAtMean        = s"CDF at mean ($sampleAtMean) should be close to theoretical value ($theoreticalAtMean) for N(0,1)."
+    val hintAtMean        =
+      s"CDF at mean ($sampleAtMean) should be close to theoretical value ($theoreticalAtMean) for N(0,1)."
     assert(abs(sampleAtMean - theoreticalAtMean) < tolerance, hintAtMean)
 
     // The probability of a value being within one standard deviation is ~68%.
@@ -95,7 +96,10 @@ class CdfSpec extends RngSuite {
     // CDF between the two possible values should be the probability of the first value (0).
     // P(X <= 0.5) is the same as P(X=0), which is 1 - p = 0.3.
     val cdfBetween = bernoulli.cdf(0.5, sampleCount)
-    assert(abs(cdfBetween - (1.0 - p)) < tolerance, s"CDF between 0 and 1 ($cdfBetween) should be P(false) (${1.0 - p}).")
+    assert(
+      abs(cdfBetween - (1.0 - p)) < tolerance,
+      s"CDF between 0 and 1 ($cdfBetween) should be P(false) (${1.0 - p})."
+    )
 
     // CDF at a point above the second possible value (1) should be 1.
     val cdfAbove = bernoulli.cdf(1.1, sampleCount)

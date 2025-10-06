@@ -28,7 +28,9 @@ class BernoulliDistributionSpec extends RngSuite {
 
   // --- Statistical Properties Tests ---
 
-  rngTest("Bernoulli distribution's sample mean should approximate its theoretical mean (p) using the .expectedValue method") {
+  rngTest(
+    "Bernoulli distribution's sample mean should approximate its theoretical mean (p) using the .expectedValue method"
+  ) {
     val p         = 0.7
     val bernoulli = Uncertain.bernoulli(p)
 
@@ -37,7 +39,8 @@ class BernoulliDistributionSpec extends RngSuite {
     val theoreticalMean = p
     val sampleMean      = bernoulli.expectedValue(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) using .expectedValue should be close to theoretical mean ($theoreticalMean) for Bernoulli(p=$p)."
+    val hint =
+      s"Sample mean ($sampleMean) using .expectedValue should be close to theoretical mean ($theoreticalMean) for Bernoulli(p=$p)."
     assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
   }
 
@@ -52,7 +55,8 @@ class BernoulliDistributionSpec extends RngSuite {
     // The library's `standardDeviation` returns sqrt(variance), so we square it.
     val sampleVariance      = pow(bernoulli.standardDeviation(sampleCount), 2)
 
-    val hint = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Bernoulli(p=$p)."
+    val hint =
+      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Bernoulli(p=$p)."
     assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
   }
 
@@ -70,7 +74,8 @@ class BernoulliDistributionSpec extends RngSuite {
     val stdDev         = sqrt(samples.map(x => pow(x - mean, 2)).sum / (sampleCount - 1))
     val sampleSkewness = samples.map(x => pow((x - mean) / stdDev, 3)).sum / sampleCount
 
-    val hint = s"Sample skewness ($sampleSkewness) should be close to theoretical skewness ($theoreticalSkewness) for Bernoulli(p=$p)."
+    val hint =
+      s"Sample skewness ($sampleSkewness) should be close to theoretical skewness ($theoreticalSkewness) for Bernoulli(p=$p)."
     assert(abs(sampleSkewness - theoreticalSkewness) < tolerance, hint)
   }
 
@@ -89,7 +94,8 @@ class BernoulliDistributionSpec extends RngSuite {
     // The "- 3" at the end is to calculate *excess* kurtosis.
     val sampleKurtosis = (samples.map(x => pow((x - mean) / stdDev, 4)).sum / sampleCount) - 3.0
 
-    val hint = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical kurtosis ($theoreticalKurtosis) for Bernoulli(p=$p)."
+    val hint =
+      s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical kurtosis ($theoreticalKurtosis) for Bernoulli(p=$p)."
     // Kurtosis can have larger variance in estimation, so we use a slightly larger tolerance.
     assert(abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2, hint)
   }
