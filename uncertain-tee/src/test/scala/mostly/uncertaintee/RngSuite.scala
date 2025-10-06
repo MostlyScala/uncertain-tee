@@ -23,7 +23,7 @@ import scala.util.Random
 /** A base trait for MUnit test suites that require a deterministic, seeded Random instance for each test */
 trait RngSuite extends FunSuite {
 
-  val seededRandomFixture = FunFixture[Random](
+  val seededRandomFixture: FunFixture[Random] = FunFixture[Random](
     setup = { _ => new Random(42L) },
     teardown = { _ => () }
   )
