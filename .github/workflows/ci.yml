@@ -83,11 +83,11 @@ jobs:
 
       - name: Make target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: mkdir -p uncertain-tee-cats/.js/target uncertain-tee-cats-effect/.js/target uncertain-tee-cats-effect/.jvm/target uncertain-tee-cats/.jvm/target uncertain-tee/.jvm/target uncertain-tee/.js/target project/target
+        run: mkdir -p uncertain-tee-squants/.jvm/target uncertain-tee-cats/.js/target uncertain-tee-squants/.js/target uncertain-tee-cats-effect/.js/target uncertain-tee-cats-effect/.jvm/target uncertain-tee-cats/.jvm/target uncertain-tee/.jvm/target uncertain-tee/.js/target project/target
 
       - name: Compress target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: tar cf targets.tar uncertain-tee-cats/.js/target uncertain-tee-cats-effect/.js/target uncertain-tee-cats-effect/.jvm/target uncertain-tee-cats/.jvm/target uncertain-tee/.jvm/target uncertain-tee/.js/target project/target
+        run: tar cf targets.tar uncertain-tee-squants/.jvm/target uncertain-tee-cats/.js/target uncertain-tee-squants/.js/target uncertain-tee-cats-effect/.js/target uncertain-tee-cats-effect/.jvm/target uncertain-tee-cats/.jvm/target uncertain-tee/.jvm/target uncertain-tee/.js/target project/target
 
       - name: Upload target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
