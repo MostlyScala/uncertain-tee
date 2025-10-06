@@ -44,6 +44,44 @@ trait DistributionOpsDouble {
       Uncertain(() => min + random.nextDouble() * (max - min))
     }
 
+    /** Creates a triangular distribution.
+      *
+      * The triangular distribution is a continuous probability distribution with a lower limit `min`, an upper limit
+      * `max`, and a mode `peak`.
+      *
+      * @param min
+      *   The minimum value of the distribution (lower bound).
+      * @param max
+      *   The maximum value of the distribution (upper bound).
+      * @param peak
+      *   The mode or most frequent value, where the distribution is highest.
+      * @param random
+      *   Random number generator to use for sampling.
+      * @return
+      *   An uncertain value following a triangular distribution.
+      */
+    def triangularViaDouble(
+      min: Double,
+      peak: Double,
+      max: Double
+    )(using random: Random = new Random()): Uncertain[Double] = {
+      require(min <= max, s"min ($min) must be <= max ($max)")
+      require(min <= peak && peak <= max, s"peak ($peak) must be between min ($min) and max ($max).")
+      if (min == max) {
+        Uncertain.point(min)
+      } else {
+        Uncertain { () =>
+          val u  = random.nextDouble()
+          val fc = (peak - min) / (max - min)
+          if (u < fc) {
+            min + sqrt(u * (max - min) * (peak - min))
+          } else {
+            max - sqrt((1 - u) * (max - min) * (max - peak))
+          }
+        }
+      }
+    }
+
     /** Creates an exponential distribution. */
     def exponentialViaDouble(rate: Double)(using random: Random = new Random()): Uncertain[Double] = {
       require(rate > 0, "Rate parameter must be positive.")
