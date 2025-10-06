@@ -170,6 +170,9 @@ trait AllDistributionOps
     def uniform(min: Double, max: Double)(using random: Random = new Random()): Uncertain[Double] =
       Uncertain.uniformDouble(min, max)(using random)
 
+    def triangular(min: Double, peak: Double, max: Double): Uncertain[Double] =
+      Uncertain.triangularViaDouble(min, peak, max)
+
     def exponential(rate: Double)(using random: Random = new Random()): Uncertain[Double] =
       Uncertain.exponentialViaDouble(rate)(using random)
 

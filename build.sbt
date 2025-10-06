@@ -24,7 +24,8 @@ ThisBuild / tlSiteHelium := Helium.defaults
 lazy val root = tlCrossRootProject.aggregate(
   uncertainTee,
   uncertainTeeCats,
-  uncertainTeeCatsEffect
+  uncertainTeeCatsEffect,
+  uncertainTeeSquants
 )
 
 lazy val uncertainTee = crossProject(JVMPlatform, JSPlatform)
@@ -44,6 +45,17 @@ lazy val uncertainTeeCats = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.test
   )
   .dependsOn(uncertainTee)
+
+lazy val uncertainTeeSquants = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uncertain-tee-squants"))
+  .settings(
+    name := "uncertain-tee-squants",
+    libraryDependencies ++= Dependencies.squants,
+    libraryDependencies ++= Dependencies.test
+  )
+  .dependsOn(uncertainTee)
+
 
 lazy val uncertainTeeCatsEffect = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -68,10 +80,15 @@ lazy val Dependencies = new {
     val cats            = "2.13.0"
     val catsLaws        = "2.13.0"
     val catsEffect      = "3.6.3"
+    val squants      = "1.8.3"
   }
 
   val cats = Seq(
     "org.typelevel" %% "cats-core" % V.cats
+  )
+
+  val squants = Seq(
+    "org.typelevel"  %% "squants"  % V.squants
   )
 
   val catsEffect = cats ++ Seq(

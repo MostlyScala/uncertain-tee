@@ -3,7 +3,7 @@ package mostly.uncertaintee
 import _root_.cats.*
 import _root_.cats.syntax.all.*
 import mostly.uncertaintee.*
-import mostly.uncertaintee.syntax.point
+import mostly.uncertaintee.syntax.*
 
 import scala.util.NotGiven
 
