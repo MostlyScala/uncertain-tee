@@ -1,20 +1,35 @@
+/*
+ * Copyright 2025 Mostly Codes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package mostly.uncertaintee.squants
 
-import _root_.squants.*
-import _root_.squants.electro.*
-import _root_.squants.energy.*
-import _root_.squants.information.*
-import _root_.squants.mass.*
-import _root_.squants.motion.*
-import _root_.squants.photo.*
-import _root_.squants.radio.*
-import _root_.squants.space.*
-import _root_.squants.thermal.*
-import _root_.squants.time.*
-import mostly.uncertaintee.*
-import mostly.uncertaintee.syntax.*
+import _root_.squants._
+import _root_.squants.electro._
+import _root_.squants.energy._
+import _root_.squants.information._
+import _root_.squants.mass._
+import _root_.squants.motion._
+import _root_.squants.photo._
+import _root_.squants.radio._
+import _root_.squants.space._
+import _root_.squants.thermal._
+import _root_.squants.time._
+import mostly.uncertaintee._
 
-/** TODO - this might be better to build atop BigDecimal instead of double, or provide `...viaBigDouble` methods since 
+/** TODO - this might be better to build atop BigDecimal instead of double, or provide `...viaBigDouble` methods since
   *
   * Typeclass for computing statistics on Quantity types.
   *
@@ -97,7 +112,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): Resistivity      = OhmMeters(d)
   }
 
-  // squants.energy
+  // energy
   given energyStats: QuantityStatisticallyConvertible[Energy] with {
     override def primaryUnit: UnitOfMeasure[Energy] = Joules
     override def fromDouble(d: Double): Energy      = Joules(d)
@@ -123,13 +138,13 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): SpecificEnergy      = Grays(d)
   }
 
-  // squants.information
+  // information
   given informationStats: QuantityStatisticallyConvertible[Information] with {
     override def primaryUnit: UnitOfMeasure[Information] = Bytes
     override def fromDouble(d: Double): Information      = Bytes(d)
   }
 
-  // squants.mass
+  // mass
   given areaDensityStats: QuantityStatisticallyConvertible[AreaDensity] with {
     override def primaryUnit: UnitOfMeasure[AreaDensity] = KilogramsPerSquareMeter
     override def fromDouble(d: Double): AreaDensity      = KilogramsPerSquareMeter(d)
@@ -165,7 +180,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): VolumeFlow      = CubicMetersPerSecond(d)
   }
 
-  // squants.motion
+  // motion
   given accelerationStats: QuantityStatisticallyConvertible[Acceleration] with {
     override def primaryUnit: UnitOfMeasure[Acceleration] = MetersPerSecondSquared
     override def fromDouble(d: Double): Acceleration      = MetersPerSecondSquared(d)
@@ -206,7 +221,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): Yank      = NewtonsPerSecond(d)
   }
 
-  // squants.photo
+  // photo
   given illuminanceStats: QuantityStatisticallyConvertible[Illuminance] with {
     override def primaryUnit: UnitOfMeasure[Illuminance] = Lux
     override def fromDouble(d: Double): Illuminance      = Lux(d)
@@ -227,7 +242,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): LuminousIntensity      = Candelas(d)
   }
 
-  // squants.radio
+  // radio
   given irradianceStats: QuantityStatisticallyConvertible[Irradiance] with {
     override def primaryUnit: UnitOfMeasure[Irradiance] = WattsPerSquareMeter
     override def fromDouble(d: Double): Irradiance      = WattsPerSquareMeter(d)
@@ -243,7 +258,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): RadiantIntensity      = WattsPerSteradian(d)
   }
 
-  // squants.space
+  // space
   given angleStats: QuantityStatisticallyConvertible[Angle] with {
     override def primaryUnit: UnitOfMeasure[Angle] = Radians
     override def fromDouble(d: Double): Angle      = Radians(d)
@@ -269,7 +284,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): Volume      = CubicMeters(d)
   }
 
-  // squants.thermal
+  // thermal
   given temperatureStats: QuantityStatisticallyConvertible[Temperature] with {
     override def primaryUnit: UnitOfMeasure[Temperature] = Kelvin
     override def fromDouble(d: Double): Temperature      = Kelvin(d)
@@ -280,7 +295,7 @@ object QuantityStatisticallyConvertible {
     override def fromDouble(d: Double): ThermalCapacity      = JoulesPerKelvin(d)
   }
 
-  // squants.time
+  // time
   given frequencyStats: QuantityStatisticallyConvertible[Frequency] with {
     override def primaryUnit: UnitOfMeasure[Frequency] = Hertz
     override def fromDouble(d: Double): Frequency      = Hertz(d)

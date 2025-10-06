@@ -1,9 +1,25 @@
+/*
+ * Copyright 2025 Mostly Codes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
 import scala.math.{abs, log}
-import mostly.uncertaintee.syntax.*
 
 class ConfidenceIntervalSpec extends RngSuite {
 
@@ -25,8 +41,10 @@ class ConfidenceIntervalSpec extends RngSuite {
 
     val (sampleLower, sampleUpper) = normalDist.confidenceInterval(confidence, sampleCount)
 
-    val hintLower = s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 95% CI of N(0,1)."
-    val hintUpper = s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 95% CI of N(0,1)."
+    val hintLower =
+      s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 95% CI of N(0,1)."
+    val hintUpper =
+      s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 95% CI of N(0,1)."
 
     assert(abs(sampleLower - theoreticalLower) < tolerance, hintLower)
     assert(abs(sampleUpper - theoreticalUpper) < tolerance, hintUpper)
@@ -45,8 +63,10 @@ class ConfidenceIntervalSpec extends RngSuite {
 
     val (sampleLower, sampleUpper) = uniformDist.confidenceInterval(confidence, sampleCount)
 
-    val hintLower = s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 80% CI of U(0,10)."
-    val hintUpper = s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 80% CI of U(0,10)."
+    val hintLower =
+      s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 80% CI of U(0,10)."
+    val hintUpper =
+      s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 80% CI of U(0,10)."
 
     assert(abs(sampleLower - theoreticalLower) < tolerance, hintLower)
     assert(abs(sampleUpper - theoreticalUpper) < tolerance, hintUpper)
@@ -66,8 +86,10 @@ class ConfidenceIntervalSpec extends RngSuite {
 
     val (sampleLower, sampleUpper) = exponentialDist.confidenceInterval(confidence, sampleCount)
 
-    val hintLower = s"Sample lower bound ($sampleLower) should be close to theoretical bound (${"%.4f".format(theoreticalLower)}) for 95% CI of Exp(1)."
-    val hintUpper = s"Sample upper bound ($sampleUpper) should be close to theoretical bound (${"%.4f".format(theoreticalUpper)}) for 95% CI of Exp(1)."
+    val hintLower =
+      s"Sample lower bound ($sampleLower) should be close to theoretical bound (${"%.4f".format(theoreticalLower)}) for 95% CI of Exp(1)."
+    val hintUpper =
+      s"Sample upper bound ($sampleUpper) should be close to theoretical bound (${"%.4f".format(theoreticalUpper)}) for 95% CI of Exp(1)."
 
     // The upper tail of a skewed distribution is harder to estimate, so we use a slightly larger tolerance.
     assert(abs(sampleLower - theoreticalLower) < tolerance, hintLower)

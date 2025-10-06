@@ -103,3 +103,5 @@ lazy val Dependencies = new {
     "org.typelevel"  %% "discipline-munit" % V.munitDiscipline % Test
   )
 }
+
+addCommandAlias("commitCheck", "+")
