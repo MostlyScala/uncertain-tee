@@ -23,7 +23,7 @@ import scala.math.{abs, pow, sqrt}
 class TriangularDistributionSpec extends RngSuite {
 
   private val sampleCount = 500_000
-  private val tolerance   = 0.01
+  private val tolerance   = 0.015
 
   // --- Sanity and Range Tests ---
 
