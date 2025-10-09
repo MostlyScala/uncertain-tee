@@ -23,8 +23,8 @@ import scala.util.Random
 
 /** A type for working with uncertain data - values that have some randomness or measurement error.
   *
-  * Instead of working with single values like `speed = 65.0`, you can work with uncertain values like
-  * `speed = "somewhere between 60-70 mph"` and let the library handle the math correctly.
+  * Instead of working with single values like `speed = 65.0`, you can work with uncertain values like `speed = "somewhere between 60-70 mph"` and let the library handle the math
+  * correctly.
   *
   * @example
   *   Basic usage:
@@ -59,11 +59,11 @@ sealed abstract class Uncertain[T] {
 
   /** Gets one sample from this uncertain value.
     *
-    * Each call returns a different random sample from the distribution. If this uncertain value is built from other
-    * uncertain values, their samples are coordinated to preserve correlations.
+    * Each call returns a different random sample from the distribution. If this uncertain value is built from other uncertain values, their samples are coordinated to preserve
+    * correlations.
     *
-    * '''Performance Note:''' Each call performs fresh sampling from the underlying distribution(s). For repeated
-    * sampling, consider using `take(n)` or `iterator` which may be more efficient.
+    * '''Performance Note:''' Each call performs fresh sampling from the underlying distribution(s). For repeated sampling, consider using `take(n)` or `iterator` which may be more
+    * efficient.
     *
     * @example
     *   Correlation preservation in action:
@@ -103,11 +103,10 @@ sealed abstract class Uncertain[T] {
 
   /** Chains uncertain computations together (monadic bind operation).
     *
-    * Use this when the next uncertain value depends on the current sample. This is essential for building complex
-    * probabilistic models where later distributions depend on earlier samples.
+    * Use this when the next uncertain value depends on the current sample. This is essential for building complex probabilistic models where later distributions depend on earlier
+    * samples.
     *
-    * '''Performance Note:''' Creates nested computation trees that are evaluated lazily. Deep nesting may impact
-    * performance for very complex models.
+    * '''Performance Note:''' Creates nested computation trees that are evaluated lazily. Deep nesting may impact performance for very complex models.
     *
     * @example
     *   Temperature-dependent clothing choice:
@@ -202,9 +201,8 @@ sealed abstract class Uncertain[T] {
     *
     * <strong>Q:</strong> Why does this return `Uncertain[Option[T]]` instead of `Uncertain[T]`?
     *
-    * <strong>A:</strong> This library's core guarantee is correlation preservation: multiple references to the same
-    * uncertain value always yield the same sample. Using rejection sampling (resampling until the predicate passes)
-    * would break this fundamental property.
+    * <strong>A:</strong> This library's core guarantee is correlation preservation: multiple references to the same uncertain value always yield the same sample. Using rejection
+    * sampling (resampling until the predicate passes) would break this fundamental property.
     *
     * Consider what would happen with rejection sampling:
     * {{{
@@ -254,11 +252,10 @@ sealed abstract class Uncertain[T] {
     *   }
     *   }}}
     * @param keepWhen
-    *   The function to test each sample. Returns `true` to keep the value (in a `Some`), `false` to discard it
-    *   (resulting in `None`).
+    *   The function to test each sample. Returns `true` to keep the value (in a `Some`), `false` to discard it (resulting in `None`).
     * @return
-    *   A new `Uncertain[Option[T]]` that contains `Some(value)` if the predicate passed for that sample, and `None` if
-    *   the predicate failed. Correlation with the original uncertain value is preserved.
+    *   A new `Uncertain[Option[T]]` that contains `Some(value)` if the predicate passed for that sample, and `None` if the predicate failed. Correlation with the original
+    *   uncertain value is preserved.
     */
   def filter(keepWhen: T => Boolean): Uncertain[Option[T]] =
     this.map {

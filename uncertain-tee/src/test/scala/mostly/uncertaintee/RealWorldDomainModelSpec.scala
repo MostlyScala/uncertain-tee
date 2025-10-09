@@ -23,8 +23,7 @@ import scala.util.Random
 
 /** This spec showcases the library by contextualising it with "real-world" use-cases
   *
-  * Each test acts as a small tutorial, demonstrating how to model complex, uncertain scenarios using custom domain
-  * models (case classes, sealed traits).
+  * Each test acts as a small tutorial, demonstrating how to model complex, uncertain scenarios using custom domain models (case classes, sealed traits).
   */
 class RealWorldDomainModelSpec extends RngSuite {
 
@@ -39,10 +38,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   case object VariantB extends WebVariant
   case class ABTestResult(winner: WebVariant, relativeImprovement: Double)
 
-  /** Models an A/B test where the conversion rates for two website variants are uncertain. We use a for-comprehension
-    * to sample from both uncertain rates simultaneously, determine the winner for that sample, and calculate the
-    * improvement. The result is an `Uncertain[ABTestResult]` which can be analyzed to see how likely VariantB is to
-    * win.
+  /** Models an A/B test where the conversion rates for two website variants are uncertain. We use a for-comprehension to sample from both uncertain rates simultaneously, determine
+    * the winner for that sample, and calculate the improvement. The result is an `Uncertain[ABTestResult]` which can be analyzed to see how likely VariantB is to win.
     */
   rngTest("1. E-commerce: A/B Testing for Website Conversion") {
     // Conversion rates are modeled as uncertain, perhaps from early data.
@@ -83,9 +80,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   case class Stockout(unitsShort: Int) extends InventoryStatus
   case class InStock(unitsLeft: Int)   extends InventoryStatus
 
-  /** Models inventory management where both product demand and shipment lead times are uncertain. We use `flatMap` to
-    * create a dependency: first, we determine the lead time, and *then* we model the total demand *during that specific
-    * time*. This allows us to find the probability of a stockout.
+  /** Models inventory management where both product demand and shipment lead times are uncertain. We use `flatMap` to create a dependency: first, we determine the lead time, and
+    * *then* we model the total demand *during that specific time*. This allows us to find the probability of a stockout.
     */
   rngTest("2. Supply Chain: Modeling Stockout Risk") {
     val initialStock = 100
@@ -118,9 +114,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 3. Finance: Profitability Projection
   // =================================================================================================
 
-  /** Models a simple financial projection where both revenue and costs are uncertain. A for-comprehension combines
-    * these two factors to produce an `Uncertain[Double]` for profit. We then `map` this uncertain profit into a domain
-    * model (`Profitability`) to easily calculate the probability of the venture being profitable.
+  /** Models a simple financial projection where both revenue and costs are uncertain. A for-comprehension combines these two factors to produce an `Uncertain[Double]` for profit.
+    * We then `map` this uncertain profit into a domain model (`Profitability`) to easily calculate the probability of the venture being profitable.
     */
   rngTest("3. Finance: Projecting Profitability") {
     sealed trait Profitability
@@ -148,9 +143,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 4. Healthcare: Medical Test Classification
   // =================================================================================================
 
-  /** Models a medical device reading that has measurement error. The uncertain reading (a `Double`) is transformed
-    * using `map` into a clear, understandable diagnostic category. This separates the raw data from its clinical
-    * interpretation.
+  /** Models a medical device reading that has measurement error. The uncertain reading (a `Double`) is transformed using `map` into a clear, understandable diagnostic category.
+    * This separates the raw data from its clinical interpretation.
     */
   rngTest("4. Healthcare: Classifying Uncertain Blood Pressure Readings") {
     sealed trait BloodPressureCategory
@@ -181,9 +175,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 5. Project Management: Sequential Task Completion
   // =================================================================================================
 
-  /** Models a project with two *sequential* tasks, where each task's duration is uncertain. A for-comprehension is used
-    * to sum the durations. The total duration is then `map`ped to a status to determine the probability of the project
-    * being delayed past its deadline.
+  /** Models a project with two *sequential* tasks, where each task's duration is uncertain. A for-comprehension is used to sum the durations. The total duration is then `map`ped
+    * to a status to determine the probability of the project being delayed past its deadline.
     */
   rngTest("5. Project Management: Estimating Project Timelines") {
     sealed trait ProjectTimeline
@@ -214,9 +207,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 6. Insurance: Claim Cost Modeling
   // =================================================================================================
 
-  /** Models an insurance scenario with two levels of uncertainty. First, is there an accident? (a `Boolean`). Second,
-    * *if* there is an accident, what is the cost? (a `Double`). `flatMap` is perfect for this dependency, creating a
-    * final distribution of claim costs that includes many samples of zero (for no accident).
+  /** Models an insurance scenario with two levels of uncertainty. First, is there an accident? (a `Boolean`). Second, *if* there is an accident, what is the cost? (a `Double`).
+    * `flatMap` is perfect for this dependency, creating a final distribution of claim costs that includes many samples of zero (for no accident).
     */
   rngTest("6. Insurance: Modeling Uncertain Claim Costs") {
     case class InsuranceClaim(cost: Double)
@@ -243,9 +235,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 7. Agriculture: Crop Yield Prediction
   // =================================================================================================
 
-  /** Models crop yield based on two uncertain environmental factors: rainfall and temperature. A for-comprehension
-    * combines them into a single "growth score". This score is then `map`ped to a qualitative `YieldQuality`, allowing
-    * us to assess the outlook.
+  /** Models crop yield based on two uncertain environmental factors: rainfall and temperature. A for-comprehension combines them into a single "growth score". This score is then
+    * `map`ped to a qualitative `YieldQuality`, allowing us to assess the outlook.
     */
   rngTest("7. Agriculture: Predicting Crop Yield") {
 
@@ -284,8 +275,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 8. Systems Engineering: Server Load Simulation
   // =================================================================================================
 
-  /** Models the number of concurrent users on a server using a Poisson distribution, which is common for arrival rates.
-    * The uncertain number of users (`Int`) is then `map`ped to a `ServerStatus` based on capacity thresholds.
+  /** Models the number of concurrent users on a server using a Poisson distribution, which is common for arrival rates. The uncertain number of users (`Int`) is then `map`ped to a
+    * `ServerStatus` based on capacity thresholds.
     */
   rngTest("8. Systems Engineering: Simulating Server Load Status") {
 
@@ -318,9 +309,8 @@ class RealWorldDomainModelSpec extends RngSuite {
   // 9. Game Development: AI Decision Making
   // =================================================================================================
 
-  /** Models an AI agent making a decision based on an uncertain situation. The AI first assesses its advantage (a
-    * `Double`). Based on this uncertain assessment, it `flatMap`s into a distribution of possible actions, with
-    * probabilities changing based on the situation.
+  /** Models an AI agent making a decision based on an uncertain situation. The AI first assesses its advantage (a `Double`). Based on this uncertain assessment, it `flatMap`s into
+    * a distribution of possible actions, with probabilities changing based on the situation.
     */
   rngTest("9. Game Development: Probabilistic AI Decision Making") {
     sealed trait AIAction
@@ -356,10 +346,9 @@ class RealWorldDomainModelSpec extends RngSuite {
 
   case class Customer(clv: Double)
 
-  /** Models Customer Lifetime Value (CLV), a key marketing metric. CLV depends on uncertain factors: how long a
-    * customer stays (retention), and how much they spend per year. This example uses a recursive function with
-    * `flatMap` to model the year-on-year retention process, which is a powerful pattern for processes that repeat an
-    * uncertain number of times.
+  /** Models Customer Lifetime Value (CLV), a key marketing metric. CLV depends on uncertain factors: how long a customer stays (retention), and how much they spend per year. This
+    * example uses a recursive function with `flatMap` to model the year-on-year retention process, which is a powerful pattern for processes that repeat an uncertain number of
+    * times.
     */
   rngTest("10. Marketing: Estimating Customer Lifetime Value (CLV)") {
     val annualSpend          = Uncertain.normal(mean = 200, standardDeviation = 50)

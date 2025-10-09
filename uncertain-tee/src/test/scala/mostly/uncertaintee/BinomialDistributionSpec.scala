@@ -16,10 +16,10 @@
 
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
 import scala.math.{abs, pow, sqrt}
-import mostly.uncertaintee.syntax.*
 
 class BinomialDistributionSpec extends RngSuite {
 

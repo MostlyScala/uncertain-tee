@@ -110,8 +110,7 @@ trait QuantityDistributionOps {
 
     /** Creates a measurement with absolute error (normal distribution).
       *
-      * This is syntactic sugar for a normal distribution centered at the measured value with the given error as
-      * standard deviation.
+      * This is syntactic sugar for a normal distribution centered at the measured value with the given error as standard deviation.
       *
       * @param value
       *   The measured/nominal value

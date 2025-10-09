@@ -71,8 +71,7 @@ trait FunctionalProgrammingOps {
       * @param uncertainTs
       *   a sequence of `Uncertain` values.
       * @return
-      *   A single `Uncertain` that, when sampled, produces a list of samples — one from each of the input `Uncertain`
-      *   instances, preserving all correlations between them.
+      *   A single `Uncertain` that, when sampled, produces a list of samples — one from each of the input `Uncertain` instances, preserving all correlations between them.
       */
     def sequence[T](uncertainTs: Iterable[Uncertain[T]])(using random: Random = new Random()): Uncertain[List[T]] =
       uncertainTs.foldRight {
@@ -84,8 +83,7 @@ trait FunctionalProgrammingOps {
         } yield h :: t
       }
 
-    /** Applies a function to each element in a collection, where the function returns an `Uncertain` value, then
-      * sequences the results into a single `Uncertain` collection.
+    /** Applies a function to each element in a collection, where the function returns an `Uncertain` value, then sequences the results into a single `Uncertain` collection.
       *
       * @example
       *   Correlation in dependent processing:
@@ -139,8 +137,8 @@ trait FunctionalProgrammingOps {
 
     /** Combines two uncertain values into an uncertain pair, preserving any correlation between them.
       *
-      * This is useful when you need to work with two related uncertain quantities together. It is the fundamental
-      * building block for `zipWith` and applicative-style `mapN` operations.
+      * This is useful when you need to work with two related uncertain quantities together. It is the fundamental building block for `zipWith` and applicative-style `mapN`
+      * operations.
       *
       * @example
       *   {{{
@@ -194,9 +192,8 @@ trait FunctionalProgrammingOps {
 
     /** Filters and maps the uncertain value using a partial function.
       *
-      * For each sample, this method checks if the partial function is defined. If it is, it applies the function to
-      * produce a `Some(value)`. If not, it produces `None`. This is useful for transforming only a subset of the
-      * possible outcomes.
+      * For each sample, this method checks if the partial function is defined. If it is, it applies the function to produce a `Some(value)`. If not, it produces `None`. This is
+      * useful for transforming only a subset of the possible outcomes.
       *
       * @example
       *   {{{
@@ -215,8 +212,7 @@ trait FunctionalProgrammingOps {
       * @param pf
       *   The partial function to apply.
       * @return
-      *   An `Uncertain[Option[B]]` which is `Some(value)` if the partial function was defined for the sample, and
-      *   `None` otherwise.
+      *   An `Uncertain[Option[B]]` which is `Some(value)` if the partial function was defined for the sample, and `None` otherwise.
       * @see
       *   [[filter]] for filtering without transforming the value.
       */
@@ -234,8 +230,8 @@ trait FunctionalProgrammingOps {
 
     /** Flattens a nested `Uncertain[Uncertain[T]]` into a single `Uncertain[T]`.
       *
-      * This is the standard monadic flatten operation. It is useful in scenarios where you first have a distribution
-      * over several possible models, and then you want to sample from the resulting combined model.
+      * This is the standard monadic flatten operation. It is useful in scenarios where you first have a distribution over several possible models, and then you want to sample from
+      * the resulting combined model.
       *
       * @example
       *   {{{
@@ -278,87 +274,84 @@ trait FunctionalProgrammingOps {
   }
 
   // format: off
-  /** Just to keep the larger mapN impls legible */
-  private type U[T] = Uncertain[T]
-  
-  extension [T1, T2, T3](t: (U[T1], U[T2], U[T3])) {
-    def mapN[B](f: (T1, T2, T3) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _)))
+  extension [T1, T2, T3](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3])) {
+    def mapN[B](f: (T1, T2, T3) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _)))
   }
 
-  extension [T1, T2, T3, T4](t: (U[T1], U[T2], U[T3], U[T4])) {
-    def mapN[B](f: (T1, T2, T3, T4) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _)))
+  extension [T1, T2, T3, T4](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4])) {
+    def mapN[B](f: (T1, T2, T3, T4) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5](t: (U[T1], U[T2], U[T3], U[T4], U[T5])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16], U[T17])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16], Uncertain[T17])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16], U[T17], U[T18])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16], Uncertain[T17], Uncertain[T18])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16], U[T17], U[T18], U[T19])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16], Uncertain[T17], Uncertain[T18], Uncertain[T19])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16], U[T17], U[T18], U[T19], U[T20])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16], Uncertain[T17], Uncertain[T18], Uncertain[T19], Uncertain[T20])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16], U[T17], U[T18], U[T19], U[T20], U[T21])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16], Uncertain[T17], Uncertain[T18], Uncertain[T19], Uncertain[T20], Uncertain[T21])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
 
-  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22](t: (U[T1], U[T2], U[T3], U[T4], U[T5], U[T6], U[T7], U[T8], U[T9], U[T10], U[T11], U[T12], U[T13], U[T14], U[T15], U[T16], U[T17], U[T18], U[T19], U[T20], U[T21], U[T22])) {
-    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22) => B): U[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
+  extension [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22](t: (Uncertain[T1], Uncertain[T2], Uncertain[T3], Uncertain[T4], Uncertain[T5], Uncertain[T6], Uncertain[T7], Uncertain[T8], Uncertain[T9], Uncertain[T10], Uncertain[T11], Uncertain[T12], Uncertain[T13], Uncertain[T14], Uncertain[T15], Uncertain[T16], Uncertain[T17], Uncertain[T18], Uncertain[T19], Uncertain[T20], Uncertain[T21], Uncertain[T22])) {
+    def mapN[B](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22) => B): Uncertain[B] = t.head.flatMap(h => t.tail.mapN(f(h, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _)))
   }
   // format: off
 }

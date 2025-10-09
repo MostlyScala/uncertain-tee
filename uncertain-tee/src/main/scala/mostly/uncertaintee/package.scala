@@ -43,6 +43,7 @@ package object uncertaintee {
     val boolean: ops.BooleanOps                  = this
     val distribution: ops.AllDistributionOps     = this
     val comparison: ops.ComparisonOps            = this
+    val conversion: ops.ConversionOps            = this
     val functional: ops.FunctionalProgrammingOps = this
     val option: ops.OptionOps                    = this
     val statistical: ops.StatisticalOps          = this

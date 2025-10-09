@@ -58,20 +58,21 @@ trait AllDistributionOps
     /** Creates a mixture where all components have equal weight.
       *
       * @param components
-      *   List of uncertain values to mix with equal probability
+      *   uncertain values to mix with equal probability
       * @param random
       *   Random number generator to use for mixture selection
       * @return
       *   An uncertain value that samples uniformly from the given components
       */
-    def equalMixture[T](components: List[Uncertain[T]])(using random: Random = new Random()): Uncertain[T] = {
+    def equalMixture[T](components: Iterable[Uncertain[T]])(using random: Random = new Random()): Uncertain[T] = {
       require(components.nonEmpty, "Need at least one component for equal mixture.")
       mixture(components.map((x: Uncertain[T]) => x -> One).toMap)(using random)
     }
 
-    def empirical[T](data: List[T])(using random: Random = new Random()): Uncertain[T] = {
+    def empirical[T](data: Iterable[T])(using random: Random = new Random()): Uncertain[T] = {
       require(data.nonEmpty, "Need at least one data point for empirical distribution.")
-      Uncertain(() => data(random.nextInt(data.length)))
+      val indexedData = data.toVector
+      Uncertain(() => indexedData(random.nextInt(indexedData.length)))
     }
 
     def categorical[T](outcomes: Map[T, Double])(using random: Random = new Random()): Uncertain[T] =
@@ -83,8 +84,8 @@ trait AllDistributionOps
     def uniform(min: Double, max: Double)(using random: Random = new Random()): Uncertain[Double] =
       Uncertain.uniformDouble(min, max)(using random)
 
-    def triangular(min: Double, peak: Double, max: Double): Uncertain[Double] =
-      Uncertain.triangularViaDouble(min, peak, max)
+    def triangular(min: Double, peak: Double, max: Double)(using random: Random = new Random()): Uncertain[Double] =
+      Uncertain.triangularViaDouble(min, peak, max)(using random)
 
     def exponential(rate: Double)(using random: Random = new Random()): Uncertain[Double] =
       Uncertain.exponentialViaDouble(rate)(using random)

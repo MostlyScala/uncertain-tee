@@ -16,12 +16,22 @@
 
 package mostly.uncertaintee.ops
 
-/** A trait that mixes in all available syntax traits for easy importing.
-  *
-  * Best utilized via:
-  *
-  * {{{
+import mostly.uncertaintee.Uncertain
+
+/** {{{
+  *    import mostly.uncertaintee.syntax.conversion.*
+  *    // or just import all the syntax (recommended)
   *    import mostly.uncertaintee.syntax.*
   * }}}
   */
-trait AllOps extends AllDistributionOps with ArithmeticOps with BooleanOps with ComparisonOps with ConversionOps with FunctionalProgrammingOps with OptionOps with StatisticalOps {}
+trait ConversionOps {
+
+  extension [T](uncertainT: Uncertain[T]) {
+
+    /** Converts the uncertain value from type `T` to type `U`, if a [[scala.Conversion]] given instance is available (provides a more fluent alternative to `.map` for standard
+      * type conversions).
+      */
+    def to[B](using conv: Conversion[T, B]): Uncertain[B] =
+      uncertainT.map(conv)
+  }
+}

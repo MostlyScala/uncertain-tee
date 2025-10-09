@@ -44,12 +44,10 @@ package object cats {
       x.flatMap(a => y.map(b => Monoid[T].combine(a, b)))
   }
 
-  /** If we don't have a full monoid for T, at least we can provide combine (|+|) capability via a semigroup. Combines
-    * uncertain values element-wise using the underlying Semigroup.
+  /** If we don't have a full monoid for T, at least we can provide combine (|+|) capability via a semigroup. Combines uncertain values element-wise using the underlying Semigroup.
     *
     * @note
-    *   This instance has a lower priority (uses `NotGiven[Monoid[T]]`) than uncertainMonoid to avoid ambiguity when
-    *   both Monoid[T] and Semigroup[T] are available.
+    *   This instance has a lower priority (uses `NotGiven[Monoid[T]]`) than uncertainMonoid to avoid ambiguity when both Monoid[T] and Semigroup[T] are available.
     */
   given uncertainSemigroup[T](using
     Semigroup[T],

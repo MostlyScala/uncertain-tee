@@ -27,11 +27,10 @@ import mostly.uncertaintee.Uncertain
 trait OptionOps {
   extension [T](uncertainOption: Uncertain[Option[T]]) {
 
-    /** If this uncertain value results in `Some(v)`, the result is `v`. Otherwise, it falls back to sampling from the
-      * provided alternative `Uncertain` value.
+    /** If this uncertain value results in `Some(v)`, the result is `v`. Otherwise, it falls back to sampling from the provided alternative `Uncertain` value.
       *
-      * This is useful for handling the result of operations like `filter` or `collect` by providing a default
-      * probabilistic model when a sample is filtered out. It allows you to chain alternative computations.
+      * This is useful for handling the result of operations like `filter` or `collect` by providing a default probabilistic model when a sample is filtered out. It allows you to
+      * chain alternative computations.
       *
       * @example
       *   {{{
@@ -47,8 +46,7 @@ trait OptionOps {
       *   }}}
       *
       * @param fallback
-      *   The `Uncertain[T]` to use if this `Uncertain[Option[T]]` produces a `None` sample. It is passed by-name to
-      *   avoid evaluation unless necessary.
+      *   The `Uncertain[T]` to use if this `Uncertain[Option[T]]` produces a `None` sample. It is passed by-name to avoid evaluation unless necessary.
       * @return
       *   A new `Uncertain[T]` that resolves the `Option` by using the fallback for `None` cases.
       * @see
@@ -59,11 +57,9 @@ trait OptionOps {
       case Some(x) => Uncertain(() => x)
     }
 
-    /** If this uncertain value results in `Some(v)`, the result is `v`. Otherwise, it falls back to the provided
-      * default value.
+    /** If this uncertain value results in `Some(v)`, the result is `v`. Otherwise, it falls back to the provided default value.
       *
-      * This method is the standard way to unwrap the inner `Option` by providing a single, constant fallback value for
-      * any samples that have been filtered out.
+      * This method is the standard way to unwrap the inner `Option` by providing a single, constant fallback value for any samples that have been filtered out.
       *
       * @example
       *   {{{
@@ -78,8 +74,7 @@ trait OptionOps {
       *   }}}
       *
       * @param default
-      *   The plain value of type `T` to use if this `Uncertain[Option[T]]` produces a `None` sample. It is passed
-      *   by-name to avoid evaluation unless necessary.
+      *   The plain value of type `T` to use if this `Uncertain[Option[T]]` produces a `None` sample. It is passed by-name to avoid evaluation unless necessary.
       * @return
       *   A new `Uncertain[T]` that unwraps the `Option` by using the default value for `None` cases.
       * @see

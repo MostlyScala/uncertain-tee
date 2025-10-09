@@ -33,8 +33,7 @@ import mostly.uncertaintee._
   *
   * Typeclass for computing statistics on Quantity types.
   *
-  * Similar to [[StatisticallyConvertible]] bidirectional and unit-aware, allowing statistical operations to preserve
-  * quantity types and units.
+  * Similar to [[StatisticallyConvertible]] bidirectional and unit-aware, allowing statistical operations to preserve quantity types and units.
   */
 trait QuantityStatisticallyConvertible[Q <: Quantity[Q]] {
 

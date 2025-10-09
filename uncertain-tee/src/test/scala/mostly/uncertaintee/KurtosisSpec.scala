@@ -25,9 +25,8 @@ class KurtosisSpec extends RngSuite {
 
   // --- Helper Function ---
 
-  /** Asserts that the excess kurtosis of a distribution matches the theoretical value. This function uses multiple
-    * smaller runs and averages the kurtosis to get a stable estimate, avoiding the high variance of a single, large
-    * sample run.
+  /** Asserts that the excess kurtosis of a distribution matches the theoretical value. This function uses multiple smaller runs and averages the kurtosis to get a stable estimate,
+    * avoiding the high variance of a single, large sample run.
     *
     * @param distribution
     *   The Uncertain distribution to test.

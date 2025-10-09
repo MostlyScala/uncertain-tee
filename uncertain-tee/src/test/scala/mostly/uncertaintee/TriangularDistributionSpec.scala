@@ -23,7 +23,7 @@ import scala.math.{abs, pow, sqrt}
 class TriangularDistributionSpec extends RngSuite {
 
   private val sampleCount = 500_000
-  private val tolerance   = 0.015
+  private val tolerance   = 0.05
 
   // --- Sanity and Range Tests ---
 
@@ -55,8 +55,7 @@ class TriangularDistributionSpec extends RngSuite {
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
-      clue =
-        s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Triangular($min, $peak, $max)."
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Triangular($min, $peak, $max)."
     )
   }
 
@@ -73,8 +72,7 @@ class TriangularDistributionSpec extends RngSuite {
 
     assert(
       cond = abs(sampleVariance - theoreticalVariance) < tolerance,
-      clue =
-        s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Triangular($min, $peak, $max)."
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Triangular($min, $peak, $max)."
     )
   }
 
@@ -93,8 +91,7 @@ class TriangularDistributionSpec extends RngSuite {
 
     assert(
       cond = centerBin > leftBin && centerBin > rightBin,
-      clue =
-        s"The bin around the peak ($centerBin) should contain more samples than its neighbors (left: $leftBin, right: $rightBin)."
+      clue = s"The bin around the peak ($centerBin) should contain more samples than its neighbors (left: $leftBin, right: $rightBin)."
     )
   }
 

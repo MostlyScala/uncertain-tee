@@ -17,56 +17,646 @@
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.Uncertain
+import mostly.uncertaintee.syntax.functional.*
 
-/** {{{
-  *    import mostly.uncertaintee.syntax.arithmetic.*
-  *    // or just import all the syntax (recommended)
-  *    import mostly.uncertaintee.syntax.*
+/** Allows basic common numeric operations on Uncertain[T] types, e.g.
+  *
+  * {{{
+  *   (uncertaintyA + 3.5 - uncertaintyB) % uncertaintyC
+  * }}}
+  *
+  * {{{
+  * import mostly.uncertaintee.syntax.distribution.*
+  * // or just import all the syntax (recommended)
+  * import mostly.uncertaintee.syntax.*
   * }}}
   */
 trait ArithmeticOps {
 
-  /** Arithmetic operations for uncertain numeric values. */
-  extension [T](lhs: Uncertain[T])(using num: Numeric[T]) {
+  /** A type alias for all supported numeric types. */
+  type AllNumerics = Double | Float | Long | Int | Short | Byte | Char
 
-    /** Adds two uncertain values sample-by-sample. */
-    def +(rhs: Uncertain[T]): Uncertain[T] = for {
-      lhsSample <- lhs
-      rhsSample <- rhs
-    } yield num.plus(lhsSample, rhsSample)
+  /** This is a private, "dummy" given instance.
+    *
+    * Its only job is to help the compiler differentiate between overloaded methods.
+    *
+    * It must be in scope for the compiler to allow arithmetic ops between Uncertain instances.
+    */
+  trait UncertainOpDummy
 
-    /** Subtracts two uncertain values sample-by-sample. */
-    def -(rhs: Uncertain[T]): Uncertain[T] = for {
-      lhsSample <- lhs
-      rhsSample <- rhs
-    } yield num.minus(lhsSample, rhsSample)
+  /** @see [[UncertainOpDummy]] */
+  given UncertainOpDummy = new UncertainOpDummy {}
 
-    /** Multiplies two uncertain values sample-by-sample. */
-    def *(rhs: Uncertain[T]): Uncertain[T] = for {
-      lhsSample <- lhs
-      rhsSample <- rhs
-    } yield num.times(lhsSample, rhsSample)
+  extension [N1 <: AllNumerics](lhs: Uncertain[N1]) {
 
-    /** Adds a constant to an uncertain value. */
-    def +(rhs: T): Uncertain[T] = lhs.map(l => num.plus(l, rhs))
+    // --- ADDITION (+) ---
 
-    /** Subtracts a constant from an uncertain value. */
-    def -(rhs: T): Uncertain[T] = lhs.map(l => num.minus(l, rhs))
+    transparent inline def +[N2 <: AllNumerics](rhs: N2) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Double) => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Float)  => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Long)   => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Int)    => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Short)  => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Byte)   => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Char)   => l.map(_ + r): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Double)  => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Float], r: Float)   => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Long)    => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Int)     => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Short)   => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Byte)    => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Char)    => l.map(_ + r): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Double)   => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Long], r: Float)    => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Long], r: Long)     => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Int)      => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Short)    => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Byte)     => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Char)     => l.map(_ + r): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Double)    => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Int], r: Float)     => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Int], r: Long)      => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Int], r: Int)       => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Short)     => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Byte)      => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Char)      => l.map(_ + r): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Double)  => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Short], r: Float)   => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Short], r: Long)    => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Short], r: Int)     => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Short)   => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Byte)    => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Char)    => l.map(_ + r): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Double)   => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Float)    => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Long)     => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Int)      => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Short)    => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Byte)     => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Char)     => l.map(_ + r): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Double)   => l.map(_ + r): Uncertain[Double]
+        case (l: Uncertain[Char], r: Float)    => l.map(_ + r): Uncertain[Float]
+        case (l: Uncertain[Char], r: Long)     => l.map(_ + r): Uncertain[Long]
+        case (l: Uncertain[Char], r: Int)      => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Short)    => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Byte)     => l.map(_ + r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Char)     => l.map(_ + r): Uncertain[Int]
+      }
 
-    /** Multiplies an uncertain value by a constant. */
-    def *(rhs: T): Uncertain[T] = lhs.map(l => num.times(l, rhs))
-  }
+    transparent inline def +[N2 <: AllNumerics](rhs: Uncertain[N2])(using UncertainOpDummy) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Uncertain[Double]) => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Float])  => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Long])   => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Int])    => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Short])  => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Byte])   => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Char])   => l.zipWith(r)(_ + _): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Uncertain[Double])  => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Float], r: Uncertain[Float])   => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Long])    => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Int])     => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Short])   => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Byte])    => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Char])    => l.zipWith(r)(_ + _): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Uncertain[Double])   => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Long], r: Uncertain[Float])    => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Long], r: Uncertain[Long])     => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Int])      => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Short])    => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Byte])     => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Char])     => l.zipWith(r)(_ + _): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Uncertain[Double])    => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Int], r: Uncertain[Float])     => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Int], r: Uncertain[Long])      => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Int], r: Uncertain[Int])       => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Short])     => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Byte])      => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Char])      => l.zipWith(r)(_ + _): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Uncertain[Double])  => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Short], r: Uncertain[Float])   => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Short], r: Uncertain[Long])    => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Short], r: Uncertain[Int])     => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Short])   => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Byte])    => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Char])    => l.zipWith(r)(_ + _): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Uncertain[Double])   => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Uncertain[Float])    => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Uncertain[Long])     => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Uncertain[Int])      => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Short])    => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Byte])     => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Char])     => l.zipWith(r)(_ + _): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Uncertain[Double])   => l.zipWith(r)(_ + _): Uncertain[Double]
+        case (l: Uncertain[Char], r: Uncertain[Float])    => l.zipWith(r)(_ + _): Uncertain[Float]
+        case (l: Uncertain[Char], r: Uncertain[Long])     => l.zipWith(r)(_ + _): Uncertain[Long]
+        case (l: Uncertain[Char], r: Uncertain[Int])      => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Short])    => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Byte])     => l.zipWith(r)(_ + _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Char])     => l.zipWith(r)(_ + _): Uncertain[Int]
+      }
 
-  /** Division operations for uncertain values with fractional types. */
-  extension [T](lhs: Uncertain[T])(using frac: Fractional[T]) {
+    // --- SUBTRACTION (-) ---
 
-    /** Divides uncertain value by a fixed value. */
-    def /(rhs: T): Uncertain[T] = lhs.map(a => frac.div(a, rhs))
+    transparent inline def -[N2 <: AllNumerics](rhs: N2) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Double) => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Float)  => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Long)   => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Int)    => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Short)  => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Byte)   => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Char)   => l.map(_ - r): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Double)  => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Float], r: Float)   => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Long)    => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Int)     => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Short)   => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Byte)    => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Char)    => l.map(_ - r): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Double)   => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Long], r: Float)    => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Long], r: Long)     => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Int)      => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Short)    => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Byte)     => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Char)     => l.map(_ - r): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Double)    => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Int], r: Float)     => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Int], r: Long)      => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Int], r: Int)       => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Short)     => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Byte)      => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Char)      => l.map(_ - r): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Double)  => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Short], r: Float)   => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Short], r: Long)    => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Short], r: Int)     => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Short)   => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Byte)    => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Char)    => l.map(_ - r): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Double)   => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Float)    => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Long)     => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Int)      => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Short)    => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Byte)     => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Char)     => l.map(_ - r): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Double)   => l.map(_ - r): Uncertain[Double]
+        case (l: Uncertain[Char], r: Float)    => l.map(_ - r): Uncertain[Float]
+        case (l: Uncertain[Char], r: Long)     => l.map(_ - r): Uncertain[Long]
+        case (l: Uncertain[Char], r: Int)      => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Short)    => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Byte)     => l.map(_ - r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Char)     => l.map(_ - r): Uncertain[Int]
+      }
 
-    /** Divides two uncertain values sample-by-sample. */
-    def /(rhs: Uncertain[T]): Uncertain[T] = for {
-      lhsSample <- lhs
-      rhsSample <- rhs
-    } yield frac.div(lhsSample, rhsSample)
+    transparent inline def -[N2 <: AllNumerics](rhs: Uncertain[N2])(using UncertainOpDummy) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Uncertain[Double]) => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Float])  => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Long])   => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Int])    => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Short])  => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Byte])   => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Char])   => l.zipWith(r)(_ - _): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Uncertain[Double])  => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Float], r: Uncertain[Float])   => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Long])    => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Int])     => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Short])   => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Byte])    => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Char])    => l.zipWith(r)(_ - _): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Uncertain[Double])   => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Long], r: Uncertain[Float])    => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Long], r: Uncertain[Long])     => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Int])      => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Short])    => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Byte])     => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Char])     => l.zipWith(r)(_ - _): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Uncertain[Double])    => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Int], r: Uncertain[Float])     => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Int], r: Uncertain[Long])      => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Int], r: Uncertain[Int])       => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Short])     => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Byte])      => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Char])      => l.zipWith(r)(_ - _): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Uncertain[Double])  => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Short], r: Uncertain[Float])   => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Short], r: Uncertain[Long])    => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Short], r: Uncertain[Int])     => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Short])   => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Byte])    => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Char])    => l.zipWith(r)(_ - _): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Uncertain[Double])   => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Uncertain[Float])    => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Uncertain[Long])     => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Uncertain[Int])      => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Short])    => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Byte])     => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Char])     => l.zipWith(r)(_ - _): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Uncertain[Double])   => l.zipWith(r)(_ - _): Uncertain[Double]
+        case (l: Uncertain[Char], r: Uncertain[Float])    => l.zipWith(r)(_ - _): Uncertain[Float]
+        case (l: Uncertain[Char], r: Uncertain[Long])     => l.zipWith(r)(_ - _): Uncertain[Long]
+        case (l: Uncertain[Char], r: Uncertain[Int])      => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Short])    => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Byte])     => l.zipWith(r)(_ - _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Char])     => l.zipWith(r)(_ - _): Uncertain[Int]
+      }
+
+    // --- MULTIPLICATION (*) ---
+
+    transparent inline def *[N2 <: AllNumerics](rhs: N2) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Double) => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Float)  => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Long)   => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Int)    => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Short)  => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Byte)   => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Char)   => l.map(_ * r): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Double)  => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Float], r: Float)   => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Long)    => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Int)     => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Short)   => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Byte)    => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Char)    => l.map(_ * r): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Double)   => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Long], r: Float)    => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Long], r: Long)     => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Int)      => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Short)    => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Byte)     => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Char)     => l.map(_ * r): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Double)    => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Int], r: Float)     => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Int], r: Long)      => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Int], r: Int)       => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Short)     => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Byte)      => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Char)      => l.map(_ * r): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Double)  => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Short], r: Float)   => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Short], r: Long)    => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Short], r: Int)     => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Short)   => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Byte)    => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Char)    => l.map(_ * r): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Double)   => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Float)    => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Long)     => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Int)      => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Short)    => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Byte)     => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Char)     => l.map(_ * r): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Double)   => l.map(_ * r): Uncertain[Double]
+        case (l: Uncertain[Char], r: Float)    => l.map(_ * r): Uncertain[Float]
+        case (l: Uncertain[Char], r: Long)     => l.map(_ * r): Uncertain[Long]
+        case (l: Uncertain[Char], r: Int)      => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Short)    => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Byte)     => l.map(_ * r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Char)     => l.map(_ * r): Uncertain[Int]
+      }
+
+    transparent inline def *[N2 <: AllNumerics](rhs: Uncertain[N2])(using UncertainOpDummy) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Uncertain[Double]) => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Float])  => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Long])   => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Int])    => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Short])  => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Byte])   => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Char])   => l.zipWith(r)(_ * _): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Uncertain[Double])  => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Float], r: Uncertain[Float])   => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Long])    => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Int])     => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Short])   => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Byte])    => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Char])    => l.zipWith(r)(_ * _): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Uncertain[Double])   => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Long], r: Uncertain[Float])    => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Long], r: Uncertain[Long])     => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Int])      => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Short])    => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Byte])     => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Char])     => l.zipWith(r)(_ * _): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Uncertain[Double])    => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Int], r: Uncertain[Float])     => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Int], r: Uncertain[Long])      => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Int], r: Uncertain[Int])       => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Short])     => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Byte])      => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Char])      => l.zipWith(r)(_ * _): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Uncertain[Double])  => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Short], r: Uncertain[Float])   => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Short], r: Uncertain[Long])    => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Short], r: Uncertain[Int])     => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Short])   => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Byte])    => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Char])    => l.zipWith(r)(_ * _): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Uncertain[Double])   => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Uncertain[Float])    => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Uncertain[Long])     => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Uncertain[Int])      => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Short])    => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Byte])     => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Char])     => l.zipWith(r)(_ * _): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Uncertain[Double])   => l.zipWith(r)(_ * _): Uncertain[Double]
+        case (l: Uncertain[Char], r: Uncertain[Float])    => l.zipWith(r)(_ * _): Uncertain[Float]
+        case (l: Uncertain[Char], r: Uncertain[Long])     => l.zipWith(r)(_ * _): Uncertain[Long]
+        case (l: Uncertain[Char], r: Uncertain[Int])      => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Short])    => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Byte])     => l.zipWith(r)(_ * _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Char])     => l.zipWith(r)(_ * _): Uncertain[Int]
+      }
+
+    // --- DIVISION (/) ---
+
+    transparent inline def /[N2 <: AllNumerics](rhs: N2) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Double) => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Float)  => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Long)   => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Int)    => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Short)  => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Byte)   => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Char)   => l.map(_ / r): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Double)  => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Float], r: Float)   => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Long)    => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Int)     => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Short)   => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Byte)    => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Char)    => l.map(_ / r): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Double)   => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Long], r: Float)    => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Long], r: Long)     => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Int)      => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Short)    => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Byte)     => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Char)     => l.map(_ / r): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Double)    => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Int], r: Float)     => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Int], r: Long)      => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Int], r: Int)       => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Short)     => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Byte)      => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Char)      => l.map(_ / r): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Double)  => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Short], r: Float)   => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Short], r: Long)    => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Short], r: Int)     => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Short)   => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Byte)    => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Char)    => l.map(_ / r): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Double)   => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Float)    => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Long)     => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Int)      => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Short)    => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Byte)     => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Char)     => l.map(_ / r): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Double)   => l.map(_ / r): Uncertain[Double]
+        case (l: Uncertain[Char], r: Float)    => l.map(_ / r): Uncertain[Float]
+        case (l: Uncertain[Char], r: Long)     => l.map(_ / r): Uncertain[Long]
+        case (l: Uncertain[Char], r: Int)      => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Short)    => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Byte)     => l.map(_ / r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Char)     => l.map(_ / r): Uncertain[Int]
+      }
+
+    transparent inline def /[N2 <: AllNumerics](rhs: Uncertain[N2])(using UncertainOpDummy) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Uncertain[Double]) => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Float])  => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Long])   => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Int])    => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Short])  => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Byte])   => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Char])   => l.zipWith(r)(_ / _): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Uncertain[Double])  => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Float], r: Uncertain[Float])   => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Long])    => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Int])     => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Short])   => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Byte])    => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Char])    => l.zipWith(r)(_ / _): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Uncertain[Double])   => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Long], r: Uncertain[Float])    => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Long], r: Uncertain[Long])     => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Int])      => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Short])    => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Byte])     => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Char])     => l.zipWith(r)(_ / _): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Uncertain[Double])    => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Int], r: Uncertain[Float])     => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Int], r: Uncertain[Long])      => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Int], r: Uncertain[Int])       => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Short])     => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Byte])      => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Char])      => l.zipWith(r)(_ / _): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Uncertain[Double])  => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Short], r: Uncertain[Float])   => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Short], r: Uncertain[Long])    => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Short], r: Uncertain[Int])     => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Short])   => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Byte])    => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Char])    => l.zipWith(r)(_ / _): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Uncertain[Double])   => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Uncertain[Float])    => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Uncertain[Long])     => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Uncertain[Int])      => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Short])    => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Byte])     => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Char])     => l.zipWith(r)(_ / _): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Uncertain[Double])   => l.zipWith(r)(_ / _): Uncertain[Double]
+        case (l: Uncertain[Char], r: Uncertain[Float])    => l.zipWith(r)(_ / _): Uncertain[Float]
+        case (l: Uncertain[Char], r: Uncertain[Long])     => l.zipWith(r)(_ / _): Uncertain[Long]
+        case (l: Uncertain[Char], r: Uncertain[Int])      => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Short])    => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Byte])     => l.zipWith(r)(_ / _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Char])     => l.zipWith(r)(_ / _): Uncertain[Int]
+      }
+
+    // --- REMAINDER (%) ---
+
+    transparent inline def %[N2 <: AllNumerics](rhs: N2) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Double) => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Float)  => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Long)   => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Int)    => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Short)  => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Byte)   => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Double], r: Char)   => l.map(_ % r): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Double)  => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Float], r: Float)   => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Long)    => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Int)     => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Short)   => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Byte)    => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Float], r: Char)    => l.map(_ % r): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Double)   => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Long], r: Float)    => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Long], r: Long)     => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Int)      => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Short)    => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Byte)     => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Long], r: Char)     => l.map(_ % r): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Double)    => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Int], r: Float)     => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Int], r: Long)      => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Int], r: Int)       => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Short)     => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Byte)      => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Int], r: Char)      => l.map(_ % r): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Double)  => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Short], r: Float)   => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Short], r: Long)    => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Short], r: Int)     => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Short)   => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Byte)    => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Short], r: Char)    => l.map(_ % r): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Double)   => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Float)    => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Long)     => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Int)      => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Short)    => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Byte)     => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Char)     => l.map(_ % r): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Double)   => l.map(_ % r): Uncertain[Double]
+        case (l: Uncertain[Char], r: Float)    => l.map(_ % r): Uncertain[Float]
+        case (l: Uncertain[Char], r: Long)     => l.map(_ % r): Uncertain[Long]
+        case (l: Uncertain[Char], r: Int)      => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Short)    => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Byte)     => l.map(_ % r): Uncertain[Int]
+        case (l: Uncertain[Char], r: Char)     => l.map(_ % r): Uncertain[Int]
+      }
+
+    transparent inline def %[N2 <: AllNumerics](rhs: Uncertain[N2])(using UncertainOpDummy) =
+      inline (lhs, rhs) match {
+        // Double LHS -> Double
+        case (l: Uncertain[Double], r: Uncertain[Double]) => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Float])  => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Long])   => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Int])    => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Short])  => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Byte])   => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Double], r: Uncertain[Char])   => l.zipWith(r)(_ % _): Uncertain[Double]
+        // Float LHS -> Double | Float
+        case (l: Uncertain[Float], r: Uncertain[Double])  => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Float], r: Uncertain[Float])   => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Long])    => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Int])     => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Short])   => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Byte])    => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Float], r: Uncertain[Char])    => l.zipWith(r)(_ % _): Uncertain[Float]
+        // Long LHS -> Double | Float | Long
+        case (l: Uncertain[Long], r: Uncertain[Double])   => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Long], r: Uncertain[Float])    => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Long], r: Uncertain[Long])     => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Int])      => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Short])    => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Byte])     => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Long], r: Uncertain[Char])     => l.zipWith(r)(_ % _): Uncertain[Long]
+        // Int LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Int], r: Uncertain[Double])    => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Int], r: Uncertain[Float])     => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Int], r: Uncertain[Long])      => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Int], r: Uncertain[Int])       => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Short])     => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Byte])      => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Int], r: Uncertain[Char])      => l.zipWith(r)(_ % _): Uncertain[Int]
+        // Short LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Short], r: Uncertain[Double])  => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Short], r: Uncertain[Float])   => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Short], r: Uncertain[Long])    => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Short], r: Uncertain[Int])     => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Short])   => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Byte])    => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Short], r: Uncertain[Char])    => l.zipWith(r)(_ % _): Uncertain[Int]
+        // Byte LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Byte], r: Uncertain[Double])   => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Byte], r: Uncertain[Float])    => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Byte], r: Uncertain[Long])     => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Byte], r: Uncertain[Int])      => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Short])    => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Byte])     => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Byte], r: Uncertain[Char])     => l.zipWith(r)(_ % _): Uncertain[Int]
+        // Char LHS -> Double | Float | Long | Int
+        case (l: Uncertain[Char], r: Uncertain[Double])   => l.zipWith(r)(_ % _): Uncertain[Double]
+        case (l: Uncertain[Char], r: Uncertain[Float])    => l.zipWith(r)(_ % _): Uncertain[Float]
+        case (l: Uncertain[Char], r: Uncertain[Long])     => l.zipWith(r)(_ % _): Uncertain[Long]
+        case (l: Uncertain[Char], r: Uncertain[Int])      => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Short])    => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Byte])     => l.zipWith(r)(_ % _): Uncertain[Int]
+        case (l: Uncertain[Char], r: Uncertain[Char])     => l.zipWith(r)(_ % _): Uncertain[Int]
+      }
   }
 }

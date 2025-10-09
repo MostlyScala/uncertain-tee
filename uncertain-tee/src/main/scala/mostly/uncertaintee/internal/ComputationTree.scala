@@ -24,9 +24,8 @@ import scala.util.control.TailCalls
 
 /** Internal: A node in the computation graph (tree).
   *
-  * This is the core abstraction for building and evaluating probabilistic computations. Each node in the tree
-  * represents either a source of randomness ([[ComputationLeaf]]) or a transformation of uncertain values
-  * ([[ComputationFlatMapping]]).
+  * This is the core abstraction for building and evaluating probabilistic computations. Each node in the tree represents either a source of randomness ([[ComputationLeaf]]) or a
+  * transformation of uncertain values ([[ComputationFlatMapping]]).
   *
   * Evaluation is performed using trampolining to avoid stack overflow on deeply nested computations.
   *
@@ -37,8 +36,8 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
 
   /** Evaluates this computation tree to produce a concrete sample value.
     *
-    * Uses the provided context to memoize samples from leaf nodes, ensuring that multiple references to the same
-    * uncertain value within a computation produce the same sample (preserving correlation).
+    * Uses the provided context to memoize samples from leaf nodes, ensuring that multiple references to the same uncertain value within a computation produce the same sample
+    * (preserving correlation).
     *
     * @param context
     *   the sampling context for memoizing leaf values (defaults to a new context)
@@ -71,9 +70,8 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
 
 /** A leaf node representing a source of uncertainty in the computation graph.
   *
-  * Each leaf has a unique identifier and a sampler function. The identifier ensures that multiple evaluations of the
-  * same leaf within a single sampling context return the same value, preserving correlation structure in the
-  * computation.
+  * Each leaf has a unique identifier and a sampler function. The identifier ensures that multiple evaluations of the same leaf within a single sampling context return the same
+  * value, preserving correlation structure in the computation.
   *
   * @param id
   *   unique identifier for this source of uncertainty
@@ -82,8 +80,7 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
   * @tparam T
   *   the type of value produced by the sampler
   * @note
-  *   Each UUID is permanently bound to exactly one sampler type. This invariant is enforced by construction: UUIDs are
-  *   generated randomly per leaf and never exposed or reused.
+  *   Each UUID is permanently bound to exactly one sampler type. This invariant is enforced by construction: UUIDs are generated randomly per leaf and never exposed or reused.
   */
 final private[uncertaintee] case class ComputationLeaf[T](
   id: UUID,
@@ -92,9 +89,8 @@ final private[uncertaintee] case class ComputationLeaf[T](
 
 /** Represents a monadic bind operation (flatMap) in the computation graph.
   *
-  * This node chains uncertain computations together, where the result of evaluating the source computation is passed to
-  * a function that produces a new uncertain computation. This enables dependent probabilistic computations where later
-  * random variables can depend on earlier ones.
+  * This node chains uncertain computations together, where the result of evaluating the source computation is passed to a function that produces a new uncertain computation. This
+  * enables dependent probabilistic computations where later random variables can depend on earlier ones.
   *
   * @param source
   *   the upstream computation tree to evaluate first
@@ -112,25 +108,22 @@ final private[uncertaintee] case class ComputationFlatMapping[T, B](
 
 /** Thread-safe context for preserving correlation structure during sampling.
   *
-  * When evaluating a computation tree, the same leaf node may be encountered multiple times. This context memoizes the
-  * sampled values by their unique identifiers, ensuring that all references to the same uncertain value produce the
-  * same sample within a single evaluation.
+  * When evaluating a computation tree, the same leaf node may be encountered multiple times. This context memoizes the sampled values by their unique identifiers, ensuring that
+  * all references to the same uncertain value produce the same sample within a single evaluation.
   *
-  * Example: If `x = Uncertain.uniform(0, 1)` and we compute `x + x`, both references to `x` should use the same sampled
-  * value to correctly compute `2 * sample`, rather than two different samples.
+  * Example: If `x = Uncertain.uniform(0, 1)` and we compute `x + x`, both references to `x` should use the same sampled value to correctly compute `2 * sample`, rather than two
+  * different samples.
   *
   * @note
-  *   Thread-safety is provided by ConcurrentHashMap with atomic computeIfAbsent operations, ensuring each UUID is
-  *   sampled exactly once even under concurrent access.
+  *   Thread-safety is provided by ConcurrentHashMap with atomic computeIfAbsent operations, ensuring each UUID is sampled exactly once even under concurrent access.
   */
 final private[uncertaintee] class SampleContext {
   private val memoizedValues = new ConcurrentHashMap[UUID, Any]()
 
   /** Atomically gets an existing sample or computes and stores a new one if not yet memoized.
     *
-    * This method ensures that the sampler is called at most once per UUID, even under concurrent access. This prevents
-    * race conditions where multiple threads might both see no existing sample and both call the sampler, which would
-    * violate the correlation guarantee that the same uncertain value always produces the same sample within a context.
+    * This method ensures that the sampler is called at most once per UUID, even under concurrent access. This prevents race conditions where multiple threads might both see no
+    * existing sample and both call the sampler, which would violate the correlation guarantee that the same uncertain value always produces the same sample within a context.
     *
     * @param id
     *   the unique identifier for the uncertainty source
@@ -141,8 +134,8 @@ final private[uncertaintee] class SampleContext {
     * @return
     *   the memoized or newly computed sample
     * @note
-    *   Uses unchecked cast from Any to T. This is safe because each UUID is bound to exactly one sampler type at
-    *   construction time (see [[ComputationLeaf]]), making type confusion impossible through the public API.
+    *   Uses unchecked cast from Any to T. This is safe because each UUID is bound to exactly one sampler type at construction time (see [[ComputationLeaf]]), making type confusion
+    *   impossible through the public API.
     */
   def getOrComputeSample[T](id: UUID, sampler: () => T): T = {
     val result = memoizedValues.computeIfAbsent(id, _ => sampler())

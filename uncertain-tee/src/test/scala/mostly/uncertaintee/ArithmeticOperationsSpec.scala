@@ -16,8 +16,10 @@
 
 package mostly.uncertaintee
 
-import scala.math.{abs, pow, sqrt}
 import mostly.uncertaintee.syntax.*
+import munit.Clue.generate
+
+import scala.math.{abs, pow, sqrt}
 
 class ArithmeticOperationsSpec extends RngSuite {
 
@@ -38,9 +40,9 @@ class ArithmeticOperationsSpec extends RngSuite {
   // --- Operations between two Uncertain values ---
 
   rngTest("Addition of two independent normal distributions should be correct") {
-    val x = Uncertain.normal(mean = 10, standardDeviation = 2)
-    val y = Uncertain.normal(mean = 5, standardDeviation = 3)
-    val z = x + y
+    val x: Uncertain[Double] = Uncertain.normal(mean = 10, standardDeviation = 2)
+    val y: Uncertain[Double] = Uncertain.normal(mean = 5, standardDeviation = 3)
+    val z: Uncertain[Double] = x + y
 
     // E[X+Y] = E[X] + E[Y] -> 10 + 5 = 15
     // Var(X+Y) = Var(X) + Var(Y) -> 2^2 + 3^2 = 13

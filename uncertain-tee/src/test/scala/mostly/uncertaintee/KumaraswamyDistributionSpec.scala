@@ -26,15 +26,14 @@ class KumaraswamyDistributionSpec extends RngSuite {
   private val sampleCount = 100_000
   private val tolerance   = 0.01
 
-  /** Provides numerically stable implementations of log-gamma and beta functions required for calculating theoretical
-    * moments of the Kumaraswamy distribution.
+  /** Provides numerically stable implementations of log-gamma and beta functions required for calculating theoretical moments of the Kumaraswamy distribution.
     */
   private object MathHelpers {
     // Lanczos approximation for the log-gamma function.
     private val g = 7.0
     private val p = Array(
-      0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
-      12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
+      0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6,
+      1.5056327351493116e-7
     )
 
     def logGamma(z: Double): Double =

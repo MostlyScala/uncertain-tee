@@ -62,8 +62,7 @@ trait DistributionOpsDouble {
 
     /** Creates a triangular distribution.
       *
-      * The triangular distribution is a continuous probability distribution with a lower limit `min`, an upper limit
-      * `max`, and a mode `peak`.
+      * The triangular distribution is a continuous probability distribution with a lower limit `min`, an upper limit `max`, and a mode `peak`.
       *
       * @param min
       *   The minimum value of the distribution (lower bound).
