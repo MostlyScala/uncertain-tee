@@ -47,6 +47,7 @@ package object uncertaintee {
     val functional: ops.FunctionalProgrammingOps = this
     val option: ops.OptionOps                    = this
     val statistical: ops.StatisticalOps          = this
+
   }
 
   // To avoid any funky accidents where I mistype numbers or round floats or something
