@@ -17,7 +17,6 @@
 package mostly.uncertaintee
 
 import mostly.uncertaintee.syntax.*
-import munit.Clue.generate
 
 import scala.math.{abs, pow, sqrt}
 
