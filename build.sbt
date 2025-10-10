@@ -69,6 +69,13 @@ lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
 
+lazy val benchmarks = project
+  .in(file("benchmarks"))
+  .enablePlugins(JmhPlugin)
+  .dependsOn(uncertainTee.jvm)
+
+addCommandAlias("benchmark", "benchmarks/Jmh/clean; benchmarks/Jmh/run")
+
 lazy val Dependencies = new {
 
   object V {
