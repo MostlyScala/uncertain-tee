@@ -53,7 +53,7 @@ trait AllDistributionOps
     def point[T](value: T)(using random: Random = new Random()): Uncertain[T] = Uncertain(() => value)(using random)
 
     def mixture[T](components: Map[Uncertain[T], Double])(using random: Random = new Random()): Uncertain[T] =
-      Uncertain.mixtureViaDouble(components)(using random)
+      Uncertain.mixtureViaDouble(components)
 
     /** Creates a mixture where all components have equal weight.
       *
@@ -66,7 +66,7 @@ trait AllDistributionOps
       */
     def equalMixture[T](components: Iterable[Uncertain[T]])(using random: Random = new Random()): Uncertain[T] = {
       require(components.nonEmpty, "Need at least one component for equal mixture.")
-      mixture(components.map((x: Uncertain[T]) => x -> One).toMap)(using random)
+      Uncertain.mixture(components.map(x => x -> One).toMap)(using random)
     }
 
     def empirical[T](data: Iterable[T])(using random: Random = new Random()): Uncertain[T] = {

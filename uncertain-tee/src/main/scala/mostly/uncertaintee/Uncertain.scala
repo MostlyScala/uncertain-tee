@@ -16,7 +16,7 @@
 
 package mostly.uncertaintee
 
-import mostly.uncertaintee.internal._
+import mostly.uncertaintee.internal.*
 
 import java.util.UUID
 import scala.util.Random
@@ -267,6 +267,26 @@ sealed abstract class Uncertain[T] {
 
 /** Factory for creating uncertain values from various distributions and data sources. */
 object Uncertain {
+
+  /** Creates a deterministic value wrapped as an Uncertain.
+    *
+    * This is useful when you need to mix certain and uncertain values in the same computation.
+    *
+    * @param value
+    *   The fixed value to wrap
+    * @return
+    *   An uncertain value that always returns the same value
+    * @example
+    *   {{{
+    *   val constantSpeed = Uncertain.always(60.0)  // Always 60 mph
+    *   val uncertainDistance = Uncertain.bellCurve(centeredOn = 100.0, withSpread = 10.0)
+    *
+    *   val time = constantSpeed.combine(uncertainDistance)(_ / _)
+    *   // Time varies because distance varies, but speed is always 60
+    *   }}}
+    */
+  def always[T](value: T)(using random: Random = new Random()): Uncertain[T] =
+    Uncertain(() => value)(using random)
 
   /** Creates an uncertain value from any sampling function.
     *

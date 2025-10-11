@@ -16,10 +16,10 @@
 
 package mostly.uncertaintee.ops.distribution
 
-import mostly.uncertaintee._
+import mostly.uncertaintee.*
 import mostly.uncertaintee.syntax.point
 
-import scala.math._
+import scala.math.*
 import scala.util.Random
 
 trait DistributionOpsDouble {
@@ -135,7 +135,13 @@ trait DistributionOpsDouble {
 
     def bernoulliViaDouble(probability: Double)(using random: Random = new Random()): Uncertain[Boolean] = {
       require(probability >= 0 && probability <= 1, s"Probability ($probability) must be between 0 and 1.")
-      Uncertain(() => random.nextDouble() < probability)
+      if (probability == Zero) {
+        Uncertain.always(false)
+      } else if (probability == One) {
+        Uncertain.always(true)
+      } else {
+        Uncertain(() => random.nextDouble() < probability)
+      }
     }
 
     def categoricalViaDouble[T](outcomes: Map[T, Double])(using random: Random = new Random()): Uncertain[T] = {

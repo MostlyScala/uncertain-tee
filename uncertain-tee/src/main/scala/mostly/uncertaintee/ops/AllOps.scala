@@ -18,10 +18,22 @@ package mostly.uncertaintee.ops
 
 /** A trait that mixes in all available syntax traits for easy importing.
   *
-  * Best utilized via:
+  * Best utilized via [[mostly.uncertaintee.syntax]] import
   *
   * {{{
   *    import mostly.uncertaintee.syntax.*
   * }}}
   */
-trait AllOps extends AllDistributionOps with ArithmeticOps with BooleanOps with ComparisonOps with ConversionOps with FunctionalProgrammingOps with OptionOps with StatisticalOps {}
+trait AllOps
+    extends AllDistributionOps
+    with ArithmeticOps
+    with BooleanOps
+    with CoinFlipOps
+    with ComparisonOps
+    with ConversionOps
+    with DiceRollingOps
+    with FunctionalProgrammingOps
+    with OptionOps
+    with StatisticalOps {
+  // See traits
+}
