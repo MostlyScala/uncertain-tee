@@ -174,6 +174,53 @@ trait DistributionOpsDouble {
       categoricalViaDouble(components)(using random).flatMap(identity)
     }
 
+    /** Models a Geometric distribution.
+      *
+      * This represents the number of independent trials required to get the first success.
+      *
+      * See: https://en.wikipedia.org/wiki/Geometric_distribution
+      *
+      * @param probability
+      *   The probability of success ($p$) on any given trial. Must be in (0, 1].
+      * @return
+      *   An `Uncertain[Int]` representing the 1-indexed trial number on which the first success occurred.
+      * @note
+      *   Runtime: O(1) - uses inverse transform sampling.
+      * @example
+      *   {{{
+      * // How many flips until the first heads (p=0.5)?
+      * val firstHeads = Uncertain.geometric(0.5)
+      *
+      * // How many attempts until the first success (p=0.1)?
+      * val firstSuccess = Uncertain.geometric(0.1)
+      * println(s"Expected attempts: ${firstSuccess.mean()}") // ~10.0
+      *   }}}
+      */
+    def geometricViaDouble(probability: Double)(using random: Random = new Random()): Uncertain[Int] = {
+      require(
+        probability > 0 && probability <= 1,
+        s"probability ($probability) must be in (0, 1]"
+      )
+
+      if (probability == 1.0) {
+        Uncertain.always(1) // Always 1 trial for 100% success
+      } else {
+        Uncertain { () =>
+          // Inverse Transform Sampling:
+          // k = ceil(log(U) / log(1-p)) where U is uniform(0, 1)
+
+          // random.nextDouble() returns [0.0, 1.0)
+          // We need (0.0, 1.0) to avoid log(0.0) = -Infinity
+          var u = random.nextDouble()
+          while (u == 0.0)
+            u = random.nextDouble()
+
+          val trials = math.ceil(math.log(u) / math.log(1.0 - probability))
+          trials.toInt
+        }
+      }
+    }
+
     def poissonViaDouble(lambda: Double)(using random: Random = new Random()): Uncertain[Int] = {
       require(lambda >= 0, "Lambda (average rate) cannot be negative.")
       if (lambda == Zero) {

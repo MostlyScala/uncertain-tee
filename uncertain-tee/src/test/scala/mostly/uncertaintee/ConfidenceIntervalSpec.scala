@@ -139,20 +139,20 @@ class ConfidenceIntervalSpec extends RngSuite {
   rngTest("confidenceInterval should throw IllegalArgumentException for confidence <= 0") {
     val dist = Uncertain.normal(0, 1)
     intercept[IllegalArgumentException] {
-      dist.confidenceInterval(0.0)
+      dist.confidenceInterval(0.0, sampleCount)
     }
     intercept[IllegalArgumentException] {
-      dist.confidenceInterval(-0.5)
+      dist.confidenceInterval(-0.5, sampleCount)
     }
   }
 
   rngTest("confidenceInterval should throw IllegalArgumentException for confidence >= 1") {
     val dist = Uncertain.normal(0, 1)
     intercept[IllegalArgumentException] {
-      dist.confidenceInterval(1.0)
+      dist.confidenceInterval(1.0, sampleCount)
     }
     intercept[IllegalArgumentException] {
-      dist.confidenceInterval(1.5)
+      dist.confidenceInterval(1.5, sampleCount)
     }
   }
 

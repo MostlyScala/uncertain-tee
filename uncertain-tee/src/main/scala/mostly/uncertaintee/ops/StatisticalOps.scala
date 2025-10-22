@@ -16,10 +16,10 @@
 
 package mostly.uncertaintee.ops
 
+import mostly.uncertaintee.*
 import mostly.uncertaintee.StatisticallyConvertible.given
-import mostly.uncertaintee._
 
-import scala.math._
+import scala.math.*
 
 /** {{{
   *    import mostly.uncertaintee.syntax.statistical.*
@@ -33,19 +33,19 @@ trait StatisticalOps {
   extension [T](uncertain: Uncertain[T]) {
 
     /** Finds the most common sample value (best for discrete distributions). */
-    def mode(sampleCount: Int = 1000): T = {
+    def mode(sampleCount: Int): T = {
       require(sampleCount > 0, "Sample count must be positive.")
       uncertain.take(sampleCount).groupBy(identity).view.maxBy((_, elems) => elems.length)._1
     }
 
     /** Creates a frequency count of all sample values. */
-    def histogram(sampleCount: Int = 1000): Map[T, Int] = {
+    def histogram(sampleCount: Int): Map[T, Int] = {
       require(sampleCount > 0, "Sample count must be positive.")
       uncertain.take(sampleCount).groupBy(identity).view.mapValues(_.length).toMap
     }
 
     /** Estimates the information entropy (randomness) of the distribution. */
-    def entropy(sampleCount: Int = 1000): Double = {
+    def entropy(sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
       val samples = uncertain.take(sampleCount)
       val counts  = samples.groupBy(identity).values.map(_.length)
@@ -61,17 +61,17 @@ trait StatisticalOps {
   extension [T](uncertain: Uncertain[T])(using sc: StatisticallyConvertible[T]) {
 
     /** Estimates the average (expected) value by sampling. */
-    def expectedValue(sampleCount: Int = 1000): Double = {
+    def expectedValue(sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
       val samples = uncertain.take(sampleCount).map(sc.toDouble)
       samples.sum / samples.length.toDouble
     }
 
     /** Alias for expectedValue. */
-    def mean(sampleCount: Int = 1000): Double = expectedValue(sampleCount)
+    def mean(sampleCount: Int): Double = expectedValue(sampleCount)
 
     /** Estimates population standard deviation. */
-    def populationStandardDeviation(sampleCount: Int = 1000): Double = {
+    def populationStandardDeviation(sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
       val samples  = uncertain.take(sampleCount).map(sc.toDouble)
       val meanVal  = samples.sum / samples.length
@@ -80,7 +80,7 @@ trait StatisticalOps {
     }
 
     /** Estimates sample standard deviation with Bessel's correction. */
-    def standardDeviation(sampleCount: Int = 1000): Double = {
+    def standardDeviation(sampleCount: Int): Double = {
       require(sampleCount >= 2, "Need at least 2 samples for sample standard deviation.")
       val samples  = uncertain.take(sampleCount).map(sc.toDouble)
       val meanVal  = samples.sum / samples.length
@@ -93,7 +93,7 @@ trait StatisticalOps {
   extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
 
     /** Estimates a confidence interval using sample percentiles. */
-    def confidenceInterval(confidence: Double = 0.95, sampleCount: Int = 1000): (T, T) = {
+    def confidenceInterval(confidence: Double = 0.95, sampleCount: Int): (T, T) = {
       require(confidence > 0 && confidence < 1, "Confidence must be between 0 and 1.")
       require(sampleCount > 0, "Sample count must be positive.")
       val samples    = uncertain.take(sampleCount).sorted
@@ -106,7 +106,7 @@ trait StatisticalOps {
     }
 
     /** Estimates the Cumulative Distribution Function - P(X ≤ value). */
-    def cdf(value: T, sampleCount: Int = 1000): Double = {
+    def cdf(value: T, sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
       val samples   = uncertain.take(sampleCount)
       val successes = samples.count(ord.lteq(_, value))
@@ -120,12 +120,12 @@ trait StatisticalOps {
       *
       * This is useful for understanding the success rate of a [[Uncertain.filter]]
       */
-    def probabilityOfSuccess(sampleCount: Int = 1000): Double =
+    def probabilityOfSuccess(sampleCount: Int): Double =
       uncertainOption.map(_.isDefined).mean(sampleCount)
 
     /** Calculates the probability that the Option is a `None`.
       */
-    def probabilityOfFailure(sampleCount: Int = 1000): Double =
+    def probabilityOfFailure(sampleCount: Int): Double =
       uncertainOption.map(_.isEmpty).mean(sampleCount)
 
   }

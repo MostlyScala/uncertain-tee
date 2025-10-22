@@ -28,6 +28,7 @@ trait AllOps
     extends AllDistributionOps
     with ArithmeticOps
     with BooleanOps
+    with ChanceOps
     with CoinFlipOps
     with ComparisonOps
     with ConversionOps

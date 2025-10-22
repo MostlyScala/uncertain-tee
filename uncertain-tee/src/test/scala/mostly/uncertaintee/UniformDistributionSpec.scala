@@ -186,10 +186,10 @@ class UniformDistributionSpec extends RngSuite {
     val isAbove8 = uniform > 8.0 // Theoretical P(true) is 0.2
 
     // Test a hypothesis that should be accepted.
-    assert(isAbove8.probability(exceeds = 0.15), "Should be confident that P(uniform > 8) exceeds 15%")
+    assert(isAbove8.probability(exceeds = 0.15, maxSamples = sampleCount), "Should be confident that P(uniform > 8) exceeds 15%")
 
     // Test a hypothesis that should be rejected.
-    assert(!isAbove8.probability(exceeds = 0.25), "Should not be confident that P(uniform > 8) exceeds 25%")
+    assert(!isAbove8.probability(exceeds = 0.25, maxSamples = sampleCount), "Should not be confident that P(uniform > 8) exceeds 25%")
   }
 
   // --- Correlation Tests (Crucial for `Uncertain`'s core logic) ---

@@ -66,6 +66,8 @@ trait ArithmeticOps {
     * }}}
     */
   extension [N1 <: SupportedNum](lhs: N1) {
+
+    /** Add `+` between a numeric type and an uncertain of a numeric type */
     transparent inline def +[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_SupportedNum_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -126,6 +128,7 @@ trait ArithmeticOps {
         case (l: Char, r: Uncertain[Char])   => r.map(l + _): Uncertain[Int]
       }
 
+    /** Add `-` between a numeric type and an uncertain of a numeric type */
     transparent inline def -[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_SupportedNum_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -186,6 +189,7 @@ trait ArithmeticOps {
         case (l: Char, r: Uncertain[Char])   => r.map(l - _): Uncertain[Int]
       }
 
+    /** Add `*` between a numeric type and an uncertain of a numeric type */
     transparent inline def *[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_SupportedNum_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -246,6 +250,7 @@ trait ArithmeticOps {
         case (l: Char, r: Uncertain[Char])   => r.map(l * _): Uncertain[Int]
       }
 
+    /** Add `/` between a numeric type and an uncertain of a numeric type */
     transparent inline def /[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_SupportedNum_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -306,6 +311,7 @@ trait ArithmeticOps {
         case (l: Char, r: Uncertain[Char])   => r.map(l / _): Uncertain[Int]
       }
 
+    /** Add `%` between a numeric type and an uncertain of a numeric type */
     transparent inline def %[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_SupportedNum_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -377,6 +383,19 @@ trait ArithmeticOps {
     */
   extension [N1 <: SupportedNum](lhs: Uncertain[N1]) {
 
+    /** Add negating unary `-` for uncertains of numeric types */
+    transparent inline def unary_- =
+      inline lhs match {
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+      }
+
+    /** Add `+` between an uncertain of a numeric type and a numeric type */
     transparent inline def +[N2 <: SupportedNum](rhs: N2) =
       inline (lhs, rhs) match {
 
@@ -437,6 +456,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Char)   => l.map(_ + r): Uncertain[Int]
       }
 
+    /** Add `+` between two uncertains of numeric types */
     transparent inline def +[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_Uncertain_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -497,6 +517,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Uncertain[Char])   => l.zipWith(r)(_ + _): Uncertain[Int]
       }
 
+    /** Add `+` between an uncertain of a numeric type and a numeric type */
     transparent inline def -[N2 <: SupportedNum](rhs: N2) =
       inline (lhs, rhs) match {
 
@@ -557,6 +578,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Char)   => l.map(_ - r): Uncertain[Int]
       }
 
+    /** Add `+` between two uncertains of numeric types */
     transparent inline def -[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_Uncertain_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -617,6 +639,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Uncertain[Char])   => l.zipWith(r)(_ - _): Uncertain[Int]
       }
 
+    /** Add `*` between an uncertain of a numeric type and a numeric type */
     transparent inline def *[N2 <: SupportedNum](rhs: N2) =
       inline (lhs, rhs) match {
 
@@ -677,6 +700,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Char)   => l.map(_ * r): Uncertain[Int]
       }
 
+    /** Add `*` between two uncertains of numeric types */
     transparent inline def *[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_Uncertain_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -739,6 +763,7 @@ trait ArithmeticOps {
 
     // --- DIVISION (/) ---
 
+    /** Add `/` between an uncertain of a numeric type and a numeric type */
     transparent inline def /[N2 <: SupportedNum](rhs: N2) =
       inline (lhs, rhs) match {
 
@@ -799,6 +824,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Char)   => l.map(_ / r): Uncertain[Int]
       }
 
+    /** Add `/` between two uncertains of numeric types */
     transparent inline def /[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_Uncertain_Uncertain) =
       inline (lhs, rhs) match {
 
@@ -859,6 +885,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Uncertain[Char])   => l.zipWith(r)(_ / _): Uncertain[Int]
       }
 
+    /** Add `%` between an uncertain of a numeric type and a numeric type */
     transparent inline def %[N2 <: SupportedNum](rhs: N2) =
       inline (lhs, rhs) match {
 
@@ -919,6 +946,7 @@ trait ArithmeticOps {
         case (l: Uncertain[Char], r: Char)   => l.map(_ % r): Uncertain[Int]
       }
 
+    /** Add `%` between two uncertains of numeric types */
     transparent inline def %[N2 <: SupportedNum](rhs: Uncertain[N2])(using Left2Right_Uncertain_Uncertain) =
       inline (lhs, rhs) match {
 

@@ -23,6 +23,8 @@ import scala.util.Random
 
 class PreconditionSpec extends RngSuite {
 
+  val sampleCount = 100_000
+
   rngTest("`take` should throw IllegalArgumentException for negative sample counts") {
     intercept[IllegalArgumentException] {
       Uncertain.uniform(0.0, 1.0).take(-1)
@@ -152,10 +154,10 @@ class PreconditionSpec extends RngSuite {
 
   rngTest("`probability` should throw IllegalArgumentException for invalid `exceeds` value") {
     intercept[IllegalArgumentException] {
-      Uncertain.bernoulli(0.5).probability(exceeds = -0.1)
+      Uncertain.bernoulli(0.5).probability(exceeds = -0.1, maxSamples = sampleCount)
     }
     intercept[IllegalArgumentException] {
-      Uncertain.bernoulli(0.5).probability(exceeds = 1.1)
+      Uncertain.bernoulli(0.5).probability(exceeds = 1.1, maxSamples = sampleCount)
     }
   }
 
@@ -203,10 +205,10 @@ class PreconditionSpec extends RngSuite {
 
   rngTest("`confidenceInterval` should throw IllegalArgumentException for invalid confidence level") {
     intercept[IllegalArgumentException] {
-      Uncertain.uniform(0.0, 1.0).confidenceInterval(confidence = 0.0)
+      Uncertain.uniform(0.0, 1.0).confidenceInterval(confidence = 0.0, sampleCount = sampleCount)
     }
     intercept[IllegalArgumentException] {
-      Uncertain.uniform(0.0, 1.0).confidenceInterval(confidence = 1.0)
+      Uncertain.uniform(0.0, 1.0).confidenceInterval(confidence = 1.0, sampleCount = sampleCount)
     }
   }
 

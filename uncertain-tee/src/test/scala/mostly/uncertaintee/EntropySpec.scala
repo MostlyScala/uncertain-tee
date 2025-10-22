@@ -33,15 +33,15 @@ class EntropySpec extends RngSuite {
     val deterministic = Uncertain.point("A single outcome")
     // A distribution with only one possible outcome has no uncertainty.
     // H = - (1.0 * log2(1.0)) = 0.0
-    assertEquals(deterministic.entropy(), 0.0, "Entropy of a point value should be zero.")
+    assertEquals(deterministic.entropy(sampleCount), 0.0, "Entropy of a point value should be zero.")
   }
 
   rngTest("Entropy of a deterministic Bernoulli(0) or Bernoulli(1) must be 0 bits") {
     val bernoulli0 = Uncertain.bernoulli(0.0)
     val bernoulli1 = Uncertain.bernoulli(1.0)
 
-    assertEquals(bernoulli0.entropy(1000), 0.0, "Bernoulli(0) is predictable and its entropy must be zero.")
-    assertEquals(bernoulli1.entropy(1000), 0.0, "Bernoulli(1) is predictable and its entropy must be zero.")
+    assertEquals(bernoulli0.entropy(sampleCount), 0.0, "Bernoulli(0) is predictable and its entropy must be zero.")
+    assertEquals(bernoulli1.entropy(sampleCount), 0.0, "Bernoulli(1) is predictable and its entropy must be zero.")
   }
 
   // --- Discrete Distribution Tests ---

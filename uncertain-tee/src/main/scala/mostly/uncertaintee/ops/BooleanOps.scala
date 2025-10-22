@@ -16,9 +16,9 @@
 
 package mostly.uncertaintee.ops
 
-import mostly.uncertaintee._
+import mostly.uncertaintee.*
 
-import scala.math._
+import scala.math.*
 
 /** {{{
   *    import mostly.uncertaintee.syntax.boolean.*
@@ -52,7 +52,7 @@ trait BooleanOps {
       alpha: Double = 0.05,
       beta: Double = 0.05,
       delta: Option[Double] = None,
-      maxSamples: Int = 10_000
+      maxSamples: Int
     ): Boolean = {
       require(exceeds >= 0 && exceeds <= 1, s"Threshold ($exceeds) must be between 0 and 1.")
       require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1.")
@@ -67,8 +67,13 @@ trait BooleanOps {
     }
 
     /** Shorthand for testing if something is "more likely than not" (> 50% chance). */
-    def isProbable(alpha: Double = 0.05, beta: Double = 0.05): Boolean =
-      probability(0.5, alpha, beta)
+    def isProbable(alpha: Double = 0.05, beta: Double = 0.05, maxSamples: Int): Boolean =
+      probability(
+        exceeds = 0.5,
+        alpha = alpha,
+        beta = beta,
+        maxSamples = maxSamples
+      )
 
     /** Performs Sequential Probability Ratio Test for hypothesis testing. */
     def evaluateHypothesis(
