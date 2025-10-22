@@ -33,12 +33,12 @@ package object cats {
     override def flatMap[A, B](fa: Uncertain[A])(f: A => Uncertain[B]): Uncertain[B] =
       fa.flatMap(f)
 
-    override def pure[A](x: A): Uncertain[A] = Uncertain.point(x)
+    override def pure[A](x: A): Uncertain[A] = Uncertain.always(x)
   }
 
   given uncertainMonoid[T](using Monoid[T]): Monoid[Uncertain[T]] with {
     override def empty: Uncertain[T] =
-      Uncertain.point(Monoid[T].empty)
+      Uncertain.always(Monoid[T].empty)
 
     override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] =
       x.flatMap(a => y.map(b => Monoid[T].combine(a, b)))
@@ -61,7 +61,7 @@ package object cats {
 
   given uncertainGroup[T](using Group[T]): Group[Uncertain[T]] with {
     override def empty: Uncertain[T] =
-      Uncertain.point(Group[T].empty)
+      Uncertain.always(Group[T].empty)
 
     override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] =
       x.flatMap(a => y.map(b => Group[T].combine(a, b)))

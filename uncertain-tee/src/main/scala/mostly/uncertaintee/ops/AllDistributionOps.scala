@@ -105,6 +105,11 @@ trait AllDistributionOps
     def binomial(trials: Int, probability: Double)(using random: Random = new Random()): Uncertain[Int] =
       Uncertain.binomialViaDouble(trials, probability)(using random)
 
+    def negativeBinomial(
+      r: Int,
+      probability: Double
+    )(using random: Random = new Random()): Uncertain[Int] = Uncertain.negativeBinomialInt(r, probability)
+
     def poisson(lambda: Double)(using random: Random = new Random()): Uncertain[Int] =
       Uncertain.poissonViaDouble(lambda)(using random)
 

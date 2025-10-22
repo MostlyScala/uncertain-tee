@@ -169,20 +169,20 @@ trait ChanceOps {
       *
       * negative percentages are always false, percentages larger than 100 are always true.
       *
-      * @param p
+      * @param percentage
       *   The percentage chance (e.g., 25.5 for 25.5%)
       * @return
       *   An uncertain Boolean that's true with probability P/100
       * @note
       *   Runtime: O(1)
       */
-    def percent(p: Double)(using random: Random = new Random()): Uncertain[Boolean] =
-      if (p <= Zero) {
+    def percent(percentage: Double)(using random: Random = new Random()): Uncertain[Boolean] =
+      if (percentage <= Zero) {
         Uncertain.always(false)
-      } else if (p >= 100.0) {
+      } else if (percentage >= 100.0) {
         Uncertain.always(true)
       } else {
-        Uncertain.bernoulli(p / 100.0)(using random)
+        Uncertain.bernoulli(percentage / 100.0)(using random)
       }
 
     /** Models a simple "P permille" (parts per thousand) probability.

@@ -27,7 +27,7 @@ class ModeSpec extends RngSuite {
   // --- Discrete Distributions ---
 
   rngTest("mode with a point distribution should return the point value") {
-    val distribution = Uncertain.point(42)
+    val distribution = Uncertain.always(42)
     val mode         = distribution.mode(sampleCount)
     assertEquals(mode, 42, "The mode of a point distribution must be its value.")
   }

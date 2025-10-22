@@ -127,7 +127,7 @@ class ConfidenceIntervalSpec extends RngSuite {
   }
 
   rngTest("confidenceInterval for a point distribution should have zero width") {
-    val pointDist      = Uncertain.point(42.0)
+    val pointDist      = Uncertain.always(42.0)
     val (lower, upper) = pointDist.confidenceInterval(0.95, 1000)
 
     assertEquals(lower, 42.0, "Lower bound of a point distribution's CI must be the point itself.")

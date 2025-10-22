@@ -133,7 +133,7 @@ sealed abstract class Uncertain[T] {
     *       Uncertain.uniform(1, 7).map(roll2 => roll1 + roll2.toInt)
     *     } else {
     *       // Bad first roll, play it safe
-    *       Uncertain.point(roll1)
+    *       Uncertain.always(roll1)
     *     }
     *   }
     *   }}}
@@ -248,7 +248,7 @@ sealed abstract class Uncertain[T] {
     *
     *   val processed = validSpeed.flatMap {
     *     case Some(s) => computeEnergyFromSpeed(s)
-    *     case None    => Uncertain.point(0.0)  // default for invalid speeds
+    *     case None    => Uncertain.always(0.0)  // default for invalid speeds
     *   }
     *   }}}
     * @param keepWhen

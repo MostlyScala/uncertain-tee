@@ -124,7 +124,7 @@ class CdfSpec extends RngSuite {
 
   rngTest("cdf for a point distribution should be a perfect step from 0 to 1") {
     val pointValue = 42.0
-    val pointDist  = Uncertain.point(pointValue)
+    val pointDist  = Uncertain.always(pointValue)
 
     // No sampling needed for a deterministic distribution.
     assertEquals(pointDist.cdf(pointValue - 0.01, 100), 0.0, "CDF just before the point value must be 0.")

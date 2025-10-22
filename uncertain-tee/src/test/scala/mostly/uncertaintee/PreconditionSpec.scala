@@ -39,14 +39,14 @@ class PreconditionSpec extends RngSuite {
 
   rngTest("`mixture` should throw IllegalArgumentException for negative weights") {
     intercept[IllegalArgumentException] {
-      val components = Map(Uncertain.point(1.0) -> 1.0, Uncertain.point(2.0) -> -0.5)
+      val components = Map(Uncertain.always(1.0) -> 1.0, Uncertain.always(2.0) -> -0.5)
       Uncertain.mixture(components)
     }
   }
 
   rngTest("`mixture` should throw IllegalArgumentException if weights sum to zero") {
     intercept[IllegalArgumentException] {
-      val components = Map(Uncertain.point(1.0) -> 0.0, Uncertain.point(2.0) -> 0.0)
+      val components = Map(Uncertain.always(1.0) -> 0.0, Uncertain.always(2.0) -> 0.0)
       Uncertain.mixture(components)
     }
   }

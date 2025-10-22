@@ -25,9 +25,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== ADDITION TESTS ====================
 
   test("Addition: Double + Double -> Double") {
-    val resLhsScalar  = 2.0 + Uncertain.point(1.0)
-    val resRhsScalar  = Uncertain.point(1.0) + 2.0
-    val resUncertains = Uncertain.point(1.0) + Uncertain.point(2.0)
+    val resLhsScalar  = 2.0 + Uncertain.always(1.0)
+    val resRhsScalar  = Uncertain.always(1.0) + 2.0
+    val resUncertains = Uncertain.always(1.0) + Uncertain.always(2.0)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -38,9 +38,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Float + Float -> Float") {
-    val resLhsScalar  = 2.0f + Uncertain.point(1.0f)
-    val resRhsScalar  = Uncertain.point(1.0f) + 2.0f
-    val resUncertains = Uncertain.point(1.0f) + Uncertain.point(2.0f)
+    val resLhsScalar  = 2.0f + Uncertain.always(1.0f)
+    val resRhsScalar  = Uncertain.always(1.0f) + 2.0f
+    val resUncertains = Uncertain.always(1.0f) + Uncertain.always(2.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -51,9 +51,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Long + Long -> Long") {
-    val resLhsScalar  = 2L + Uncertain.point(1L)
-    val resRhsScalar  = Uncertain.point(1L) + 2L
-    val resUncertains = Uncertain.point(1L) + Uncertain.point(2L)
+    val resLhsScalar  = 2L + Uncertain.always(1L)
+    val resRhsScalar  = Uncertain.always(1L) + 2L
+    val resUncertains = Uncertain.always(1L) + Uncertain.always(2L)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -64,9 +64,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Int + Int -> Int") {
-    val resLhsScalar  = 2 + Uncertain.point(1)
-    val resRhsScalar  = Uncertain.point(1) + 2
-    val resUncertains = Uncertain.point(1) + Uncertain.point(2)
+    val resLhsScalar  = 2 + Uncertain.always(1)
+    val resRhsScalar  = Uncertain.always(1) + 2
+    val resUncertains = Uncertain.always(1) + Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -77,9 +77,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Short + Short -> Int") {
-    val resLhsScalar  = 2.toShort + Uncertain.point(1.toShort)
-    val resRhsScalar  = Uncertain.point(1.toShort) + 2.toShort
-    val resUncertains = Uncertain.point(1.toShort) + Uncertain.point(2.toShort)
+    val resLhsScalar  = 2.toShort + Uncertain.always(1.toShort)
+    val resRhsScalar  = Uncertain.always(1.toShort) + 2.toShort
+    val resUncertains = Uncertain.always(1.toShort) + Uncertain.always(2.toShort)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -90,9 +90,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Byte + Byte -> Int") {
-    val resLhsScalar  = 2.toByte + Uncertain.point(1.toByte)
-    val resRhsScalar  = Uncertain.point(1.toByte) + 2.toByte
-    val resUncertains = Uncertain.point(1.toByte) + Uncertain.point(2.toByte)
+    val resLhsScalar  = 2.toByte + Uncertain.always(1.toByte)
+    val resRhsScalar  = Uncertain.always(1.toByte) + 2.toByte
+    val resUncertains = Uncertain.always(1.toByte) + Uncertain.always(2.toByte)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -103,9 +103,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Double + Float -> Double") {
-    val resLhsScalar  = 2.0 + Uncertain.point(1.0f)
-    val resRhsScalar  = Uncertain.point(1.0) + 2.0f
-    val resUncertains = Uncertain.point(1.0) + Uncertain.point(2.0f)
+    val resLhsScalar  = 2.0 + Uncertain.always(1.0f)
+    val resRhsScalar  = Uncertain.always(1.0) + 2.0f
+    val resUncertains = Uncertain.always(1.0) + Uncertain.always(2.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -116,9 +116,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Double + Int -> Double") {
-    val resLhsScalar  = 2.0 + Uncertain.point(1)
-    val resRhsScalar  = Uncertain.point(1.0) + 2
-    val resUncertains = Uncertain.point(1.0) + Uncertain.point(2)
+    val resLhsScalar  = 2.0 + Uncertain.always(1)
+    val resRhsScalar  = Uncertain.always(1.0) + 2
+    val resUncertains = Uncertain.always(1.0) + Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -129,9 +129,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Float + Int -> Float") {
-    val resLhsScalar  = 2.0f + Uncertain.point(1)
-    val resRhsScalar  = Uncertain.point(1.0f) + 2
-    val resUncertains = Uncertain.point(1.0f) + Uncertain.point(2)
+    val resLhsScalar  = 2.0f + Uncertain.always(1)
+    val resRhsScalar  = Uncertain.always(1.0f) + 2
+    val resUncertains = Uncertain.always(1.0f) + Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -142,9 +142,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Addition: Long + Int -> Long") {
-    val resLhsScalar  = 2L + Uncertain.point(1)
-    val resRhsScalar  = Uncertain.point(1L) + 2
-    val resUncertains = Uncertain.point(1L) + Uncertain.point(2)
+    val resLhsScalar  = 2L + Uncertain.always(1)
+    val resRhsScalar  = Uncertain.always(1L) + 2
+    val resUncertains = Uncertain.always(1L) + Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -157,9 +157,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== SUBTRACTION TESTS ====================
 
   test("Subtraction: Double - Double -> Double") {
-    val resLhsScalar  = 5.0 - Uncertain.point(2.0)
-    val resRhsScalar  = Uncertain.point(5.0) - 2.0
-    val resUncertains = Uncertain.point(5.0) - Uncertain.point(2.0)
+    val resLhsScalar  = 5.0 - Uncertain.always(2.0)
+    val resRhsScalar  = Uncertain.always(5.0) - 2.0
+    val resUncertains = Uncertain.always(5.0) - Uncertain.always(2.0)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -170,9 +170,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Subtraction: Float - Float -> Float") {
-    val resLhsScalar  = 5.0f - Uncertain.point(2.0f)
-    val resRhsScalar  = Uncertain.point(5.0f) - 2.0f
-    val resUncertains = Uncertain.point(5.0f) - Uncertain.point(2.0f)
+    val resLhsScalar  = 5.0f - Uncertain.always(2.0f)
+    val resRhsScalar  = Uncertain.always(5.0f) - 2.0f
+    val resUncertains = Uncertain.always(5.0f) - Uncertain.always(2.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -183,9 +183,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Subtraction: Long - Long -> Long") {
-    val resLhsScalar  = 5L - Uncertain.point(2L)
-    val resRhsScalar  = Uncertain.point(5L) - 2L
-    val resUncertains = Uncertain.point(5L) - Uncertain.point(2L)
+    val resLhsScalar  = 5L - Uncertain.always(2L)
+    val resRhsScalar  = Uncertain.always(5L) - 2L
+    val resUncertains = Uncertain.always(5L) - Uncertain.always(2L)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -196,9 +196,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Subtraction: Int - Int -> Int") {
-    val resLhsScalar  = 5 - Uncertain.point(2)
-    val resRhsScalar  = Uncertain.point(5) - 2
-    val resUncertains = Uncertain.point(5) - Uncertain.point(2)
+    val resLhsScalar  = 5 - Uncertain.always(2)
+    val resRhsScalar  = Uncertain.always(5) - 2
+    val resUncertains = Uncertain.always(5) - Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -209,9 +209,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Subtraction: Double - Float -> Double") {
-    val resLhsScalar  = 5.0 - Uncertain.point(2.0f)
-    val resRhsScalar  = Uncertain.point(5.0) - 2.0f
-    val resUncertains = Uncertain.point(5.0) - Uncertain.point(2.0f)
+    val resLhsScalar  = 5.0 - Uncertain.always(2.0f)
+    val resRhsScalar  = Uncertain.always(5.0) - 2.0f
+    val resUncertains = Uncertain.always(5.0) - Uncertain.always(2.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -222,9 +222,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Subtraction: Long - Int -> Long") {
-    val resLhsScalar  = 5L - Uncertain.point(2)
-    val resRhsScalar  = Uncertain.point(5L) - 2
-    val resUncertains = Uncertain.point(5L) - Uncertain.point(2)
+    val resLhsScalar  = 5L - Uncertain.always(2)
+    val resRhsScalar  = Uncertain.always(5L) - 2
+    val resUncertains = Uncertain.always(5L) - Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -237,9 +237,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== MULTIPLICATION TESTS ====================
 
   test("Multiplication: Double * Double -> Double") {
-    val resLhsScalar  = 2.0 * Uncertain.point(3.0)
-    val resRhsScalar  = Uncertain.point(2.0) * 3.0
-    val resUncertains = Uncertain.point(2.0) * Uncertain.point(3.0)
+    val resLhsScalar  = 2.0 * Uncertain.always(3.0)
+    val resRhsScalar  = Uncertain.always(2.0) * 3.0
+    val resUncertains = Uncertain.always(2.0) * Uncertain.always(3.0)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -250,9 +250,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Multiplication: Float * Float -> Float") {
-    val resLhsScalar  = 2.0f * Uncertain.point(3.0f)
-    val resRhsScalar  = Uncertain.point(2.0f) * 3.0f
-    val resUncertains = Uncertain.point(2.0f) * Uncertain.point(3.0f)
+    val resLhsScalar  = 2.0f * Uncertain.always(3.0f)
+    val resRhsScalar  = Uncertain.always(2.0f) * 3.0f
+    val resUncertains = Uncertain.always(2.0f) * Uncertain.always(3.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -263,9 +263,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Multiplication: Long * Long -> Long") {
-    val resLhsScalar  = 2L * Uncertain.point(3L)
-    val resRhsScalar  = Uncertain.point(2L) * 3L
-    val resUncertains = Uncertain.point(2L) * Uncertain.point(3L)
+    val resLhsScalar  = 2L * Uncertain.always(3L)
+    val resRhsScalar  = Uncertain.always(2L) * 3L
+    val resUncertains = Uncertain.always(2L) * Uncertain.always(3L)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -276,9 +276,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Multiplication: Int * Int -> Int") {
-    val resLhsScalar  = 2 * Uncertain.point(3)
-    val resRhsScalar  = Uncertain.point(2) * 3
-    val resUncertains = Uncertain.point(2) * Uncertain.point(3)
+    val resLhsScalar  = 2 * Uncertain.always(3)
+    val resRhsScalar  = Uncertain.always(2) * 3
+    val resUncertains = Uncertain.always(2) * Uncertain.always(3)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -289,9 +289,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Multiplication: Long * Int -> Long") {
-    val resLhsScalar  = 2L * Uncertain.point(3)
-    val resRhsScalar  = Uncertain.point(2L) * 3
-    val resUncertains = Uncertain.point(2L) * Uncertain.point(3)
+    val resLhsScalar  = 2L * Uncertain.always(3)
+    val resRhsScalar  = Uncertain.always(2L) * 3
+    val resUncertains = Uncertain.always(2L) * Uncertain.always(3)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -302,9 +302,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Multiplication: Float * Long -> Float") {
-    val resLhsScalar  = 2.0f * Uncertain.point(3L)
-    val resRhsScalar  = Uncertain.point(2.0f) * 3L
-    val resUncertains = Uncertain.point(2.0f) * Uncertain.point(3L)
+    val resLhsScalar  = 2.0f * Uncertain.always(3L)
+    val resRhsScalar  = Uncertain.always(2.0f) * 3L
+    val resUncertains = Uncertain.always(2.0f) * Uncertain.always(3L)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -317,9 +317,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== DIVISION TESTS ====================
 
   test("Division: Double / Double -> Double") {
-    val resLhsScalar  = 6.0 / Uncertain.point(2.0)
-    val resRhsScalar  = Uncertain.point(6.0) / 2.0
-    val resUncertains = Uncertain.point(6.0) / Uncertain.point(2.0)
+    val resLhsScalar  = 6.0 / Uncertain.always(2.0)
+    val resRhsScalar  = Uncertain.always(6.0) / 2.0
+    val resUncertains = Uncertain.always(6.0) / Uncertain.always(2.0)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -330,9 +330,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Division: Float / Float -> Float") {
-    val resLhsScalar  = 6.0f / Uncertain.point(2.0f)
-    val resRhsScalar  = Uncertain.point(6.0f) / 2.0f
-    val resUncertains = Uncertain.point(6.0f) / Uncertain.point(2.0f)
+    val resLhsScalar  = 6.0f / Uncertain.always(2.0f)
+    val resRhsScalar  = Uncertain.always(6.0f) / 2.0f
+    val resUncertains = Uncertain.always(6.0f) / Uncertain.always(2.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -343,9 +343,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Division: Long / Long -> Long") {
-    val resLhsScalar  = 6L / Uncertain.point(2L)
-    val resRhsScalar  = Uncertain.point(6L) / 2L
-    val resUncertains = Uncertain.point(6L) / Uncertain.point(2L)
+    val resLhsScalar  = 6L / Uncertain.always(2L)
+    val resRhsScalar  = Uncertain.always(6L) / 2L
+    val resUncertains = Uncertain.always(6L) / Uncertain.always(2L)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -356,9 +356,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Division: Int / Int -> Int") {
-    val resLhsScalar  = 6 / Uncertain.point(2)
-    val resRhsScalar  = Uncertain.point(6) / 2
-    val resUncertains = Uncertain.point(6) / Uncertain.point(2)
+    val resLhsScalar  = 6 / Uncertain.always(2)
+    val resRhsScalar  = Uncertain.always(6) / 2
+    val resUncertains = Uncertain.always(6) / Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -369,9 +369,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Division: Double / Int -> Double") {
-    val resLhsScalar  = 6.0 / Uncertain.point(2)
-    val resRhsScalar  = Uncertain.point(6.0) / 2
-    val resUncertains = Uncertain.point(6.0) / Uncertain.point(2)
+    val resLhsScalar  = 6.0 / Uncertain.always(2)
+    val resRhsScalar  = Uncertain.always(6.0) / 2
+    val resUncertains = Uncertain.always(6.0) / Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -382,9 +382,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Division: Long / Int -> Long") {
-    val resLhsScalar  = 6L / Uncertain.point(2)
-    val resRhsScalar  = Uncertain.point(6L) / 2
-    val resUncertains = Uncertain.point(6L) / Uncertain.point(2)
+    val resLhsScalar  = 6L / Uncertain.always(2)
+    val resRhsScalar  = Uncertain.always(6L) / 2
+    val resUncertains = Uncertain.always(6L) / Uncertain.always(2)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -397,9 +397,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== REMAINDER TESTS ====================
 
   test("Remainder: Double % Double -> Double") {
-    val resLhsScalar  = 7.0                  % Uncertain.point(3.0)
-    val resRhsScalar  = Uncertain.point(7.0) % 3.0
-    val resUncertains = Uncertain.point(7.0) % Uncertain.point(3.0)
+    val resLhsScalar  = 7.0                  % Uncertain.always(3.0)
+    val resRhsScalar  = Uncertain.always(7.0) % 3.0
+    val resUncertains = Uncertain.always(7.0) % Uncertain.always(3.0)
 
     assert(resLhsScalar.sample().isInstanceOf[Double])
     assert(resRhsScalar.sample().isInstanceOf[Double])
@@ -410,9 +410,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Float % Float -> Float") {
-    val resLhsScalar  = 7.0f                  % Uncertain.point(3.0f)
-    val resRhsScalar  = Uncertain.point(7.0f) % 3.0f
-    val resUncertains = Uncertain.point(7.0f) % Uncertain.point(3.0f)
+    val resLhsScalar  = 7.0f                  % Uncertain.always(3.0f)
+    val resRhsScalar  = Uncertain.always(7.0f) % 3.0f
+    val resUncertains = Uncertain.always(7.0f) % Uncertain.always(3.0f)
 
     assert(resLhsScalar.sample().isInstanceOf[Float])
     assert(resRhsScalar.sample().isInstanceOf[Float])
@@ -423,9 +423,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Long % Long -> Long") {
-    val resLhsScalar  = 7L                  % Uncertain.point(3L)
-    val resRhsScalar  = Uncertain.point(7L) % 3L
-    val resUncertains = Uncertain.point(7L) % Uncertain.point(3L)
+    val resLhsScalar  = 7L                  % Uncertain.always(3L)
+    val resRhsScalar  = Uncertain.always(7L) % 3L
+    val resUncertains = Uncertain.always(7L) % Uncertain.always(3L)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -436,9 +436,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Int % Int -> Int") {
-    val resLhsScalar  = 7                  % Uncertain.point(3)
-    val resRhsScalar  = Uncertain.point(7) % 3
-    val resUncertains = Uncertain.point(7) % Uncertain.point(3)
+    val resLhsScalar  = 7                  % Uncertain.always(3)
+    val resRhsScalar  = Uncertain.always(7) % 3
+    val resUncertains = Uncertain.always(7) % Uncertain.always(3)
 
     assert(resLhsScalar.sample().isInstanceOf[Int])
     assert(resRhsScalar.sample().isInstanceOf[Int])
@@ -449,9 +449,9 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Long % Int -> Long") {
-    val resLhsScalar  = 7L                  % Uncertain.point(3)
-    val resRhsScalar  = Uncertain.point(7L) % 3
-    val resUncertains = Uncertain.point(7L) % Uncertain.point(3)
+    val resLhsScalar  = 7L                  % Uncertain.always(3)
+    val resRhsScalar  = Uncertain.always(7L) % 3
+    val resUncertains = Uncertain.always(7L) % Uncertain.always(3)
 
     assert(resLhsScalar.sample().isInstanceOf[Long])
     assert(resRhsScalar.sample().isInstanceOf[Long])
@@ -464,20 +464,20 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== COMPLEX EXPRESSION TESTS ====================
 
   test("Complex expression: (Uncertain[Int] + 3) * 2 - 5") {
-    val res = (Uncertain.point(1) + 3) * 2 - 5
+    val res = (Uncertain.always(1) + 3) * 2 - 5
     assert(res.sample().isInstanceOf[Int])
     assertEquals(res.sample(), 3)
   }
 
   test("Complex expression: (3 + Uncertain[Int]) * 2 - 5") {
-    val res = (3 + Uncertain.point(1)) * 2 - 5
+    val res = (3 + Uncertain.always(1)) * 2 - 5
     assert(res.sample().isInstanceOf[Int])
     assertEquals(res.sample(), 3)
   }
 
   test("Complex expression with mixed types") {
-    val res1 = Uncertain.point(10.0) / 2 + Uncertain.point(3L) * 2
-    val res2 = 10.0 / Uncertain.point(2) + 3L * Uncertain.point(2)
+    val res1 = Uncertain.always(10.0) / 2 + Uncertain.always(3L) * 2
+    val res2 = 10.0 / Uncertain.always(2) + 3L * Uncertain.always(2)
 
     assert(res1.sample().isInstanceOf[Double])
     assert(res2.sample().isInstanceOf[Double])
@@ -486,8 +486,8 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Type promotion: Int -> Long -> Float -> Double") {
-    val res1 = Uncertain.point(1) + Uncertain.point(2L) + Uncertain.point(3.0f) + Uncertain.point(4.0)
-    val res2 = 1 + Uncertain.point(2L) + 3.0f + Uncertain.point(4.0)
+    val res1 = Uncertain.always(1) + Uncertain.always(2L) + Uncertain.always(3.0f) + Uncertain.always(4.0)
+    val res2 = 1 + Uncertain.always(2L) + 3.0f + Uncertain.always(4.0)
 
     assert(res1.sample().isInstanceOf[Double])
     assert(res2.sample().isInstanceOf[Double])

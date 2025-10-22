@@ -67,7 +67,7 @@ class PopulationStandardDeviationSpec extends RngSuite {
   // --- Edge Case Tests ---
 
   rngTest("populationStandardDeviation for a point distribution should be exactly 0") {
-    val pointDist = Uncertain.point(1337.0)
+    val pointDist = Uncertain.always(1337.0)
 
     // A distribution with no variation must have a standard deviation of 0.
     val stdDev = pointDist.populationStandardDeviation(1000)

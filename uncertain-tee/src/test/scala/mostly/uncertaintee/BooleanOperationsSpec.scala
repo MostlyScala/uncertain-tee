@@ -117,36 +117,36 @@ class BooleanOperationsSpec extends RngSuite {
 
   // --- Operations with Certain/Point Values ---
 
-  rngTest("`b && Uncertain.point(true)` should be equivalent to `b`") {
+  rngTest("`b && Uncertain.always(true)` should be equivalent to `b`") {
     val p        = 0.65
     val b        = Uncertain.bernoulli(p)
-    val bAndTrue = b && Uncertain.point(true)
+    val bAndTrue = b && Uncertain.always(true)
 
     val sampleMean = bAndTrue.expectedValue(sampleCount)
     val hint       = s"Expected value of `b && true` where P(b)=0.65 should be approx 0.65. Got $sampleMean"
     assert(abs(sampleMean - p) < tolerance, hint)
   }
 
-  rngTest("`b && Uncertain.point(false)` should always be false") {
+  rngTest("`b && Uncertain.always(false)` should always be false") {
     val p         = 0.7
     val b         = Uncertain.bernoulli(p)
-    val bAndFalse = b && Uncertain.point(false)
+    val bAndFalse = b && Uncertain.always(false)
 
     assertEquals(bAndFalse.expectedValue(1000), 0.0, "The expected value of `b && false` must be 0.0")
   }
 
-  rngTest("`b || Uncertain.point(true)` should always be true") {
+  rngTest("`b || Uncertain.always(true)` should always be true") {
     val p       = 0.3
     val b       = Uncertain.bernoulli(p)
-    val bOrTrue = b || Uncertain.point(true)
+    val bOrTrue = b || Uncertain.always(true)
 
     assertEquals(bOrTrue.expectedValue(1000), 1.0, "The expected value of `b || true` must be 1.0")
   }
 
-  rngTest("`b || Uncertain.point(false)` should be equivalent to `b`") {
+  rngTest("`b || Uncertain.always(false)` should be equivalent to `b`") {
     val p        = 0.55
     val b        = Uncertain.bernoulli(p)
-    val bOrFalse = b || Uncertain.point(false)
+    val bOrFalse = b || Uncertain.always(false)
 
     val sampleMean = bOrFalse.expectedValue(sampleCount)
     val hint       = s"Expected value of `b || false` where P(b)=0.55 should be approx 0.55. Got $sampleMean"

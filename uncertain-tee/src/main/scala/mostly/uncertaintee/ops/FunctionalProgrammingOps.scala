@@ -75,7 +75,7 @@ trait FunctionalProgrammingOps {
       */
     def sequence[T](uncertainTs: Iterable[Uncertain[T]])(using random: Random = new Random()): Uncertain[List[T]] =
       uncertainTs.foldRight {
-        Uncertain.point(List.empty[T])(using random)
+        Uncertain.always(List.empty[T])(using random)
       } { (elem, acc) =>
         for {
           h <- elem
@@ -124,7 +124,7 @@ trait FunctionalProgrammingOps {
       items: Iterable[A]
     )(f: A => Uncertain[T])(using random: Random = new Random()): Uncertain[List[T]] =
       items.foldRight {
-        Uncertain.point(List.empty[T])(using random)
+        Uncertain.always(List.empty[T])(using random)
       } { (elem, acc) =>
         for {
           h <- f(elem)

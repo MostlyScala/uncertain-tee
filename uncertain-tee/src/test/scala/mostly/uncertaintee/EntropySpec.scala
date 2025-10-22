@@ -30,7 +30,7 @@ class EntropySpec extends RngSuite {
   // --- Deterministic and Zero-Entropy Tests ---
 
   test("Entropy of a deterministic Uncertain.point value must be exactly 0 bits") {
-    val deterministic = Uncertain.point("A single outcome")
+    val deterministic = Uncertain.always("A single outcome")
     // A distribution with only one possible outcome has no uncertainty.
     // H = - (1.0 * log2(1.0)) = 0.0
     assertEquals(deterministic.entropy(sampleCount), 0.0, "Entropy of a point value should be zero.")

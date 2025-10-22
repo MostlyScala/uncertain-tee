@@ -7,7 +7,7 @@ import org.openjdk.jmh.annotations.{Benchmark, Scope, State}
 @State(Scope.Benchmark)
 class BaselineBenchmark extends BenchmarkSettings {
 
-  private val point = Uncertain.point(0)
+  private val point = Uncertain.always(0)
 
   @Benchmark
   def baseline(): Int = point.sample()

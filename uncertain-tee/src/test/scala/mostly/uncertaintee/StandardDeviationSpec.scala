@@ -68,7 +68,7 @@ class StandardDeviationSpec extends RngSuite {
   // --- Edge Case Tests ---
 
   rngTest("standardDeviation for a point distribution should be exactly 0") {
-    val pointDist = Uncertain.point(42.0)
+    val pointDist = Uncertain.always(42.0)
     // Even with Bessel's correction, a sample with no variation has a standard deviation of 0.
     val stdDev    = pointDist.standardDeviation(100)
     assertEquals(stdDev, 0.0, "Sample standard deviation of a constant value must be 0.")

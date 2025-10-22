@@ -83,7 +83,7 @@ trait DistributionOpsDouble {
       require(min <= max, s"min ($min) must be <= max ($max)")
       require(min <= peak && peak <= max, s"peak ($peak) must be between min ($min) and max ($max).")
       if (min == max) {
-        Uncertain.point(min)
+        Uncertain.always(min)
       } else {
         Uncertain { () =>
           val u  = random.nextDouble()
@@ -201,20 +201,13 @@ trait DistributionOpsDouble {
         probability > 0 && probability <= 1,
         s"probability ($probability) must be in (0, 1]"
       )
-
       if (probability == 1.0) {
         Uncertain.always(1) // Always 1 trial for 100% success
       } else {
         Uncertain { () =>
           // Inverse Transform Sampling:
           // k = ceil(log(U) / log(1-p)) where U is uniform(0, 1)
-
-          // random.nextDouble() returns [0.0, 1.0)
-          // We need (0.0, 1.0) to avoid log(0.0) = -Infinity
-          var u = random.nextDouble()
-          while (u == 0.0)
-            u = random.nextDouble()
-
+          val u      = random.nextDouble() * (One - Double.MinPositiveValue) + Double.MinPositiveValue
           val trials = math.ceil(math.log(u) / math.log(1.0 - probability))
           trials.toInt
         }
@@ -224,7 +217,7 @@ trait DistributionOpsDouble {
     def poissonViaDouble(lambda: Double)(using random: Random = new Random()): Uncertain[Int] = {
       require(lambda >= 0, "Lambda (average rate) cannot be negative.")
       if (lambda == Zero) {
-        Uncertain.point(0)
+        Uncertain.always(0)
       } else {
         Uncertain { () =>
           val L = exp(-lambda)

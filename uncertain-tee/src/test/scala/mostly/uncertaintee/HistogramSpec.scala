@@ -39,7 +39,7 @@ class HistogramSpec extends RngSuite {
   }
 
   rngTest("Histogram of a deterministic value should have only one entry") {
-    val deterministicValue = Uncertain.point("Fixed Outcome")
+    val deterministicValue = Uncertain.always("Fixed Outcome")
     val histogram          = deterministicValue.histogram(sampleCount)
     assert(histogram.size == 1, s"Histogram should have exactly one entry, but found ${histogram.size}.")
     assertEquals(
@@ -132,7 +132,7 @@ class HistogramSpec extends RngSuite {
   }
 
   test("Precondition: Histogram requires a positive sample count") {
-    val dist = Uncertain.point(1)
+    val dist = Uncertain.always(1)
     intercept[IllegalArgumentException](dist.histogram(0))
     intercept[IllegalArgumentException](dist.histogram(-100))
   }

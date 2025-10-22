@@ -220,7 +220,7 @@ class RealWorldDomainModelSpec extends RngSuite {
 
     val claimCost = isClaimFiled.flatMap { filed =>
       if (filed) claimSeverity.map(cost => InsuranceClaim(cost))
-      else Uncertain.point(InsuranceClaim(0.0)) // No claim, zero cost
+      else Uncertain.always(InsuranceClaim(0.0)) // No claim, zero cost
     }
 
     val expectedCost = claimCost.map(_.cost).mean(sampleCount)
@@ -363,7 +363,7 @@ class RealWorldDomainModelSpec extends RngSuite {
           modelRetention(yearsSoFar + 1)
         } else {
           // Customer churns, the process stops. Return the total years they stayed.
-          Uncertain.point(yearsSoFar)
+          Uncertain.always(yearsSoFar)
         }
       }
 
