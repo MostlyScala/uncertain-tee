@@ -386,16 +386,13 @@ trait ArithmeticOps {
     /** Add negating unary `-` for uncertains of numeric types */
     transparent inline def unary_- =
       inline lhs match {
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
-        case (l: Uncertain[Double]) => l.map(l => -l): Uncertain[Double]
+        case (l: Uncertain[Double]) => l.map(x => -x): Uncertain[Double]
+        case (l: Uncertain[Float])  => l.map(x => -x): Uncertain[Float]
+        case (l: Uncertain[Long])   => l.map(x => -x): Uncertain[Long]
+        case (l: Uncertain[Int])    => l.map(x => -x): Uncertain[Int]
       }
 
-    /** Add `+` between an uncertain of a numeric type and a numeric type */
+    /** Add `+` between an uncer  tain of a numeric type and a numeric type */
     transparent inline def +[N2 <: SupportedNum](rhs: N2) =
       inline (lhs, rhs) match {
 

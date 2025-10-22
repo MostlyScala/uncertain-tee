@@ -1,7 +1,7 @@
 package mostly.scala.uncertaintee.benchmarks
 
 import mostly.uncertaintee.Uncertain
-import mostly.uncertaintee.syntax.point
+import mostly.uncertaintee.syntax.*
 import org.openjdk.jmh.annotations.{Benchmark, Scope, State}
 
 @State(Scope.Benchmark)

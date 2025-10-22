@@ -17,7 +17,7 @@
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.Uncertain
-import mostly.uncertaintee.syntax.point
+import mostly.uncertaintee.syntax.*
 
 import scala.util.Random
 
