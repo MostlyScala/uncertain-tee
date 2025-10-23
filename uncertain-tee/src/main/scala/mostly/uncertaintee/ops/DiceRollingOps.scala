@@ -241,7 +241,9 @@ trait DiceRollingOps {
       */
     def rollDie(sides: Int)(using random: Random = new Random()): Uncertain[Int] = {
       require(sides >= 1, s"Die must have at least one side, got: $sides")
-      Uncertain.uniformInt(minInclusive = 1, maxExclusive = sides + 1)
+      Uncertain.fromRange(
+        from = 1 to sides
+      )
     }
 
     /** Rolls multiple different dice and sums their results.

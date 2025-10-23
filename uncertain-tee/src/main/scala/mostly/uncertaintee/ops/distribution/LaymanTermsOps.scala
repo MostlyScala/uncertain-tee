@@ -49,29 +49,6 @@ trait LaymanTermsOps {
     def maybe()(using random: Random = new Random()): Uncertain[Boolean] =
       Uncertain.bernoulliViaDouble(probability = 0.5)
 
-    /** Creates a random integer from a Range
-      *
-      * Uses a discrete uniform distribution: https://en.wikipedia.org/wiki/Discrete_uniform_distribution
-      *
-      * @param range
-      *   A Scala Range (e.g., `1 to 10`, `0 until 100`)
-      * @return
-      *   An uncertain integer uniformly distributed across the range
-      * @example
-      *   {{{
-      *   val age = Uncertain.fromRange(18 to 65)
-      *   val index = Uncertain.fromRange(0 until items.length)
-      *   val score = Uncertain.fromRange(1 to 100)
-      *
-      *   // Works with step ranges too
-      *   val evenNumber = Uncertain.fromRange(0 to 100 by 2)
-      *   }}}
-      */
-    def fromRange(range: Range)(using random: Random = new Random()): Uncertain[Int] = {
-      require(range.nonEmpty, "Range must not be empty")
-      Uncertain.uniformInt(0, range.size).map(range)
-    }
-
     /** Picks N random items from a collection without replacement.
       *
       * @param items
