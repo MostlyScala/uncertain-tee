@@ -31,6 +31,8 @@ package object uncertaintee {
     *   import mostly.uncertaintee.syntax.all.*
     *   import mostly.uncertaintee.syntax.arithmetic.*
     *   import mostly.uncertaintee.syntax.boolean.*
+    *   import mostly.uncertaintee.syntax.chance.*
+    *   import mostly.uncertaintee.syntax.collection.*
     *   import mostly.uncertaintee.syntax.comparison.*
     *   import mostly.uncertaintee.syntax.conversion.*
     *   import mostly.uncertaintee.syntax.coin.*
@@ -46,11 +48,12 @@ package object uncertaintee {
     val all: ops.AllOps                          = this
     val arithmetic: ops.ArithmeticOps            = this
     val boolean: ops.BooleanOps                  = this
+    val chance: ops.ChanceOps                    = this
+    val collection: ops.CollectionOps            = this
     val comparison: ops.ComparisonOps            = this
     val conversion: ops.ConversionOps            = this
     val coin: ops.CoinFlipOps                    = this
     val dice: ops.DiceRollingOps                 = this
-    val chance: ops.ChanceOps                    = this
     val distribution: ops.AllDistributionOps     = this
     val functional: ops.FunctionalProgrammingOps = this
     val option: ops.OptionOps                    = this

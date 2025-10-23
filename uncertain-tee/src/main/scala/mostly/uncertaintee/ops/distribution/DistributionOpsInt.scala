@@ -24,11 +24,52 @@ import scala.util.Random
 trait DistributionOpsInt {
   extension (u: Uncertain.type) {
 
-    /** Creates a uniform distribution of Integers. */
+    /** Creates a uniform distribution of Integers between (minInclusive, maxExclusive]
+      *
+      * See also [[mostly.uncertaintee.syntax.uniformIntInclusive]] and [[mostly.uncertaintee.syntax.fromRange]]
+      */
     def uniformInt(minInclusive: Int, maxExclusive: Int)(using random: Random = new Random()): Uncertain[Int] = {
-      require(maxExclusive >= minInclusive, s"max ($maxExclusive) must be >= min ($minInclusive).")
-      if (minInclusive == maxExclusive) Uncertain.always(minInclusive)
-      else Uncertain(() => random.between(minInclusive, maxExclusive))
+      require(maxExclusive > minInclusive, s"max ($maxExclusive) must be > min ($minInclusive).")
+      Uncertain(() => random.between(minInclusive, maxExclusive))
+    }
+
+    /** Creates a uniform distribution of Integers between (minInclusive, maxInclusive)
+      *
+      * See also [[mostly.uncertaintee.syntax.uniformInt]] and [[mostly.uncertaintee.syntax.fromRange]]
+      */
+    def uniformIntInclusive(minInclusive: Int, maxInclusive: Int)(using random: Random = new Random()): Uncertain[Int] = {
+      require(maxInclusive >= minInclusive, s"max ($maxInclusive) must be >= min ($minInclusive).")
+      if (minInclusive == maxInclusive) Uncertain.always(minInclusive)
+      else {
+        Uncertain.uniformInt(
+          minInclusive = minInclusive,
+          maxExclusive = maxInclusive + 1
+        )
+      }
+    }
+
+    /** Creates a random integer from a Range
+      * @param range
+      *   A Scala Range (e.g., `1 to 10`, `0 until 100 by 2`)
+      * @return
+      *   An uncertain integer uniformly distributed across the range
+      * @example
+      *   {{{
+      *   val age = Uncertain.fromRange(18 to 65)
+      *   val index = Uncertain.fromRange(0 until items.length)
+      *   val score = Uncertain.fromRange(1 to 100)
+      *
+      *   // Works with step ranges too
+      *   val evenNumber = Uncertain.fromRange(0 to 100 by 2)
+      *
+      *   // And with negative steps
+      *   val evenNumber = Uncertain.fromRange(100 to 0 by -2)
+      *   }}}
+      */
+    def fromRange(from: Range)(using random: Random = new Random()): Uncertain[Int] = {
+      require(from.nonEmpty, "Range must not be empty")
+      // the uniformInt represents the indexes
+      Uncertain.uniformInt(0, from.size).map(index => from(index))
     }
 
     /** Creates a binomial distribution. */

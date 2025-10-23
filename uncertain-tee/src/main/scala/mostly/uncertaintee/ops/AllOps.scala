@@ -30,6 +30,7 @@ trait AllOps
     with BooleanOps
     with ChanceOps
     with CoinFlipOps
+    with CollectionOps
     with ComparisonOps
     with ConversionOps
     with DiceRollingOps

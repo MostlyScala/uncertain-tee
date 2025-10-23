@@ -397,7 +397,7 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   // ==================== REMAINDER TESTS ====================
 
   test("Remainder: Double % Double -> Double") {
-    val resLhsScalar  = 7.0                  % Uncertain.always(3.0)
+    val resLhsScalar  = 7.0                   % Uncertain.always(3.0)
     val resRhsScalar  = Uncertain.always(7.0) % 3.0
     val resUncertains = Uncertain.always(7.0) % Uncertain.always(3.0)
 
@@ -410,7 +410,7 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Float % Float -> Float") {
-    val resLhsScalar  = 7.0f                  % Uncertain.always(3.0f)
+    val resLhsScalar  = 7.0f                   % Uncertain.always(3.0f)
     val resRhsScalar  = Uncertain.always(7.0f) % 3.0f
     val resUncertains = Uncertain.always(7.0f) % Uncertain.always(3.0f)
 
@@ -423,7 +423,7 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Long % Long -> Long") {
-    val resLhsScalar  = 7L                  % Uncertain.always(3L)
+    val resLhsScalar  = 7L                   % Uncertain.always(3L)
     val resRhsScalar  = Uncertain.always(7L) % 3L
     val resUncertains = Uncertain.always(7L) % Uncertain.always(3L)
 
@@ -436,7 +436,7 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Int % Int -> Int") {
-    val resLhsScalar  = 7                  % Uncertain.always(3)
+    val resLhsScalar  = 7                   % Uncertain.always(3)
     val resRhsScalar  = Uncertain.always(7) % 3
     val resUncertains = Uncertain.always(7) % Uncertain.always(3)
 
@@ -449,7 +449,7 @@ class ArithmeticOpsWideningSpec extends FunSuite {
   }
 
   test("Remainder: Long % Int -> Long") {
-    val resLhsScalar  = 7L                  % Uncertain.always(3)
+    val resLhsScalar  = 7L                   % Uncertain.always(3)
     val resRhsScalar  = Uncertain.always(7L) % 3
     val resUncertains = Uncertain.always(7L) % Uncertain.always(3)
 
