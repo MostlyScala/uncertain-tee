@@ -60,9 +60,10 @@ class StandardDeviationSpec extends RngSuite {
     val sampleError     = abs(avgSampleVariance - populationVar)
     val populationError = abs(avgPopVarianceOfSample - populationVar)
 
-    val hint =
-      s"The error from the sample variance estimate ($sampleError) should be smaller than the error from the biased population variance of the sample ($populationError)."
-    assert(sampleError < populationError, hint)
+    assert(
+      cond = sampleError < populationError,
+      clue = s"The error from the sample variance estimate ($sampleError) should be smaller than the error from the biased population variance of the sample ($populationError)."
+    )
   }
 
   // --- Edge Case Tests ---
@@ -71,7 +72,11 @@ class StandardDeviationSpec extends RngSuite {
     val pointDist = Uncertain.always(42.0)
     // Even with Bessel's correction, a sample with no variation has a standard deviation of 0.
     val stdDev    = pointDist.standardDeviation(100)
-    assertEquals(stdDev, 0.0, "Sample standard deviation of a constant value must be 0.")
+    assertEquals(
+      obtained = stdDev,
+      expected = 0.0,
+      clue = "Sample standard deviation of a constant value must be 0."
+    )
   }
 
   // --- Input Validation Tests ---

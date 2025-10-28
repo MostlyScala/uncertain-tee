@@ -40,9 +40,10 @@ class PopulationStandardDeviationSpec extends RngSuite {
     val theoreticalStdDev = stdDev
     val estimatedStdDev   = normalDist.populationStandardDeviation(sampleCount)
 
-    val hint =
-      s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for N($mean, $stdDev)."
-    assert(abs(estimatedStdDev - theoreticalStdDev) < tolerance, hint)
+    assert(
+      cond = abs(estimatedStdDev - theoreticalStdDev) < tolerance,
+      clue = s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for N($mean, $stdDev)."
+    )
   }
 
   rngTest(
@@ -59,9 +60,10 @@ class PopulationStandardDeviationSpec extends RngSuite {
     val theoreticalStdDev   = sqrt(theoreticalVariance)
     val estimatedStdDev     = uniformDist.populationStandardDeviation(sampleCount)
 
-    val hint =
-      s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for U($min, $max)."
-    assert(abs(estimatedStdDev - theoreticalStdDev) < tolerance, hint)
+    assert(
+      cond = abs(estimatedStdDev - theoreticalStdDev) < tolerance,
+      clue = s"Estimated population std dev ($estimatedStdDev) should be close to theoretical std dev ($theoreticalStdDev) for U($min, $max)."
+    )
   }
 
   // --- Edge Case Tests ---
@@ -71,7 +73,11 @@ class PopulationStandardDeviationSpec extends RngSuite {
 
     // A distribution with no variation must have a standard deviation of 0.
     val stdDev = pointDist.populationStandardDeviation(1000)
-    assertEquals(stdDev, 0.0, "Standard deviation of a constant value must be 0.")
+    assertEquals(
+      obtained = stdDev,
+      expected = 0.0,
+      clue = "Standard deviation of a constant value must be 0."
+    )
   }
 
   // --- Input Validation Tests ---

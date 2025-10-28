@@ -77,11 +77,12 @@ class KumaraswamyDistributionSpec extends RngSuite {
     // where B is the Beta function.
     // See: https://en.wikipedia.org/wiki/Kumaraswamy_distribution
     val theoreticalMean = b * MathHelpers.beta(1.0 + 1.0 / a, b)
-    val sampleMean      = kumaraswamy.expectedValue(sampleCount)
+    val sampleMean      = kumaraswamy.mean(sampleCount)
 
-    val hint =
-      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Kumaraswamy(a=$a, b=$b)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Kumaraswamy(a=$a, b=$b)."
+    )
   }
 
   rngTest("Kumaraswamy distribution's sample variance should approximate its theoretical variance") {
@@ -97,9 +98,10 @@ class KumaraswamyDistributionSpec extends RngSuite {
 
     val sampleVariance = pow(kumaraswamy.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Kumaraswamy(a=$a, b=$b)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Kumaraswamy(a=$a, b=$b)."
+    )
   }
 
   rngTest("Kumaraswamy sample CDF should approximate the theoretical CDF") {
@@ -112,9 +114,10 @@ class KumaraswamyDistributionSpec extends RngSuite {
     val theoreticalCdf = 1.0 - pow(1.0 - pow(x, a), b)
     val sampleCdf      = kumaraswamy.cdf(x, sampleCount)
 
-    val hint =
-      s"Sample CDF at $x ($sampleCdf) should be close to theoretical CDF ($theoreticalCdf) for Kumaraswamy(a=$a, b=$b)."
-    assert(abs(sampleCdf - theoreticalCdf) < tolerance, hint)
+    assert(
+      cond = abs(sampleCdf - theoreticalCdf) < tolerance,
+      clue = s"Sample CDF at $x ($sampleCdf) should be close to theoretical CDF ($theoreticalCdf) for Kumaraswamy(a=$a, b=$b)."
+    )
   }
 
   rngTest("Kumaraswamy sample distribution should be densest around the theoretical mode") {
@@ -137,9 +140,10 @@ class KumaraswamyDistributionSpec extends RngSuite {
     val leftBin  = samples.count(x => (x >= theoreticalMode - 3.5 * epsilon) && (x < theoreticalMode - 1.5 * epsilon))
     val rightBin = samples.count(x => (x > theoreticalMode + 1.5 * epsilon) && (x <= theoreticalMode + 3.5 * epsilon))
 
-    val hint =
-      s"The wider bin around the mode ($centerBin) should contain more samples than its neighbors (left: $leftBin, right: $rightBin)."
-    assert(centerBin > leftBin && centerBin > rightBin, hint)
+    assert(
+      cond = centerBin > leftBin && centerBin > rightBin,
+      clue = s"The wider bin around the mode ($centerBin) should contain more samples than its neighbors (left: $leftBin, right: $rightBin)."
+    )
   }
   // --- Precondition and Edge Case Tests ---
 
@@ -165,15 +169,17 @@ class KumaraswamyDistributionSpec extends RngSuite {
     val uniformMean     = 0.5
     val uniformVariance = 1.0 / 12.0
 
-    val sampleMean     = kumaraswamyAsUniform.expectedValue(sampleCount)
+    val sampleMean     = kumaraswamyAsUniform.mean(sampleCount)
     val sampleVariance = pow(kumaraswamyAsUniform.standardDeviation(sampleCount), 2)
 
-    val meanHint = s"Mean of Kumaraswamy(1,1) ($sampleMean) should approximate Uniform(0,1) mean ($uniformMean)."
-    val varHint  =
-      s"Variance of Kumaraswamy(1,1) ($sampleVariance) should approximate Uniform(0,1) variance ($uniformVariance)."
-
-    assert(abs(sampleMean - uniformMean) < tolerance, meanHint)
-    assert(abs(sampleVariance - uniformVariance) < tolerance, varHint)
+    assert(
+      cond = abs(sampleMean - uniformMean) < tolerance,
+      clue = s"Mean of Kumaraswamy(1,1) ($sampleMean) should approximate Uniform(0,1) mean ($uniformMean)."
+    )
+    assert(
+      cond = abs(sampleVariance - uniformVariance) < tolerance,
+      clue = s"Variance of Kumaraswamy(1,1) ($sampleVariance) should approximate Uniform(0,1) variance ($uniformVariance)."
+    )
   }
 
   rngTest("Kumaraswamy(a, 1) should match the power law distribution CDF of x^a") {
@@ -186,11 +192,9 @@ class KumaraswamyDistributionSpec extends RngSuite {
     val theoreticalCdf = pow(x, a)
     val sampleCdf      = powerLaw.cdf(x, sampleCount)
 
-    val hint =
-      s"CDF of Kumaraswamy($a, 1) at $x ($sampleCdf) should be close to theoretical CDF of x^a ($theoreticalCdf)."
     assert(
       cond = abs(sampleCdf - theoreticalCdf) < tolerance,
-      clue = hint
+      clue = s"CDF of Kumaraswamy($a, 1) at $x ($sampleCdf) should be close to theoretical CDF of x^a ($theoreticalCdf)."
     )
   }
 }

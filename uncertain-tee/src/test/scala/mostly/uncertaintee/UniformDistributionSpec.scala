@@ -35,11 +35,12 @@ class UniformDistributionSpec extends RngSuite {
     // The mean (or expected value) of a Uniform(a, b) distribution is (a + b) / 2.
     // See: https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments_and_other_parameters
     val theoreticalMean = (min + max) / 2.0
-    val sampleMean      = uniform.expectedValue(sampleCount)
+    val sampleMean      = uniform.mean(sampleCount)
 
-    val hint =
-      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Uniform(a=$min, b=$max)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Uniform(a=$min, b=$max)."
+    )
   }
 
   rngTest("Uniform distribution's sample variance should approximate its theoretical variance (b-a)²/12") {
@@ -51,9 +52,10 @@ class UniformDistributionSpec extends RngSuite {
     val theoreticalVariance = pow(max - min, 2) / 12.0
     val sampleVariance      = pow(uniform.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Uniform(a=$min, b=$max)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Uniform(a=$min, b=$max)."
+    )
   }
 
   rngTest("Uniform distribution's sample skewness should be approximately 0") {
@@ -69,8 +71,10 @@ class UniformDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleSkewness = samples.map(x => pow((x - sampleMean) / sampleStdDev, 3)).sum / sampleCount
 
-    val hint = s"Sample skewness ($sampleSkewness) for a symmetric Uniform distribution should be close to 0."
-    assert(abs(sampleSkewness - theoreticalSkewness) < tolerance, hint)
+    assert(
+      cond = abs(sampleSkewness - theoreticalSkewness) < tolerance,
+      clue = s"Sample skewness ($sampleSkewness) for a symmetric Uniform distribution should be close to 0."
+    )
   }
 
   rngTest("Uniform distribution's sample excess kurtosis should be approximately -1.2") {
@@ -87,9 +91,11 @@ class UniformDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleKurtosis = (samples.map(x => pow((x - sampleMean) / sampleStdDev, 4)).sum / sampleCount) - 3.0
 
-    val hint = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical (-1.2)."
     // Kurtosis estimation has high variance, so a larger tolerance is justified.
-    assert(abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2, hint)
+    assert(
+      cond = abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2,
+      clue = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical (-1.2)."
+    )
   }
 
   // --- Statistical Functions ---
@@ -103,21 +109,32 @@ class UniformDistributionSpec extends RngSuite {
     // See: https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Cumulative_distribution_function
     val midpoint      = min + (max - min) / 2.0 // 5.0
     val cdfAtMidpoint = uniform.cdf(midpoint, sampleCount)
-    assert(abs(cdfAtMidpoint - 0.5) < tolerance, s"CDF at midpoint should be ~0.5, but was $cdfAtMidpoint")
+    assert(
+      cond = abs(cdfAtMidpoint - 0.5) < tolerance,
+      clue = s"CDF at midpoint should be ~0.5, but was $cdfAtMidpoint"
+    )
 
     val quarterPoint      = min + (max - min) / 4.0 // 2.5
     val cdfAtQuarterPoint = uniform.cdf(quarterPoint, sampleCount)
     assert(
-      abs(cdfAtQuarterPoint - 0.25) < tolerance,
-      s"CDF at quarter point should be ~0.25, but was $cdfAtQuarterPoint"
+      cond = abs(cdfAtQuarterPoint - 0.25) < tolerance,
+      clue = s"CDF at quarter point should be ~0.25, but was $cdfAtQuarterPoint"
     )
 
     // CDF should be 0 below the minimum and 1 above the maximum.
     val cdfBelowMin = uniform.cdf(min - 1.0, sampleCount)
-    assertEquals(cdfBelowMin, 0.0, "CDF below min should be exactly 0.0")
+    assertEquals(
+      obtained = cdfBelowMin,
+      expected = 0.0,
+      clue = "CDF below min should be exactly 0.0"
+    )
 
     val cdfAboveMax = uniform.cdf(max + 1.0, sampleCount)
-    assertEquals(cdfAboveMax, 1.0, "CDF above max should be exactly 1.0")
+    assertEquals(
+      obtained = cdfAboveMax,
+      expected = 1.0,
+      clue = "CDF above max should be exactly 1.0"
+    )
   }
 
   // --- Edge Case and Special Value Tests ---
@@ -127,16 +144,19 @@ class UniformDistributionSpec extends RngSuite {
     val degenerateUniform = Uncertain.uniform(value, value)
     val samples           = degenerateUniform.take(sampleCount)
 
-    assert(samples.forall(_ == value), s"Uniform(a=$value, b=$value) must always produce the value $value.")
-    assertEquals(
-      degenerateUniform.expectedValue(sampleCount),
-      value,
-      s"The expected value of Uniform($value, $value) must be exactly $value."
+    assert(
+      cond = samples.forall(_ == value),
+      clue = s"Uniform(a=$value, b=$value) must always produce the value $value."
     )
     assertEquals(
-      degenerateUniform.standardDeviation(sampleCount),
-      0.0,
-      s"The standard deviation of Uniform($value, $value) must be 0.0."
+      obtained = degenerateUniform.mean(sampleCount),
+      expected = value,
+      clue = s"The expected value of Uniform($value, $value) must be exactly $value."
+    )
+    assertEquals(
+      obtained = degenerateUniform.standardDeviation(sampleCount),
+      expected = 0.0,
+      clue = s"The standard deviation of Uniform($value, $value) must be 0.0."
     )
   }
 
@@ -152,13 +172,16 @@ class UniformDistributionSpec extends RngSuite {
     val expectedVariance = (4.0 / 12.0) + (16.0 / 12.0) // 20.0 / 12.0 ≈ 1.667
     val expectedStdDev   = sqrt(expectedVariance)
 
-    val sampleMean   = sum.expectedValue(sampleCount)
+    val sampleMean   = sum.mean(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of sum should be $expectedMean, but was $sampleMean.")
     assert(
-      abs(sampleStdDev - expectedStdDev) < tolerance,
-      s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
+      cond = abs(sampleMean - expectedMean) < tolerance,
+      clue = s"Mean of sum should be $expectedMean, but was $sampleMean."
+    )
+    assert(
+      cond = abs(sampleStdDev - expectedStdDev) < tolerance,
+      clue = s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
     )
   }
 
@@ -172,10 +195,10 @@ class UniformDistributionSpec extends RngSuite {
 
     // Due to symmetry, the probability of a sample being greater than the midpoint is 0.5.
     val isGreaterThanMidpoint = uniform > midpoint
-    val sampleProbability     = isGreaterThanMidpoint.expectedValue(sampleCount)
+    val sampleProbability     = isGreaterThanMidpoint.mean(sampleCount)
     assert(
-      abs(sampleProbability - 0.5) < tolerance,
-      s"P(uniform > midpoint) should be ~0.5, but was $sampleProbability"
+      cond = abs(sampleProbability - 0.5) < tolerance,
+      clue = s"P(uniform > midpoint) should be ~0.5, but was $sampleProbability"
     )
   }
 
@@ -186,10 +209,16 @@ class UniformDistributionSpec extends RngSuite {
     val isAbove8 = uniform > 8.0 // Theoretical P(true) is 0.2
 
     // Test a hypothesis that should be accepted.
-    assert(isAbove8.probability(exceeds = 0.15, maxSamples = sampleCount), "Should be confident that P(uniform > 8) exceeds 15%")
+    assert(
+      cond = isAbove8.probability(exceeds = 0.15, maxSamples = sampleCount),
+      clue = "Should be confident that P(uniform > 8) exceeds 15%"
+    )
 
     // Test a hypothesis that should be rejected.
-    assert(!isAbove8.probability(exceeds = 0.25, maxSamples = sampleCount), "Should not be confident that P(uniform > 8) exceeds 25%")
+    assert(
+      cond = !isAbove8.probability(exceeds = 0.25, maxSamples = sampleCount),
+      clue = "Should not be confident that P(uniform > 8) exceeds 25%"
+    )
   }
 
   // --- Correlation Tests (Crucial for `Uncertain`'s core logic) ---
@@ -198,9 +227,18 @@ class UniformDistributionSpec extends RngSuite {
     val x          = Uncertain.uniform(-10.0, 10.0)
     val difference = x - x
     val samples    = difference.take(sampleCount)
-    assert(samples.forall(_ == Numeric[Double].zero), "`x - x` must always evaluate to 0.0 due to correlation.")
-    assertEquals(difference.expectedValue(sampleCount), Numeric[Double].zero)
-    assertEquals(difference.standardDeviation(sampleCount), Numeric[Double].zero)
+    assert(
+      cond = samples.forall(_ == Numeric[Double].zero),
+      clue = "`x - x` must always evaluate to 0.0 due to correlation."
+    )
+    assertEquals(
+      obtained = difference.mean(sampleCount),
+      expected = Numeric[Double].zero
+    )
+    assertEquals(
+      obtained = difference.standardDeviation(sampleCount),
+      expected = Numeric[Double].zero
+    )
   }
 
   rngTest("Correlation: `x + x` should be equivalent to `2 * x`") {
@@ -213,16 +251,16 @@ class UniformDistributionSpec extends RngSuite {
     val expectedMean   = 2 * 7.5
     val expectedStdDev = 2 * sqrt(pow(10.0 - 5.0, 2) / 12.0)
 
-    val sampleMean   = sum.expectedValue(sampleCount)
+    val sampleMean   = sum.mean(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
     assert(
-      abs(sampleMean - expectedMean) < tolerance,
-      s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean."
+      cond = abs(sampleMean - expectedMean) < tolerance,
+      clue = s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean."
     )
     assert(
-      abs(sampleStdDev - expectedStdDev) < tolerance,
-      s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev."
+      cond = abs(sampleStdDev - expectedStdDev) < tolerance,
+      clue = s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev."
     )
   }
 
@@ -231,8 +269,17 @@ class UniformDistributionSpec extends RngSuite {
     val x       = Uncertain.uniform(50.0, 100.0)
     val ratio   = x / x
     val samples = ratio.take(sampleCount)
-    assert(samples.forall(v => abs(v - 1.0) < 1e-9), "`x / x` must always evaluate to 1.0 due to correlation.")
-    assertEquals(ratio.expectedValue(sampleCount), 1.0)
-    assertEquals(ratio.standardDeviation(sampleCount), 0.0)
+    assert(
+      cond = samples.forall(v => abs(v - 1.0) < 1e-9),
+      clue = "`x / x` must always evaluate to 1.0 due to correlation."
+    )
+    assertEquals(
+      obtained = ratio.mean(sampleCount),
+      expected = 1.0
+    )
+    assertEquals(
+      obtained = ratio.standardDeviation(sampleCount),
+      expected = 0.0
+    )
   }
 }

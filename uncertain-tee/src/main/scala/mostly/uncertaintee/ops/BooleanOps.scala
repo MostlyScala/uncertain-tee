@@ -113,7 +113,7 @@ trait BooleanOps {
           if (p0 == Zero) if (x > 0) Double.PositiveInfinity else (n - x) * log(One - p1)
           else if (p1 == One) {
             if (x < n) Double.NegativeInfinity // A success is impossible, so reject H1
-            else n * log(One / p0)             // All trials were successes, as predicted
+            else n * log(One / p0) // All trials were successes, as predicted
           } else if (p1 == Zero) if (x > 0) Double.NegativeInfinity else (n - x) * log(One - p0)
           else if (x < n) Double.PositiveInfinity
           else x * log(One / p0)

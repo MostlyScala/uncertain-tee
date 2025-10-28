@@ -37,7 +37,7 @@ class NegativeBinomialDistributionSpec extends RngSuite {
     // Theoretical mean (number of failures) = r * (1-p) / p
     // See: https://en.wikipedia.org/wiki/Negative_binomial_distribution
     val theoreticalMean = r * (1.0 - p) / p
-    val sampleMean      = negBinomial.expectedValue(sampleCount)
+    val sampleMean      = negBinomial.mean(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -92,7 +92,7 @@ class NegativeBinomialDistributionSpec extends RngSuite {
 
     // Use fewer samples for this test since we expect large values
     val smallerSampleCount = 50_000
-    val sampleMean         = negBinomial.expectedValue(smallerSampleCount)
+    val sampleMean         = negBinomial.mean(smallerSampleCount)
 
     // Use larger tolerance for low p due to higher variance
     val lowPTolerance = 2.0
@@ -152,7 +152,7 @@ class NegativeBinomialDistributionSpec extends RngSuite {
       clue = "NegBinomial(r, p=1.0) must always result in 0 failures."
     )
     assertEquals(
-      obtained = negBinomial.expectedValue(1000),
+      obtained = negBinomial.mean(1000),
       expected = 0.0
     )
     assertEquals(
@@ -168,8 +168,8 @@ class NegativeBinomialDistributionSpec extends RngSuite {
     val geometricFailures = Uncertain.geometric(p).map(_ - 1)
 
     // Compare means
-    val meanNB = negBinomial.expectedValue(sampleCount)
-    val meanG  = geometricFailures.expectedValue(sampleCount)
+    val meanNB = negBinomial.mean(sampleCount)
+    val meanG  = geometricFailures.mean(sampleCount)
     assert(
       cond = abs(meanNB - meanG) < tolerance,
       clue = s"Mean of NegBinomial(r=1, p=$p) ($meanNB) should match mean of Geometric($p) failures ($meanG)."

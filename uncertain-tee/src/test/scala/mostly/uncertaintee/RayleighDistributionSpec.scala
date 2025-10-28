@@ -45,11 +45,12 @@ class RayleighDistributionSpec extends RngSuite {
     // The mean of a Rayleigh(σ) distribution is σ * sqrt(π / 2).
     // See: https://en.wikipedia.org/wiki/Rayleigh_distribution
     val theoreticalMean = scale * sqrt(Pi / 2.0)
-    val sampleMean      = rayleigh.expectedValue(sampleCount)
+    val sampleMean      = rayleigh.mean(sampleCount)
 
-    val hint =
-      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Rayleigh(σ=$scale)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Rayleigh(σ=$scale)."
+    )
   }
 
   rngTest("Rayleigh distribution's sample variance should approximate its theoretical variance") {
@@ -60,9 +61,10 @@ class RayleighDistributionSpec extends RngSuite {
     val theoreticalVariance = (4.0 - Pi) / 2.0 * pow(scale, 2)
     val sampleVariance      = pow(rayleigh.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Rayleigh(σ=$scale)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Rayleigh(σ=$scale)."
+    )
   }
 
   rngTest("Rayleigh sample CDF should approximate the theoretical CDF") {
@@ -74,9 +76,10 @@ class RayleighDistributionSpec extends RngSuite {
     val theoreticalCdf = 1.0 - exp(-pow(x, 2) / (2.0 * pow(scale, 2)))
     val sampleCdf      = rayleigh.cdf(x, sampleCount)
 
-    val hint =
-      s"Sample CDF at $x ($sampleCdf) should be close to theoretical CDF ($theoreticalCdf) for Rayleigh(σ=$scale)."
-    assert(abs(sampleCdf - theoreticalCdf) < tolerance, hint)
+    assert(
+      cond = abs(sampleCdf - theoreticalCdf) < tolerance,
+      clue = s"Sample CDF at $x ($sampleCdf) should be close to theoretical CDF ($theoreticalCdf) for Rayleigh(σ=$scale)."
+    )
   }
 
   rngTest("Rayleigh distribution's median should be correctly approximated") {
@@ -87,8 +90,10 @@ class RayleighDistributionSpec extends RngSuite {
     val theoreticalMedian = scale * sqrt(2.0 * log(2.0))
     val cdfAtMedian       = rayleigh.cdf(theoreticalMedian, sampleCount)
 
-    val hint = s"The CDF at the theoretical median ($theoreticalMedian) should be close to 0.5. Got $cdfAtMedian."
-    assert(abs(cdfAtMedian - 0.5) < tolerance, hint)
+    assert(
+      cond = abs(cdfAtMedian - 0.5) < tolerance,
+      clue = s"The CDF at the theoretical median ($theoreticalMedian) should be close to 0.5. Got $cdfAtMedian."
+    )
   }
 
   rngTest("Rayleigh sample distribution should be densest around the theoretical mode") {
@@ -110,9 +115,10 @@ class RayleighDistributionSpec extends RngSuite {
     val leftBin  = samples.count(x => (x >= theoreticalMode - 3.5 * epsilon) && (x < theoreticalMode - 1.5 * epsilon))
     val rightBin = samples.count(x => (x > theoreticalMode + 1.5 * epsilon) && (x <= theoreticalMode + 3.5 * epsilon))
 
-    val hint =
-      s"The wider bin around the mode ($centerBin) should contain more samples than its neighbors (left: $leftBin, right: $rightBin)."
-    assert(centerBin > leftBin && centerBin > rightBin, hint)
+    assert(
+      cond = centerBin > leftBin && centerBin > rightBin,
+      clue = s"The wider bin around the mode ($centerBin) should contain more samples than its neighbors (left: $leftBin, right: $rightBin)."
+    )
   }
 
   // --- Precondition and Edge Case Tests ---

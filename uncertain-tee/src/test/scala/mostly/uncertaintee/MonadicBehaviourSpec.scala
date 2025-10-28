@@ -59,7 +59,7 @@ class MonadicBehaviourSpec extends RngSuite {
 
     val result = isHighOutcome.flatMap { choice =>
       if (choice) Uncertain.normal(100, 5) // High outcome
-      else Uncertain.normal(20, 5) // Low outcome
+      else Uncertain.normal(20, 5)         // Low outcome
     }
 
     // Theoretical mean of mixture = p*E[X1] + (1-p)*E[X2]
@@ -126,8 +126,8 @@ class MonadicBehaviourSpec extends RngSuite {
     val uncertainStatus: Uncertain[TemperatureStatus] = uncertainCelsius.map(classifyTemperature)
 
     // Calculate the theoretical probabilities for each status
-    val pCold = (uncertainCelsius < 15.0).expectedValue(sampleCount)
-    val pHot  = (uncertainCelsius >= 25.0).expectedValue(sampleCount)
+    val pCold = (uncertainCelsius < 15.0).mean(sampleCount)
+    val pHot  = (uncertainCelsius >= 25.0).mean(sampleCount)
     val pWarm = 1.0 - pCold - pHot
 
     // Get the observed frequencies from our mapped distribution
@@ -176,7 +176,7 @@ class MonadicBehaviourSpec extends RngSuite {
     // E[Att] = (0.14*500) + (0.56*200) + (0.06*100) + (0.24*50) = 70 + 112 + 6 + 12 = 200
     val theoreticalMean = 200.0
 
-    val sampleMean = attendanceUncertain.map(_.estimatedPeople).expectedValue(sampleCount)
+    val sampleMean = attendanceUncertain.map(_.estimatedPeople).mean(sampleCount)
     assert(
       abs(sampleMean - theoreticalMean) < tolerance * 10,
       s"Mean attendance should be ~${theoreticalMean}, but was $sampleMean"

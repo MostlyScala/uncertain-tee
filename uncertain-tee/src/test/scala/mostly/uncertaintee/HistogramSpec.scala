@@ -55,10 +55,9 @@ class HistogramSpec extends RngSuite {
     val expectedCount = sampleCount / 4.0
     val tolerance     = expectedCount * 0.15
     histogram.foreach { (outcome, count) =>
-      val hint = s"Count for outcome $outcome ($count) should be close to the expected uniform count ($expectedCount)."
       assert(
         cond = abs(count - expectedCount) < tolerance,
-        clue = hint
+        clue = s"Count for outcome $outcome ($count) should be close to the expected uniform count ($expectedCount)."
       )
     }
   }
@@ -89,11 +88,9 @@ class HistogramSpec extends RngSuite {
     val tolerance            = expectedCountPerFace * 0.1
     assertEquals(rollHistogram.size, 6, "A standard die should have 6 possible outcomes.")
     rollHistogram.foreach { (face, count) =>
-      val hint =
-        s"For a fair die, the count for face $face ($count) should be near the expected value ($expectedCountPerFace)."
       assert(
         cond = abs(count - expectedCountPerFace) < tolerance,
-        clue = hint
+        clue = s"For a fair die, the count for face $face ($count) should be near the expected value ($expectedCountPerFace)."
       )
     }
   }
@@ -119,15 +116,13 @@ class HistogramSpec extends RngSuite {
       expected = simulatedUsers,
       clue = "The total actions must equal the number of simulated users."
     )
-    val clickHint       = s"Click count ($clickCount) should approximate the expected ${expectedClicks} clicks."
-    val scrollHint      = s"Scroll count ($scrollCount) should approximate the expected ${expectedScrolls} scrolls."
     assert(
       cond = abs(clickCount - expectedClicks) < tolerance,
-      clue = clickHint
+      clue = s"Click count ($clickCount) should approximate the expected ${expectedClicks} clicks."
     )
     assert(
       cond = abs(scrollCount - expectedScrolls) < tolerance,
-      clue = scrollHint
+      clue = s"Scroll count ($scrollCount) should approximate the expected ${expectedScrolls} scrolls."
     )
   }
 
@@ -200,11 +195,9 @@ class HistogramSpec extends RngSuite {
     val stdDev    = sqrt(numTrials * theoreticalHitRate * (1.0 - theoreticalHitRate))
     val tolerance = 5 * stdDev
 
-    val hint =
-      s"The observed hit count ($hitCount) should be within 5 standard deviations of the theoretical expected count (${expectedHits.round})."
     assert(
       cond = abs(hitCount - expectedHits) < tolerance,
-      clue = hint
+      clue = s"The observed hit count ($hitCount) should be within 5 standard deviations of the theoretical expected count (${expectedHits.round})."
     )
   }
 }

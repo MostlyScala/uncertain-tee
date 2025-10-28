@@ -51,7 +51,7 @@ class TriangularDistributionSpec extends RngSuite {
     // The mean of a triangular distribution is (min + peak + max) / 3.
     // See: https://en.wikipedia.org/wiki/Triangular_distribution#Properties
     val theoreticalMean = (min + peak + max) / 3.0
-    val sampleMean      = triangular.expectedValue(sampleCount)
+    val sampleMean      = triangular.mean(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -124,7 +124,7 @@ class TriangularDistributionSpec extends RngSuite {
       cond = samples.forall(_ == value),
       clue = s"Triangular($value, $value, $value) must always produce $value."
     )
-    assertEquals(degenerate.expectedValue(1000), value)
+    assertEquals(degenerate.mean(1000), value)
     assertEquals(degenerate.standardDeviation(1000), 0.0)
   }
 

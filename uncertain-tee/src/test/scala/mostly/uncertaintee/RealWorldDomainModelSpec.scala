@@ -132,7 +132,7 @@ class RealWorldDomainModelSpec extends RngSuite {
 
     val profitability = profit.map(p => if (p > 0) Profitable else Loss)
 
-    val probabilityOfProfit = profitability.map(_ == Profitable).expectedValue(sampleCount)
+    val probabilityOfProfit = profitability.map(_ == Profitable).mean(sampleCount)
     assert(
       probabilityOfProfit > 0.75,
       s"Expected probability of profit to be >75%, but it was ${probabilityOfProfit * 100}%."
@@ -194,7 +194,7 @@ class RealWorldDomainModelSpec extends RngSuite {
 
     val timeline = totalDuration.map(d => if (d <= deadline) OnTime else Delayed)
 
-    val probabilityDelayed = timeline.map(_ == Delayed).expectedValue(sampleCount)
+    val probabilityDelayed = timeline.map(_ == Delayed).mean(sampleCount)
     // E[Total] = E[T1] + E[T2] = 7.5 + 11.5 = 19.0.
     // Since the mean is below the deadline, the delay probability should be less than 50%.
     assert(
@@ -296,7 +296,7 @@ class RealWorldDomainModelSpec extends RngSuite {
       else Idle
     }
 
-    val probabilityOverloaded = serverStatus.map(_ == Overloaded).expectedValue(sampleCount)
+    val probabilityOverloaded = serverStatus.map(_ == Overloaded).mean(sampleCount)
     // The mean is 80, so it's far from the overload threshold of 100.
     // The probability of overload should be small but non-zero.
     assert(

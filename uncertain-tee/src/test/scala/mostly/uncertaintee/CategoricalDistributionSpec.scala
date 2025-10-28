@@ -35,9 +35,10 @@ class CategoricalDistributionSpec extends RngSuite {
 
     probabilities.foreach { case (outcome, theoreticalProb) =>
       val sampleProb = frequencies.getOrElse(outcome, 0.0)
-      val hint       =
-        s"Frequency of '$outcome' ($sampleProb) should be close to its theoretical probability ($theoreticalProb)."
-      assert(abs(sampleProb - theoreticalProb) < tolerance, hint)
+      assert(
+        cond = abs(sampleProb - theoreticalProb) < tolerance,
+        clue = s"Frequency of '$outcome' ($sampleProb) should be close to its theoretical probability ($theoreticalProb)."
+      )
     }
   }
 

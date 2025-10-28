@@ -16,8 +16,9 @@
 
 package mostly.uncertaintee
 
-import scala.math.abs
 import mostly.uncertaintee.syntax.*
+
+import scala.math.abs
 
 class EmpiricalDistributionSpec extends RngSuite {
 
@@ -39,8 +40,10 @@ class EmpiricalDistributionSpec extends RngSuite {
 
     theoreticalFrequencies.foreach { case (item, theoreticalFreq) =>
       val sampleFreq = sampleFrequencies.getOrElse(item, 0.0)
-      val hint       = s"Sample frequency of '$item' ($sampleFreq) should match source data frequency ($theoreticalFreq)."
-      assert(abs(sampleFreq - theoreticalFreq) < tolerance, hint)
+      assert(
+        cond = abs(sampleFreq - theoreticalFreq) < tolerance,
+        clue = s"Sample frequency of '$item' ($sampleFreq) should match source data frequency ($theoreticalFreq)."
+      )
     }
   }
 
@@ -54,23 +57,37 @@ class EmpiricalDistributionSpec extends RngSuite {
 
     theoreticalFrequencies.foreach { case (item, theoreticalFreq) =>
       val sampleFreq = sampleFrequencies.getOrElse(item, 0.0)
-      val hint       = s"Sample frequency of '$item' ($sampleFreq) should match source data frequency ($theoreticalFreq)."
-      assert(abs(sampleFreq - theoreticalFreq) < tolerance, hint)
+      assert(
+        cond = abs(sampleFreq - theoreticalFreq) < tolerance,
+        clue = s"Sample frequency of '$item' ($sampleFreq) should match source data frequency ($theoreticalFreq)."
+      )
     }
   }
 
   rngTest("with a single item should behave like a point distribution") {
     val distribution = Uncertain.empirical(List(42))
     val samples      = distribution.take(1000)
-    assert(samples.forall(_ == 42), "An empirical distribution with one item must always return that item.")
-    assertEquals(distribution.mode(1000), 42)
+    assert(
+      cond = samples.forall(_ == 42),
+      clue = "An empirical distribution with one item must always return that item."
+    )
+    assertEquals(
+      obtained = distribution.mode(1000),
+      expected = 42
+    )
   }
 
   rngTest("with all identical items should behave like a point distribution") {
     val distribution = Uncertain.empirical(List("A", "A", "A", "A"))
     val samples      = distribution.take(1000)
-    assert(samples.forall(_ == "A"), "An empirical distribution with all identical items must always return that item.")
-    assertEquals(distribution.mode(1000), "A")
+    assert(
+      cond = samples.forall(_ == "A"),
+      clue = "An empirical distribution with all identical items must always return that item."
+    )
+    assertEquals(
+      obtained = distribution.mode(1000),
+      expected = "A"
+    )
   }
 
   // --- Input Validation Tests ---

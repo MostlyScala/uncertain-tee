@@ -16,8 +16,8 @@
 
 package mostly.uncertaintee
 
-import munit.FunSuite
 import mostly.uncertaintee.syntax.*
+import munit.FunSuite
 
 import scala.math.*
 
@@ -55,9 +55,10 @@ class EntropySpec extends RngSuite {
     val theoreticalEntropy = 1.0
     val sampleEntropy      = fairCoin.entropy(sampleCount)
 
-    val hint =
-      s"Sample entropy ($sampleEntropy) of a fair coin should be close to the theoretical maximum of $theoreticalEntropy bit."
-    assert(abs(sampleEntropy - theoreticalEntropy) < tolerance, hint)
+    assert(
+      cond = abs(sampleEntropy - theoreticalEntropy) < tolerance,
+      clue = s"Sample entropy ($sampleEntropy) of a fair coin should be close to the theoretical maximum of $theoreticalEntropy bit."
+    )
   }
 
   rngTest("Entropy of a biased coin (Bernoulli(0.1)) should be less than 1 bit") {
@@ -69,10 +70,14 @@ class EntropySpec extends RngSuite {
     val theoreticalEntropy = -(p * log2(p) + (1.0 - p) * log2(1.0 - p))
     val sampleEntropy      = biasedCoin.entropy(sampleCount)
 
-    val hint =
-      s"Sample entropy ($sampleEntropy) of a biased coin should be close to its theoretical entropy ($theoreticalEntropy)."
-    assert(abs(sampleEntropy - theoreticalEntropy) < tolerance, hint)
-    assert(sampleEntropy < 1.0, "Entropy of a biased coin must be less than the maximum of 1 bit.")
+    assert(
+      cond = abs(sampleEntropy - theoreticalEntropy) < tolerance,
+      clue = s"Sample entropy ($sampleEntropy) of a biased coin should be close to its theoretical entropy ($theoreticalEntropy)."
+    )
+    assert(
+      cond = sampleEntropy < 1.0,
+      clue = "Entropy of a biased coin must be less than the maximum of 1 bit."
+    )
   }
 
   rngTest("Entropy of a uniform discrete distribution should be log2(N)") {
@@ -84,9 +89,10 @@ class EntropySpec extends RngSuite {
     val theoreticalEntropy = log2(outcomes.length)
     val sampleEntropy      = uniformEmpirical.entropy(sampleCount)
 
-    val hint =
-      s"Sample entropy ($sampleEntropy) for ${outcomes.length} uniform outcomes should be close to log2(N) ($theoreticalEntropy bits)."
-    assert(abs(sampleEntropy - theoreticalEntropy) < tolerance, hint)
+    assert(
+      cond = abs(sampleEntropy - theoreticalEntropy) < tolerance,
+      clue = s"Sample entropy ($sampleEntropy) for ${outcomes.length} uniform outcomes should be close to log2(N) ($theoreticalEntropy bits)."
+    )
   }
 
   rngTest("Entropy of a categorical distribution should match its theoretical value") {
@@ -98,9 +104,10 @@ class EntropySpec extends RngSuite {
     val theoreticalEntropy = outcomes.values.map(p => -p * log2(p)).sum
     val sampleEntropy      = categorical.entropy(sampleCount)
 
-    val hint =
-      s"Sample entropy ($sampleEntropy) for the categorical distribution should be close to its theoretical value ($theoreticalEntropy bits)."
-    assert(abs(sampleEntropy - theoreticalEntropy) < tolerance, hint)
+    assert(
+      cond = abs(sampleEntropy - theoreticalEntropy) < tolerance,
+      clue = s"Sample entropy ($sampleEntropy) for the categorical distribution should be close to its theoretical value ($theoreticalEntropy bits)."
+    )
   }
 
   // --- Continuous Distribution Relative Test (Using Colors) ---
@@ -138,8 +145,9 @@ class EntropySpec extends RngSuite {
     // The wide distribution spreads its samples more evenly across the 7 colors,
     // resulting in higher entropy. The narrow distribution concentrates most
     // samples into just a few central colors, resulting in lower entropy.
-    val hint =
-      s"A wide normal distribution's color entropy ($wideEntropy) should be greater than a narrow one's ($narrowEntropy)."
-    assert(wideEntropy > narrowEntropy, hint)
+    assert(
+      cond = wideEntropy > narrowEntropy,
+      clue = s"A wide normal distribution's color entropy ($wideEntropy) should be greater than a narrow one's ($narrowEntropy)."
+    )
   }
 }

@@ -187,7 +187,7 @@ class PreconditionSpec extends RngSuite {
 
   rngTest("`expectedValue` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
-      Uncertain.uniform(0.0, 1.0).expectedValue(0)
+      Uncertain.uniform(0.0, 1.0).mean(0)
     }
   }
 

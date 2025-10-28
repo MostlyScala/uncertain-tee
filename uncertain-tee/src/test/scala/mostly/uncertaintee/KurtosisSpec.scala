@@ -16,8 +16,9 @@
 
 package mostly.uncertaintee
 
-import scala.math.{abs, pow, sqrt}
 import mostly.uncertaintee.syntax.*
+
+import scala.math.{abs, pow, sqrt}
 
 class KurtosisSpec extends RngSuite {
 
@@ -60,11 +61,11 @@ class KurtosisSpec extends RngSuite {
     }
 
     val averageKurtosis = kurtosisEstimates.sum / iterations
-    val hint            =
-      s"Average sample excess kurtosis for $distName ($averageKurtosis) over $iterations runs should be close to $theoreticalKurtosis."
-
     // With averaging, the tolerance can be reasonable, but it still needs to be somewhat generous for the 4th moment.
-    assert(abs(averageKurtosis - theoreticalKurtosis) < tolerance * 15, hint)
+    assert(
+      cond = abs(averageKurtosis - theoreticalKurtosis) < tolerance * 15,
+      clue = s"Average sample excess kurtosis for $distName ($averageKurtosis) over $iterations runs should be close to $theoreticalKurtosis."
+    )
   }
 
   // --- Kurtosis Tests for all Distributions ---
@@ -72,26 +73,42 @@ class KurtosisSpec extends RngSuite {
   rngTest("Normal distribution's sample excess kurtosis should be 0") {
     // By definition, the Normal distribution is the baseline for kurtosis (mesokurtic).
     val normal = Uncertain.normal(mean = 10, standardDeviation = 5)
-    assertKurtosis(normal, 0.0, "Normal(10, 5)")
+    assertKurtosis(
+      distribution = normal,
+      theoreticalKurtosis = 0.0,
+      distName = "Normal(10, 5)"
+    )
   }
 
   rngTest("Exponential distribution's sample excess kurtosis should be 6") {
     // The exponential distribution is leptokurtic (heavy-tailed).
     val exponential = Uncertain.exponential(rate = 1.0)
-    assertKurtosis(exponential, 6.0, "Exponential(1.0)")
+    assertKurtosis(
+      distribution = exponential,
+      theoreticalKurtosis = 6.0,
+      distName = "Exponential(1.0)"
+    )
   }
 
   rngTest("Continuous Uniform distribution's sample excess kurtosis should be -1.2") {
     // The uniform distribution is platykurtic (light-tailed, box-shaped).
     val uniform = Uncertain.uniform(0.0, 10.0)
-    assertKurtosis(uniform, -1.2, "Uniform(0, 10)")
+    assertKurtosis(
+      distribution = uniform,
+      theoreticalKurtosis = -1.2,
+      distName = "Uniform(0, 10)"
+    )
   }
 
   rngTest("Poisson distribution's sample excess kurtosis should be 1/λ") {
     // The Poisson distribution's kurtosis depends on its rate parameter λ.
     val lambda  = 4.0
     val poisson = Uncertain.poisson(lambda).map(_.toDouble)
-    assertKurtosis(poisson, 1.0 / lambda, s"Poisson($lambda)")
+    assertKurtosis(
+      distribution = poisson,
+      theoreticalKurtosis = 1.0 / lambda,
+      distName = s"Poisson($lambda)"
+    )
   }
 
   rngTest("Binomial distribution's sample excess kurtosis should follow its formula") {
@@ -102,7 +119,11 @@ class KurtosisSpec extends RngSuite {
     // Formula: (1 - 6p(1-p)) / (n*p(1-p))
     val theoreticalKurtosis =
       (1.0 - 6.0 * probability * (1.0 - probability)) / (trials * probability * (1.0 - probability))
-    assertKurtosis(binomial, theoreticalKurtosis, s"Binomial($trials, $probability)")
+    assertKurtosis(
+      distribution = binomial,
+      theoreticalKurtosis = theoreticalKurtosis,
+      distName = s"Binomial($trials, $probability)"
+    )
   }
 
   rngTest("Bernoulli distribution's sample excess kurtosis should follow its formula") {
@@ -118,11 +139,9 @@ class KurtosisSpec extends RngSuite {
     val stdDev         = sqrt(samples.map(x => pow(x - mean, 2)).sum / (samples.length - 1))
     val sampleKurtosis = (samples.map(x => pow((x - mean) / stdDev, 4)).sum / samples.length) - 3.0
 
-    val hint =
-      s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical kurtosis ($theoreticalKurtosis) for Bernoulli(p=$p)."
     assert(
       cond = abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2,
-      clue = hint
+      clue = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical kurtosis ($theoreticalKurtosis) for Bernoulli(p=$p)."
     )
   }
 }

@@ -36,11 +36,12 @@ class BinomialDistributionSpec extends RngSuite {
     // The mean (or expected value) of a Binomial(n, p) distribution is n * p.
     // See: https://en.wikipedia.org/wiki/Binomial_distribution#Properties
     val theoreticalMean = trials * probability
-    val sampleMean      = binomial.expectedValue(sampleCount)
+    val sampleMean      = binomial.mean(sampleCount)
 
-    val hint =
-      s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Binomial(n=$trials, p=$probability)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Binomial(n=$trials, p=$probability)."
+    )
   }
 
   rngTest("Binomial distribution's sample variance should approximate its theoretical variance (n*p*(1-p))") {
@@ -52,9 +53,10 @@ class BinomialDistributionSpec extends RngSuite {
     val theoreticalVariance = trials * probability * (1.0 - probability)
     val sampleVariance      = pow(binomial.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Binomial(n=$trials, p=$probability)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Binomial(n=$trials, p=$probability)."
+    )
   }
 
   rngTest("Binomial distribution's sample skewness should approximate its theoretical skewness") {
@@ -70,8 +72,10 @@ class BinomialDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleSkewness = samples.map(x => pow((x - sampleMean) / sampleStdDev, 3)).sum / sampleCount
 
-    val hint = s"Sample skewness ($sampleSkewness) should be close to theoretical skewness ($theoreticalSkewness)."
-    assert(abs(sampleSkewness - theoreticalSkewness) < tolerance, hint)
+    assert(
+      cond = abs(sampleSkewness - theoreticalSkewness) < tolerance,
+      clue = s"Sample skewness ($sampleSkewness) should be close to theoretical skewness ($theoreticalSkewness)."
+    )
   }
 
   rngTest("Binomial distribution's sample excess kurtosis should approximate its theoretical excess kurtosis") {
@@ -88,9 +92,11 @@ class BinomialDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleKurtosis = (samples.map(x => pow((x - sampleMean) / sampleStdDev, 4)).sum / sampleCount) - 3.0
 
-    val hint = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical ($theoreticalKurtosis)."
     // Kurtosis estimation has high variance, so a larger tolerance is justified.
-    assert(abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2, hint)
+    assert(
+      cond = abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2,
+      clue = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical ($theoreticalKurtosis)."
+    )
   }
 
   // --- Edge Case and Special Value Tests ---
@@ -99,26 +105,50 @@ class BinomialDistributionSpec extends RngSuite {
     val trials   = 10
     val zeroProb = Uncertain.binomial(trials, 0.0)
     val samples  = zeroProb.take(1000)
-    assert(samples.forall(_ == 0), "Binomial(n, 0.0) must always produce 0.")
-    assertEquals(zeroProb.expectedValue(1000), 0.0)
-    assertEquals(zeroProb.standardDeviation(1000), 0.0)
+    assert(
+      cond = samples.forall(_ == 0),
+      clue = "Binomial(n, 0.0) must always produce 0."
+    )
+    assertEquals(
+      obtained = zeroProb.mean(1000),
+      expected = 0.0
+    )
+    assertEquals(
+      obtained = zeroProb.standardDeviation(1000),
+      expected = 0.0
+    )
   }
 
   rngTest("Binomial(n, p=1) should always produce n successes") {
     val trials      = 15
     val certainProb = Uncertain.binomial(trials, 1.0)
     val samples     = certainProb.take(1000)
-    assert(samples.forall(_ == trials), s"Binomial($trials, 1.0) must always produce $trials.")
-    assertEquals(certainProb.expectedValue(1000), trials.toDouble)
-    assertEquals(certainProb.standardDeviation(1000), 0.0)
+    assert(
+      cond = samples.forall(_ == trials),
+      clue = s"Binomial($trials, 1.0) must always produce $trials."
+    )
+    assertEquals(
+      obtained = certainProb.mean(1000),
+      expected = trials.toDouble
+    )
+    assertEquals(
+      obtained = certainProb.standardDeviation(1000),
+      expected = 0.0
+    )
   }
 
   rngTest("Binomial(n=0, p) should always produce 0 successes") {
     val probability = 0.3
     val zeroTrials  = Uncertain.binomial(0, probability)
     val samples     = zeroTrials.take(1000)
-    assert(samples.forall(_ == 0), "Binomial(0, p) must always produce 0.")
-    assertEquals(zeroTrials.expectedValue(1000), 0.0)
+    assert(
+      cond = samples.forall(_ == 0),
+      clue = "Binomial(0, p) must always produce 0."
+    )
+    assertEquals(
+      obtained = zeroTrials.mean(1000),
+      expected = 0.0
+    )
   }
 
   // --- Arithmetic Operations Tests ---
@@ -136,13 +166,16 @@ class BinomialDistributionSpec extends RngSuite {
     val expectedVariance = (n1 + n2) * p * (1.0 - p)
     val expectedStdDev   = sqrt(expectedVariance)
 
-    val sampleMean   = sum.expectedValue(sampleCount)
+    val sampleMean   = sum.mean(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
-    assert(abs(sampleMean - expectedMean) < tolerance, s"Mean of sum should be $expectedMean, but was $sampleMean.")
     assert(
-      abs(sampleStdDev - expectedStdDev) < tolerance,
-      s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
+      cond = abs(sampleMean - expectedMean) < tolerance,
+      clue = s"Mean of sum should be $expectedMean, but was $sampleMean."
+    )
+    assert(
+      cond = abs(sampleStdDev - expectedStdDev) < tolerance,
+      clue = s"StdDev of sum should be $expectedStdDev, but was $sampleStdDev."
     )
   }
 
@@ -150,9 +183,18 @@ class BinomialDistributionSpec extends RngSuite {
     val x          = Uncertain.binomial(10, 0.5)
     val difference = x - x
     val samples    = difference.take(sampleCount)
-    assert(samples.forall(_ == 0), "`x - x` must always evaluate to 0 due to correlation.")
-    assertEquals(difference.expectedValue(sampleCount), 0.0)
-    assertEquals(difference.standardDeviation(sampleCount), 0.0)
+    assert(
+      cond = samples.forall(_ == 0),
+      clue = "`x - x` must always evaluate to 0 due to correlation."
+    )
+    assertEquals(
+      obtained = difference.mean(sampleCount),
+      expected = 0.0
+    )
+    assertEquals(
+      obtained = difference.standardDeviation(sampleCount),
+      expected = 0.0
+    )
   }
 
   rngTest("Correlation: `x + x` should be equivalent to `2 * x`") {
@@ -164,16 +206,16 @@ class BinomialDistributionSpec extends RngSuite {
     val expectedMean   = 2.0 * (10 * 0.5)
     val expectedStdDev = 2.0 * sqrt(10 * 0.5 * 0.5)
 
-    val sampleMean   = sum.expectedValue(sampleCount)
+    val sampleMean   = sum.mean(sampleCount)
     val sampleStdDev = sum.standardDeviation(sampleCount)
 
     assert(
-      abs(sampleMean - expectedMean) < tolerance,
-      s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean."
+      cond = abs(sampleMean - expectedMean) < tolerance,
+      clue = s"Mean of correlated sum `x+x` should be $expectedMean, but was $sampleMean."
     )
     assert(
-      abs(sampleStdDev - expectedStdDev) < tolerance,
-      s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev."
+      cond = abs(sampleStdDev - expectedStdDev) < tolerance,
+      clue = s"StdDev of correlated sum `x+x` should be $expectedStdDev, but was $sampleStdDev."
     )
   }
 }

@@ -46,10 +46,12 @@ class MixtureDistributionSpec extends RngSuite {
     val theoreticalMean = (0.5 * 10.0) + (0.2 * 100.0) + (0.3 * 5.0) // 5 + 20 + 1.5 = 26.5
 
     val mixture    = Uncertain.mixture(components)
-    val sampleMean = mixture.expectedValue(sampleCount)
+    val sampleMean = mixture.mean(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) should be close to the theoretical weighted mean ($theoreticalMean)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to the theoretical weighted mean ($theoreticalMean)."
+    )
   }
 
   rngTest("Mixture distribution's sample variance should follow the law of total variance") {
@@ -79,8 +81,10 @@ class MixtureDistributionSpec extends RngSuite {
     val mixture        = Uncertain.mixture(components)
     val sampleVariance = pow(mixture.standardDeviation(sampleCount), 2)
 
-    val hint = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance)."
+    )
   }
 
   // --- Equal Mixture Model Tests ---
@@ -96,10 +100,12 @@ class MixtureDistributionSpec extends RngSuite {
     val theoreticalMean = (10.0 + 20.0 + 30.0) / 3.0 // 20.0
 
     val mixture    = Uncertain.equalMixture(components)
-    val sampleMean = mixture.expectedValue(sampleCount)
+    val sampleMean = mixture.mean(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) for equal mixture should be close to theoretical mean ($theoreticalMean)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) for equal mixture should be close to theoretical mean ($theoreticalMean)."
+    )
   }
 
   rngTest("EqualMixture's sample variance should follow the law of total variance with equal weights") {
@@ -125,10 +131,11 @@ class MixtureDistributionSpec extends RngSuite {
     val mixture        = Uncertain.equalMixture(components)
     val sampleVariance = pow(mixture.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) for equal mixture should be close to theoretical variance ($theoreticalVariance)."
     // Variance estimation can be noisy, so we use a slightly larger tolerance.
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance * 2, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance * 2,
+      clue = s"Sample variance ($sampleVariance) for equal mixture should be close to theoretical variance ($theoreticalVariance)."
+    )
   }
 
   // --- Edge Cases and Special Value Tests ---
@@ -137,13 +144,16 @@ class MixtureDistributionSpec extends RngSuite {
     val component = Uncertain.normal(50.0, 5.0)
     val mixture   = Uncertain.mixture(Map(component -> 1.0))
 
-    val meanDiff   = abs(mixture.expectedValue(sampleCount) - component.expectedValue(sampleCount))
+    val meanDiff   = abs(mixture.mean(sampleCount) - component.mean(sampleCount))
     val stdDevDiff = abs(mixture.standardDeviation(sampleCount) - component.standardDeviation(sampleCount))
 
-    assert(meanDiff < tolerance, s"Mean of single-component mixture should match component mean. Diff was $meanDiff.")
     assert(
-      stdDevDiff < tolerance,
-      s"StdDev of single-component mixture should match component StdDev. Diff was $stdDevDiff."
+      cond = meanDiff < tolerance,
+      clue = s"Mean of single-component mixture should match component mean. Diff was $meanDiff."
+    )
+    assert(
+      cond = stdDevDiff < tolerance,
+      clue = s"StdDev of single-component mixture should match component StdDev. Diff was $stdDevDiff."
     )
   }
 
@@ -158,14 +168,17 @@ class MixtureDistributionSpec extends RngSuite {
 
     val mixture = Uncertain.mixture(components)
 
-    val meanDiff   = abs(mixture.expectedValue(sampleCount) - comp1.expectedValue(sampleCount))
+    val meanDiff   = abs(mixture.mean(sampleCount) - comp1.mean(sampleCount))
     val stdDevDiff = abs(mixture.standardDeviation(sampleCount) - comp1.standardDeviation(sampleCount))
 
     assert(
-      meanDiff < tolerance,
-      s"Mean of mixture with a zero-weight component should match the non-zero component's mean. Diff was $meanDiff."
+      cond = meanDiff < tolerance,
+      clue = s"Mean of mixture with a zero-weight component should match the non-zero component's mean. Diff was $meanDiff."
     )
-    assert(stdDevDiff < tolerance, s"StdDev should also match. Diff was $stdDevDiff.")
+    assert(
+      cond = stdDevDiff < tolerance,
+      clue = s"StdDev should also match. Diff was $stdDevDiff."
+    )
   }
 
   rngTest("Mixture should throw an exception if the components map is empty") {
@@ -184,9 +197,18 @@ class MixtureDistributionSpec extends RngSuite {
     val difference = mixture - mixture
 
     val samples = difference.take(1000)
-    assert(samples.forall(_ == 0.0), "`m - m` must always evaluate to 0.0 due to correlation.")
-    assertEquals(difference.expectedValue(1000), 0.0)
-    assertEquals(difference.standardDeviation(1000), 0.0)
+    assert(
+      cond = samples.forall(_ == 0.0),
+      clue = "`m - m` must always evaluate to 0.0 due to correlation."
+    )
+    assertEquals(
+      obtained = difference.mean(1000),
+      expected = 0.0
+    )
+    assertEquals(
+      obtained = difference.standardDeviation(1000),
+      expected = 0.0
+    )
   }
 
   rngTest("Correlation: complex expression `m - x` should be correct when m is a mixture containing x") {
@@ -198,7 +220,6 @@ class MixtureDistributionSpec extends RngSuite {
     val mixture = Uncertain.equalMixture(List(x, minusX))
 
     // Now consider the expression `mixture - x`. This tests that correlation is preserved
-    // through the mixture's internal `flatMap` operation.
     // 50% of the time, the mixture chooses `x`, so the expression is `x - x`, which is 0.
     // 50% of the time, the mixture chooses `-x`, so the expression is `-x - x`, which is `-2x`.
 
@@ -210,10 +231,11 @@ class MixtureDistributionSpec extends RngSuite {
     val theoreticalMean = -10.0
 
     val correlatedExpression = mixture - x
-    val sampleMean           = correlatedExpression.expectedValue(sampleCount)
+    val sampleMean           = correlatedExpression.mean(sampleCount)
 
-    val hint =
-      s"Sample mean ($sampleMean) of correlated expression `m - x` should be close to theoretical mean ($theoreticalMean)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) of correlated expression `m - x` should be close to theoretical mean ($theoreticalMean)."
+    )
   }
 }

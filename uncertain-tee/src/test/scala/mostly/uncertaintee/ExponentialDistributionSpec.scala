@@ -34,10 +34,12 @@ class ExponentialDistributionSpec extends RngSuite {
     // The mean of an Exponential(λ) distribution is 1/λ.
     // See: https://en.wikipedia.org/wiki/Exponential_distribution
     val theoreticalMean = 1.0 / rate
-    val sampleMean      = exponential.expectedValue(sampleCount)
+    val sampleMean      = exponential.mean(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Exp(rate=$rate)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Exp(rate=$rate)."
+    )
   }
 
   rngTest("Exponential distribution's sample variance should approximate its theoretical variance (1/rate²)") {
@@ -48,9 +50,10 @@ class ExponentialDistributionSpec extends RngSuite {
     val theoreticalVariance = 1.0 / pow(rate, 2)
     val sampleVariance      = pow(exponential.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Exp(rate=$rate)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Exp(rate=$rate)."
+    )
   }
 
   rngTest("Exponential distribution's sample skewness should be 2") {
@@ -65,9 +68,11 @@ class ExponentialDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleSkewness = samples.map(x => pow((x - sampleMean) / sampleStdDev, 3)).sum / sampleCount
 
-    val hint = s"Sample skewness ($sampleSkewness) for an exponential distribution should be close to 2."
     // Skewness estimation can have higher variance.
-    assert(abs(sampleSkewness - theoreticalSkewness) < tolerance * 2, hint)
+    assert(
+      cond = abs(sampleSkewness - theoreticalSkewness) < tolerance * 2,
+      clue = s"Sample skewness ($sampleSkewness) for an exponential distribution should be close to 2."
+    )
   }
 
   rngTest("Exponential distribution's sample excess kurtosis should be 6") {
@@ -107,9 +112,11 @@ class ExponentialDistributionSpec extends RngSuite {
     // The theoretical excess kurtosis of any exponential distribution is exactly 6.
     val theoreticalKurtosis = 6.0
 
-    val hint = s"Average sample excess kurtosis ($averageKurtosis) over $iterations runs should be close to 6."
     // With averaging, we can use a much more reasonable tolerance.
-    assert(abs(averageKurtosis - theoreticalKurtosis) < tolerance * 10, hint)
+    assert(
+      cond = abs(averageKurtosis - theoreticalKurtosis) < tolerance * 10,
+      clue = s"Average sample excess kurtosis ($averageKurtosis) over $iterations runs should be close to 6."
+    )
   }
 
   // --- Input Validation ---

@@ -57,18 +57,110 @@ trait StatisticalOps {
     }
   }
 
+  extension [T](uncertain: Uncertain[T])(using num: Numeric[T]) {
+
+    /** Computes the sample excess kurtosis of this uncertain distribution using a **single-pass, O(1) memory (streaming) algorithm.**
+      *
+      * Excess kurtosis is estimated from the population central moments:
+      * {{{
+      * excess kurtosis = μ₄ / μ₂² - 3
+      * }}}
+      *
+      * Where `μk` is the k-th central moment (`E[(X - μ)ᵏ]`).
+      *
+      * '''Performance Notes:'''
+      *   - This algorithm iterates over the sample generator exactly once.
+      *   - It uses constant (O(1)) memory, allowing it to handle arbitrarily large `sampleCount` without `OutOfMemoryError`.
+      *   - It uses a numerically stable (Welford-Knuth) online algorithm.
+      *   - More `sampleCount` is needed than for mean/variance due to the high variance of the kurtosis estimator itself.
+      *   - Consider using 10,000+ `sampleCount` for stable estimates.
+      *
+      * @example
+      *   Pattern matching on results:
+      *   {{{
+      * val normal = Uncertain.normal(0, 1)
+      * normal.kurtosis(10000) match {
+      * case Kurtosis.Mesokurtic(k) =>
+      * println(s"Normal-like with excess kurtosis ≈ $k")
+      * case Kurtosis.Leptokurtic(k) =>
+      * println(s"Heavy-tailed with excess kurtosis = $k")
+      * case Kurtosis.Platykurtic(k) =>
+      * println(s"Light-tailed with excess kurtosis = $k")
+      * case Kurtosis.Undefined =>
+      * println("Constant distribution")
+      * }
+      *   }}}
+      * @param sampleCount
+      *   Number of samples to draw for the estimation.
+      * @param mesokurticTolerance
+      *   Threshold for classifying as mesokurtic (default: 0.5)
+      * @return
+      *   A Kurtosis instance representing the measurement and classification
+      *
+      * See: https://en.wikipedia.org/wiki/Online_algorithm#Higher_moments
+      */
+    def kurtosis(
+      sampleCount: Int,
+      mesokurticTolerance: Double = 0.5
+    ): Kurtosis = {
+      require(sampleCount > 3, "sampleCount must be greater than 3.")
+      require(mesokurticTolerance >= 0, "Threshold must be non-negative.")
+      // Mutable state for the single-pass Welford-Knuth algorithm
+      // These track n, mean, and the central moments M2, M3, M4
+      var n: Long      = 0
+      var mean: Double = 0.0
+      var m2: Double   = 0.0
+      var m3: Double   = 0.0
+      var m4: Double   = 0.0
+
+      // Single pass over the generator (No intermediate collection is created)
+      uncertain.iterator.take(sampleCount).foreach { t =>
+        val x  = num.toDouble(t)
+        val n1 = n
+        n += 1
+
+        val delta      = x - mean
+        val delta_n    = delta / n
+        val delta_n_sq = delta_n * delta_n
+        val term1      = delta * delta_n * n1
+
+        mean += delta_n
+        m4 += term1 * delta_n_sq * (n * n - 3 * n + 3) + 6 * delta_n_sq * m2 - 4 * delta_n * m3
+        m3 += term1 * delta_n * (n - 2) - 3 * delta_n * m2
+        m2 += term1
+      }
+
+      val variance = m2 / (n - 1)
+      val stdDev   = sqrt(variance)
+
+      if (stdDev < Double.MinPositiveValue) {
+        Kurtosis.Undefined
+      } else {
+        val m2_sample = m2 / (n - 1)
+
+        val rawKurtosis = (n.toDouble * (n + 1) / ((n - 1) * (n - 2) * (n - 3))) * (m4 / (m2_sample * m2_sample)) -
+          3.0 * ((n - 1) * (n - 1) / ((n - 2) * (n - 3)))
+
+        Kurtosis(
+          excessValue = rawKurtosis,
+          mesokurticTolerance = mesokurticTolerance
+        )
+      }
+    }
+  }
+
   /** Statistical methods for uncertain values that can be represented numerically. */
   extension [T](uncertain: Uncertain[T])(using sc: StatisticallyConvertible[T]) {
 
-    /** Estimates the average (expected) value by sampling. */
-    def expectedValue(sampleCount: Int): Double = {
+    /** Estimates the mean by sampling (alias for [[mean]] */
+    def expectedValue(sampleCount: Int): Double = mean(sampleCount)
+
+    /** Estimates the mean by sampling. */
+    def mean(sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
       val samples = uncertain.take(sampleCount).map(sc.toDouble)
       samples.sum / samples.length.toDouble
     }
-
-    /** Alias for expectedValue. */
-    def mean(sampleCount: Int): Double = expectedValue(sampleCount)
 
     /** Estimates population standard deviation. */
     def populationStandardDeviation(sampleCount: Int): Double = {

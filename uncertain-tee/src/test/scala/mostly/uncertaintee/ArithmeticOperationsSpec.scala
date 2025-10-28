@@ -194,7 +194,7 @@ class ArithmeticOperationsSpec extends RngSuite {
 
     val samples = z.take(1000)
     assert(samples.forall(_ == 0.0), "`x - x` must always be 0.0 due to correlation")
-    assertEquals(z.expectedValue(1000), 0.0)
+    assertEquals(z.mean(1000), 0.0)
     assertEquals(z.standardDeviation(1000), 0.0)
   }
 
@@ -205,7 +205,7 @@ class ArithmeticOperationsSpec extends RngSuite {
 
     val samples = z.take(1000)
     assert(samples.forall(_ == 1.0), "`x / x` must always be 1.0 due to correlation")
-    assertEquals(z.expectedValue(1000), 1.0)
+    assertEquals(z.mean(1000), 1.0)
     assertEquals(z.standardDeviation(1000), 0.0)
   }
 

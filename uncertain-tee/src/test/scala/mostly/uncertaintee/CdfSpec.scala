@@ -16,10 +16,10 @@
 
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
 import scala.math.*
-import mostly.uncertaintee.syntax.*
 
 class CdfSpec extends RngSuite {
 
@@ -34,9 +34,10 @@ class CdfSpec extends RngSuite {
     // The CDF of a standard normal distribution at its mean (0) is exactly 0.5.
     val theoreticalAtMean = 0.5
     val sampleAtMean      = normalDist.cdf(0.0, sampleCount)
-    val hintAtMean        =
-      s"CDF at mean ($sampleAtMean) should be close to theoretical value ($theoreticalAtMean) for N(0,1)."
-    assert(abs(sampleAtMean - theoreticalAtMean) < tolerance, hintAtMean)
+    assert(
+      cond = abs(sampleAtMean - theoreticalAtMean) < tolerance,
+      clue = s"CDF at mean ($sampleAtMean) should be close to theoretical value ($theoreticalAtMean) for N(0,1)."
+    )
 
     // The probability of a value being within one standard deviation is ~68%.
     // So, P(x <= 1) is 50% (for x<0) + 34% (for 0<x<1) = ~84%.
@@ -44,9 +45,10 @@ class CdfSpec extends RngSuite {
     // See: https://en.wikipedia.org/wiki/Normal_distribution
     val theoreticalAtOneStdDev = 0.8413
     val sampleAtOneStdDev      = normalDist.cdf(1.0, sampleCount)
-    val hintAtOneStdDev        =
-      s"CDF at +1 std dev ($sampleAtOneStdDev) should be close to theoretical value ($theoreticalAtOneStdDev) for N(0,1)."
-    assert(abs(sampleAtOneStdDev - theoreticalAtOneStdDev) < tolerance, hintAtOneStdDev)
+    assert(
+      cond = abs(sampleAtOneStdDev - theoreticalAtOneStdDev) < tolerance,
+      clue = s"CDF at +1 std dev ($sampleAtOneStdDev) should be close to theoretical value ($theoreticalAtOneStdDev) for N(0,1)."
+    )
   }
 
   rngTest("cdf for a continuous uniform distribution should be linear") {
@@ -60,14 +62,18 @@ class CdfSpec extends RngSuite {
     val point1          = 12.5                   // 25% of the way through the range
     val theoreticalCdf1 = (point1 - min) / range // (12.5 - 10) / 10 = 0.25
     val sampleCdf1      = uniformDist.cdf(point1, sampleCount)
-    val hint1           = s"Sample CDF ($sampleCdf1) should be close to theoretical ($theoreticalCdf1) for U(10,20) at x=$point1."
-    assert(abs(sampleCdf1 - theoreticalCdf1) < tolerance, hint1)
+    assert(
+      cond = abs(sampleCdf1 - theoreticalCdf1) < tolerance,
+      clue = s"Sample CDF ($sampleCdf1) should be close to theoretical ($theoreticalCdf1) for U(10,20) at x=$point1."
+    )
 
     val point2          = 17.5                   // 75% of the way through the range
     val theoreticalCdf2 = (point2 - min) / range // (17.5 - 10) / 10 = 0.75
     val sampleCdf2      = uniformDist.cdf(point2, sampleCount)
-    val hint2           = s"Sample CDF ($sampleCdf2) should be close to theoretical ($theoreticalCdf2) for U(10,20) at x=$point2."
-    assert(abs(sampleCdf2 - theoreticalCdf2) < tolerance, hint2)
+    assert(
+      cond = abs(sampleCdf2 - theoreticalCdf2) < tolerance,
+      clue = s"Sample CDF ($sampleCdf2) should be close to theoretical ($theoreticalCdf2) for U(10,20) at x=$point2."
+    )
   }
 
   rngTest("cdf for an exponential distribution should follow its theoretical curve") {
@@ -79,8 +85,10 @@ class CdfSpec extends RngSuite {
     // See: https://en.wikipedia.org/wiki/Exponential_distribution
     val theoreticalCdf = 1.0 - exp(-rate * point) // 1 - e^(-0.5 * 2) = 1 - e^(-1) ≈ 0.632
     val sampleCdf      = exponentialDist.cdf(point, sampleCount)
-    val hint           = s"Sample CDF ($sampleCdf) should be close to theoretical ($theoreticalCdf) for Exp(0.5) at x=$point."
-    assert(abs(sampleCdf - theoreticalCdf) < tolerance, hint)
+    assert(
+      cond = abs(sampleCdf - theoreticalCdf) < tolerance,
+      clue = s"Sample CDF ($sampleCdf) should be close to theoretical ($theoreticalCdf) for Exp(0.5) at x=$point."
+    )
   }
 
   // --- Discrete Distribution Tests ---
@@ -97,13 +105,16 @@ class CdfSpec extends RngSuite {
     // P(X <= 0.5) is the same as P(X=0), which is 1 - p = 0.3.
     val cdfBetween = bernoulli.cdf(0.5, sampleCount)
     assert(
-      abs(cdfBetween - (1.0 - p)) < tolerance,
-      s"CDF between 0 and 1 ($cdfBetween) should be P(false) (${1.0 - p})."
+      cond = abs(cdfBetween - (1.0 - p)) < tolerance,
+      clue = s"CDF between 0 and 1 ($cdfBetween) should be P(false) (${1.0 - p})."
     )
 
     // CDF at a point above the second possible value (1) should be 1.
     val cdfAbove = bernoulli.cdf(1.1, sampleCount)
-    assert(abs(cdfAbove - 1.0) < tolerance, s"CDF for x > 1 ($cdfAbove) should be 1 for Bernoulli.")
+    assert(
+      cond = abs(cdfAbove - 1.0) < tolerance,
+      clue = s"CDF for x > 1 ($cdfAbove) should be 1 for Bernoulli."
+    )
   }
 
   // --- Edge Case Tests ---
@@ -111,15 +122,19 @@ class CdfSpec extends RngSuite {
   rngTest("cdf for a value far below the distribution's mass should be 0") {
     val dist   = Uncertain.normal(100, 5) // Mean well away from zero
     val cdfVal = dist.cdf(0.0, sampleCount)
-    val hint   = s"CDF for a value far to the left of the distribution should be close to 0. Got: $cdfVal"
-    assert(abs(cdfVal - 0.0) < tolerance, hint)
+    assert(
+      cond = abs(cdfVal - 0.0) < tolerance,
+      clue = s"CDF for a value far to the left of the distribution should be close to 0. Got: $cdfVal"
+    )
   }
 
   rngTest("cdf for a value far above the distribution's mass should be 1") {
     val dist   = Uncertain.normal(100, 5)
     val cdfVal = dist.cdf(200.0, sampleCount)
-    val hint   = s"CDF for a value far to the right of the distribution should be close to 1. Got: $cdfVal"
-    assert(abs(cdfVal - 1.0) < tolerance, hint)
+    assert(
+      cond = abs(cdfVal - 1.0) < tolerance,
+      clue = s"CDF for a value far to the right of the distribution should be close to 1. Got: $cdfVal"
+    )
   }
 
   rngTest("cdf for a point distribution should be a perfect step from 0 to 1") {
@@ -127,9 +142,21 @@ class CdfSpec extends RngSuite {
     val pointDist  = Uncertain.always(pointValue)
 
     // No sampling needed for a deterministic distribution.
-    assertEquals(pointDist.cdf(pointValue - 0.01, 100), 0.0, "CDF just before the point value must be 0.")
-    assertEquals(pointDist.cdf(pointValue, 100), 1.0, "CDF at the point value must be 1.")
-    assertEquals(pointDist.cdf(pointValue + 0.01, 100), 1.0, "CDF just after the point value must be 1.")
+    assertEquals(
+      obtained = pointDist.cdf(pointValue - 0.01, 100),
+      expected = 0.0,
+      clue = "CDF just before the point value must be 0."
+    )
+    assertEquals(
+      obtained = pointDist.cdf(pointValue, 100),
+      expected = 1.0,
+      clue = "CDF at the point value must be 1."
+    )
+    assertEquals(
+      obtained = pointDist.cdf(pointValue + 0.01, 100),
+      expected = 1.0,
+      clue = "CDF just after the point value must be 1."
+    )
   }
 
   // --- Input Validation Tests ---

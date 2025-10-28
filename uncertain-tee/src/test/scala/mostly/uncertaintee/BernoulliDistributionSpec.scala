@@ -16,10 +16,10 @@
 
 package mostly.uncertaintee
 
+import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
 import scala.math.{abs, pow, sqrt}
-import mostly.uncertaintee.syntax.*
 
 class BernoulliDistributionSpec extends RngSuite {
 
@@ -29,7 +29,7 @@ class BernoulliDistributionSpec extends RngSuite {
   // --- Statistical Properties Tests ---
 
   rngTest(
-    "Bernoulli distribution's sample mean should approximate its theoretical mean (p) using the .expectedValue method"
+    "Bernoulli distribution's sample mean should approximate its theoretical mean (p)"
   ) {
     val p         = 0.7
     val bernoulli = Uncertain.bernoulli(p)
@@ -37,11 +37,12 @@ class BernoulliDistributionSpec extends RngSuite {
     // The mean (or expected value) of a Bernoulli distribution is p.
     // See: https://en.wikipedia.org/wiki/Expected_value
     val theoreticalMean = p
-    val sampleMean      = bernoulli.expectedValue(sampleCount)
+    val sampleMean      = bernoulli.mean(sampleCount)
 
-    val hint =
-      s"Sample mean ($sampleMean) using .expectedValue should be close to theoretical mean ($theoreticalMean) for Bernoulli(p=$p)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for Bernoulli(p=$p)."
+    )
   }
 
   rngTest("Bernoulli distribution's sample variance should approximate its theoretical variance (p * (1 - p))") {
@@ -55,9 +56,10 @@ class BernoulliDistributionSpec extends RngSuite {
     // The library's `standardDeviation` returns sqrt(variance), so we square it.
     val sampleVariance      = pow(bernoulli.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Bernoulli(p=$p)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for Bernoulli(p=$p)."
+    )
   }
 
   rngTest("Bernoulli distribution's sample skewness should approximate its theoretical skewness") {
@@ -74,9 +76,10 @@ class BernoulliDistributionSpec extends RngSuite {
     val stdDev         = sqrt(samples.map(x => pow(x - mean, 2)).sum / (sampleCount - 1))
     val sampleSkewness = samples.map(x => pow((x - mean) / stdDev, 3)).sum / sampleCount
 
-    val hint =
-      s"Sample skewness ($sampleSkewness) should be close to theoretical skewness ($theoreticalSkewness) for Bernoulli(p=$p)."
-    assert(abs(sampleSkewness - theoreticalSkewness) < tolerance, hint)
+    assert(
+      cond = abs(sampleSkewness - theoreticalSkewness) < tolerance,
+      clue = s"Sample skewness ($sampleSkewness) should be close to theoretical skewness ($theoreticalSkewness) for Bernoulli(p=$p)."
+    )
   }
 
   rngTest("Bernoulli distribution's sample excess kurtosis should approximate its theoretical excess kurtosis") {
@@ -94,10 +97,11 @@ class BernoulliDistributionSpec extends RngSuite {
     // The "- 3" at the end is to calculate *excess* kurtosis.
     val sampleKurtosis = (samples.map(x => pow((x - mean) / stdDev, 4)).sum / sampleCount) - 3.0
 
-    val hint =
-      s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical kurtosis ($theoreticalKurtosis) for Bernoulli(p=$p)."
     // Kurtosis can have larger variance in estimation, so we use a slightly larger tolerance.
-    assert(abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2, hint)
+    assert(
+      cond = abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2,
+      clue = s"Sample excess kurtosis ($sampleKurtosis) should be close to theoretical kurtosis ($theoreticalKurtosis) for Bernoulli(p=$p)."
+    )
   }
 
   // --- Edge Case and Special Value Tests ---
@@ -106,18 +110,40 @@ class BernoulliDistributionSpec extends RngSuite {
     val bernoulli = Uncertain.bernoulli(0.0)
     val samples   = bernoulli.take(1000) // Fewer samples needed for this deterministic test
 
-    assert(samples.forall(_ == false), "Bernoulli(0.0) must always be false.")
-    assertEquals(bernoulli.expectedValue(1000), 0.0, "The expected value of Bernoulli(0.0) must be 0.0")
-    assertEquals(pow(bernoulli.standardDeviation(1000), 2), 0.0, "The variance of Bernoulli(0.0) must be 0.0")
+    assert(
+      cond = samples.forall(_ == false),
+      clue = "Bernoulli(0.0) must always be false."
+    )
+    assertEquals(
+      obtained = bernoulli.mean(1000),
+      expected = 0.0,
+      clue = "The expected value of Bernoulli(0.0) must be 0.0"
+    )
+    assertEquals(
+      obtained = pow(bernoulli.standardDeviation(1000), 2),
+      expected = 0.0,
+      clue = "The variance of Bernoulli(0.0) must be 0.0"
+    )
   }
 
   rngTest("Bernoulli(1) should always produce true") {
     val bernoulli = Uncertain.bernoulli(1.0)
     val samples   = bernoulli.take(1000)
 
-    assert(samples.forall(_ == true), "Bernoulli(1.0) must always be true.")
-    assertEquals(bernoulli.expectedValue(1000), 1.0, "The expected value of Bernoulli(1.0) must be 1.0")
-    assertEquals(pow(bernoulli.standardDeviation(1000), 2), 0.0, "The variance of Bernoulli(1.0) must be 0.0")
+    assert(
+      cond = samples.forall(_ == true),
+      clue = "Bernoulli(1.0) must always be true."
+    )
+    assertEquals(
+      obtained = bernoulli.mean(1000),
+      expected = 1.0,
+      clue = "The expected value of Bernoulli(1.0) must be 1.0"
+    )
+    assertEquals(
+      obtained = pow(bernoulli.standardDeviation(1000), 2),
+      expected = 0.0,
+      clue = "The variance of Bernoulli(1.0) must be 0.0"
+    )
   }
 
   rngTest("Bernoulli(0.5) should be symmetric and have a skewness of approximately 0") {
@@ -127,12 +153,14 @@ class BernoulliDistributionSpec extends RngSuite {
 
     // For a symmetric distribution like Bernoulli(0.5), the third central moment (skewness) is 0.
     // See: https://en.wikipedia.org/wiki/Skewness
-    val mean           = bernoulli.expectedValue(sampleCount)
+    val mean           = bernoulli.mean(sampleCount)
     val stdDev         = bernoulli.standardDeviation(sampleCount)
     val sampleSkewness = samples.map(x => pow((x - mean) / stdDev, 3)).sum / sampleCount
 
-    val hint = s"Sample skewness for a symmetric Bernoulli(0.5) distribution should be close to 0. Got $sampleSkewness"
-    assert(abs(sampleSkewness) < tolerance, hint)
+    assert(
+      cond = abs(sampleSkewness) < tolerance,
+      clue = s"Sample skewness for a symmetric Bernoulli(0.5) distribution should be close to 0. Got $sampleSkewness"
+    )
   }
 
   // --- Logical Operations Tests ---
@@ -145,10 +173,12 @@ class BernoulliDistributionSpec extends RngSuite {
     // If P(b=true) = p, then P(!b=true) = 1 - p.
     // The expected value of !b should therefore be 1 - p.
     val theoreticalMean = 1.0 - p
-    val sampleMean      = notB.expectedValue(sampleCount)
+    val sampleMean      = notB.mean(sampleCount)
 
-    val hint = s"Expected value of !Bernoulli($p) should be approx ${1.0 - p}. Got $sampleMean"
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Expected value of !Bernoulli($p) should be approx ${1.0 - p}. Got $sampleMean"
+    )
   }
 
   rngTest("Logical AND `&&` of independent variables should yield product of probabilities") {
@@ -163,10 +193,12 @@ class BernoulliDistributionSpec extends RngSuite {
     // The expected value of the resulting distribution is p1 * p2.
     // See: https://en.wikipedia.org/wiki/And_gate#Probability
     val theoreticalMean = p1 * p2
-    val sampleMean      = bAnd.expectedValue(sampleCount)
+    val sampleMean      = bAnd.mean(sampleCount)
 
-    val hint = s"Expected value of Bernoulli($p1) && Bernoulli($p2) should be approx ${p1 * p2}. Got $sampleMean"
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Expected value of Bernoulli($p1) && Bernoulli($p2) should be approx ${p1 * p2}. Got $sampleMean"
+    )
   }
 
   rngTest("Logical OR `||` of independent variables should follow inclusion-exclusion principle") {
@@ -181,10 +213,12 @@ class BernoulliDistributionSpec extends RngSuite {
     // This is the Principle of Inclusion-Exclusion for probability.
     // See: https://en.wikipedia.org/wiki/Inclusion%E2%80%93exclusion_principle#In_probability
     val theoreticalMean = p1 + p2 - (p1 * p2)
-    val sampleMean      = bOr.expectedValue(sampleCount)
+    val sampleMean      = bOr.mean(sampleCount)
 
-    val hint = s"Expected value of Bernoulli($p1) || Bernoulli($p2) should be approx $theoreticalMean. Got $sampleMean"
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Expected value of Bernoulli($p1) || Bernoulli($p2) should be approx $theoreticalMean. Got $sampleMean"
+    )
   }
 
   // --- Correlation Tests (Crucial for `Uncertain`'s core logic) ---
@@ -198,10 +232,12 @@ class BernoulliDistributionSpec extends RngSuite {
     val bAndB = b && b
 
     val theoreticalMean = p
-    val sampleMean      = bAndB.expectedValue(sampleCount)
+    val sampleMean      = bAndB.mean(sampleCount)
 
-    val hint = s"Expected value of a correlated `b && b` should be p ($p). Got $sampleMean"
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Expected value of a correlated `b && b` should be p ($p). Got $sampleMean"
+    )
   }
 
   rngTest("Correlation: `b || !b` should always be true (Law of Excluded Middle)") {
@@ -215,8 +251,15 @@ class BernoulliDistributionSpec extends RngSuite {
     val tautology = b || !b
 
     val samples = tautology.take(1000)
-    assert(samples.forall(_ == true), "`b || !b` must always evaluate to true due to correlation.")
-    assertEquals(tautology.expectedValue(1000), 1.0, "The expected value of `b || !b` must be exactly 1.0")
+    assert(
+      cond = samples.forall(_ == true),
+      clue = "`b || !b` must always evaluate to true due to correlation."
+    )
+    assertEquals(
+      obtained = tautology.mean(1000),
+      expected = 1.0,
+      clue = "The expected value of `b || !b` must be exactly 1.0"
+    )
   }
 
   rngTest("Correlation: `b && !b` should always be false (Principle of Non-Contradiction)") {
@@ -230,7 +273,14 @@ class BernoulliDistributionSpec extends RngSuite {
     val contradiction = b && !b
 
     val samples = contradiction.take(1000)
-    assert(samples.forall(_ == false), "`b && !b` must always evaluate to false due to correlation.")
-    assertEquals(contradiction.expectedValue(1000), 0.0, "The expected value of `b && !b` must be exactly 0.0")
+    assert(
+      cond = samples.forall(_ == false),
+      clue = "`b && !b` must always evaluate to false due to correlation."
+    )
+    assertEquals(
+      obtained = contradiction.mean(1000),
+      expected = 0.0,
+      clue = "The expected value of `b && !b` must be exactly 0.0"
+    )
   }
 }

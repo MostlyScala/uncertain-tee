@@ -16,8 +16,9 @@
 
 package mostly.uncertaintee
 
-import scala.math.abs
 import mostly.uncertaintee.syntax.*
+
+import scala.math.abs
 
 class ComparisonOperationsSpec extends RngSuite {
 
@@ -36,10 +37,12 @@ class ComparisonOperationsSpec extends RngSuite {
     // We need to find P(Z > 0) for Z ~ N(1, sqrt(2)). The z-score for 0 is (0-1)/sqrt(2) ≈ -0.707.
     // The standard normal CDF for -0.707 is ~0.24. So, P(Z > 0) = 1 - 0.24 = 0.76.
     val theoreticalProb = 0.7602 // More precise value
-    val sampleProb      = (x > y).expectedValue(sampleCount)
+    val sampleProb      = (x > y).mean(sampleCount)
 
-    val hint = s"Sample probability ($sampleProb) of N(5,1) > N(4,1) should be close to theoretical ($theoreticalProb)."
-    assert(abs(sampleProb - theoreticalProb) < tolerance, hint)
+    assert(
+      cond = abs(sampleProb - theoreticalProb) < tolerance,
+      clue = s"Sample probability ($sampleProb) of N(5,1) > N(4,1) should be close to theoretical ($theoreticalProb)."
+    )
   }
 
   rngTest("less than (<) should return the correct probability for two independent uniform distributions") {
@@ -51,10 +54,12 @@ class ComparisonOperationsSpec extends RngSuite {
     // the intersection of the two ranges, which is 1/8.
     // Therefore, P(X < Y) = 1 - 1/8 = 0.875.
     val theoreticalProb = 0.875
-    val sampleProb      = (x < y).expectedValue(sampleCount)
+    val sampleProb      = (x < y).mean(sampleCount)
 
-    val hint = s"Sample probability ($sampleProb) of U(0,2) < U(1,3) should be close to theoretical ($theoreticalProb)."
-    assert(abs(sampleProb - theoreticalProb) < tolerance, hint)
+    assert(
+      cond = abs(sampleProb - theoreticalProb) < tolerance,
+      clue = s"Sample probability ($sampleProb) of U(0,2) < U(1,3) should be close to theoretical ($theoreticalProb)."
+    )
   }
 
   rngTest("equality (===) between two independent discrete distributions should be correct") {
@@ -68,11 +73,12 @@ class ComparisonOperationsSpec extends RngSuite {
     // P(X===Y) = Σ [P(X=k)]² for k from 0 to n
     // For Binomial(5, 0.5), this is 0.24609375.
     val theoreticalProb = 0.24609375
-    val sampleProb      = (x === y).expectedValue(sampleCount)
+    val sampleProb      = (x === y).mean(sampleCount)
 
-    val hint =
-      s"Sample probability ($sampleProb) of B(5,0.5) === B(5,0.5) should be close to theoretical ($theoreticalProb)."
-    assert(abs(sampleProb - theoreticalProb) < tolerance, hint)
+    assert(
+      cond = abs(sampleProb - theoreticalProb) < tolerance,
+      clue = s"Sample probability ($sampleProb) of B(5,0.5) === B(5,0.5) should be close to theoretical ($theoreticalProb)."
+    )
   }
 
   // --- Operator Equivalence ---
@@ -81,12 +87,12 @@ class ComparisonOperationsSpec extends RngSuite {
     val x = Uncertain.normal(10, 2)
     val y = Uncertain.normal(11, 2)
 
-    val probGreaterOrEqual = (x >= y).expectedValue(sampleCount)
-    val probNotLess        = (!(x < y)).expectedValue(sampleCount)
+    val probGreaterOrEqual = (x >= y).mean(sampleCount)
+    val probNotLess        = (!(x < y)).mean(sampleCount)
 
     assert(
-      abs(probGreaterOrEqual - probNotLess) < tolerance,
-      s"P(x>=y) ($probGreaterOrEqual) should be identical to P(!(x<y)) ($probNotLess)."
+      cond = abs(probGreaterOrEqual - probNotLess) < tolerance,
+      clue = s"P(x>=y) ($probGreaterOrEqual) should be identical to P(!(x<y)) ($probNotLess)."
     )
   }
 
@@ -94,12 +100,12 @@ class ComparisonOperationsSpec extends RngSuite {
     val x = Uncertain.normal(10, 2)
     val y = Uncertain.normal(9, 2)
 
-    val probLessOrEqual = (x <= y).expectedValue(sampleCount)
-    val probNotGreater  = (!(x > y)).expectedValue(sampleCount)
+    val probLessOrEqual = (x <= y).mean(sampleCount)
+    val probNotGreater  = (!(x > y)).mean(sampleCount)
 
     assert(
-      abs(probLessOrEqual - probNotGreater) < tolerance,
-      s"P(x<=y) ($probLessOrEqual) should be identical to P(!(x>y)) ($probNotGreater)."
+      cond = abs(probLessOrEqual - probNotGreater) < tolerance,
+      clue = s"P(x<=y) ($probLessOrEqual) should be identical to P(!(x>y)) ($probNotGreater)."
     )
   }
 
@@ -107,12 +113,12 @@ class ComparisonOperationsSpec extends RngSuite {
     val x = Uncertain.binomial(10, 0.5)
     val y = Uncertain.binomial(10, 0.5)
 
-    val probNotEqual = (x !== y).expectedValue(sampleCount)
-    val probNotSame  = (!(x === y)).expectedValue(sampleCount)
+    val probNotEqual = (x !== y).mean(sampleCount)
+    val probNotSame  = (!(x === y)).mean(sampleCount)
 
     assert(
-      abs(probNotEqual - probNotSame) < tolerance,
-      s"P(x!==y) ($probNotEqual) should be identical to P(!(x===y)) ($probNotSame)."
+      cond = abs(probNotEqual - probNotSame) < tolerance,
+      clue = s"P(x!==y) ($probNotEqual) should be identical to P(!(x===y)) ($probNotSame)."
     )
   }
 
@@ -122,23 +128,41 @@ class ComparisonOperationsSpec extends RngSuite {
     val x       = Uncertain.normal(100, 20)
     val result  = x > x
     val samples = result.take(sampleCount)
-    assert(samples.forall(_ == false), "`x > x` must always be false.")
-    assertEquals(result.expectedValue(sampleCount), 0.0)
+    assert(
+      cond = samples.forall(_ == false),
+      clue = "`x > x` must always be false."
+    )
+    assertEquals(
+      obtained = result.mean(sampleCount),
+      expected = 0.0
+    )
   }
 
   rngTest("Correlation: x >= x should always be true") {
     val x       = Uncertain.normal(100, 20)
     val result  = x >= x
     val samples = result.take(sampleCount)
-    assert(samples.forall(_ == true), "`x >= x` must always be true.")
-    assertEquals(result.expectedValue(sampleCount), 1.0)
+    assert(
+      cond = samples.forall(_ == true),
+      clue = "`x >= x` must always be true."
+    )
+    assertEquals(
+      obtained = result.mean(sampleCount),
+      expected = 1.0
+    )
   }
 
   rngTest("Correlation: x === x should always be true") {
     val x       = Uncertain.exponential(1.0)
     val result  = x === x
     val samples = result.take(sampleCount)
-    assert(samples.forall(_ == true), "`x === x` must always be true.")
-    assertEquals(result.expectedValue(sampleCount), 1.0)
+    assert(
+      cond = samples.forall(_ == true),
+      clue = "`x === x` must always be true."
+    )
+    assertEquals(
+      obtained = result.mean(sampleCount),
+      expected = 1.0
+    )
   }
 }

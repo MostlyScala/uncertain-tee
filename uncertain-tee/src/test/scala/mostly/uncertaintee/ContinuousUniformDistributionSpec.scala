@@ -16,8 +16,9 @@
 
 package mostly.uncertaintee
 
-import scala.math.{abs, pow, sqrt}
 import mostly.uncertaintee.syntax.*
+
+import scala.math.{abs, pow, sqrt}
 
 class ContinuousUniformDistributionSpec extends RngSuite {
 
@@ -33,10 +34,12 @@ class ContinuousUniformDistributionSpec extends RngSuite {
 
     // The mean of a U(a, b) distribution is (a + b) / 2.
     val theoreticalMean = (min + max) / 2.0
-    val sampleMean      = uniform.expectedValue(sampleCount)
+    val sampleMean      = uniform.mean(sampleCount)
 
-    val hint = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for U($min, $max)."
-    assert(abs(sampleMean - theoreticalMean) < tolerance, hint)
+    assert(
+      cond = abs(sampleMean - theoreticalMean) < tolerance,
+      clue = s"Sample mean ($sampleMean) should be close to theoretical mean ($theoreticalMean) for U($min, $max)."
+    )
   }
 
   rngTest("Uniform distribution's sample variance should approximate its theoretical variance (b-a)²/12") {
@@ -48,9 +51,10 @@ class ContinuousUniformDistributionSpec extends RngSuite {
     val theoreticalVariance = pow(max - min, 2) / 12.0
     val sampleVariance      = pow(uniform.standardDeviation(sampleCount), 2)
 
-    val hint =
-      s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for U($min, $max)."
-    assert(abs(sampleVariance - theoreticalVariance) < tolerance, hint)
+    assert(
+      cond = abs(sampleVariance - theoreticalVariance) < tolerance,
+      clue = s"Sample variance ($sampleVariance) should be close to theoretical variance ($theoreticalVariance) for U($min, $max)."
+    )
   }
 
   rngTest("Uniform distribution's sample skewness should be 0") {
@@ -64,8 +68,10 @@ class ContinuousUniformDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleSkewness = samples.map(x => pow((x - sampleMean) / sampleStdDev, 3)).sum / sampleCount
 
-    val hint = s"Sample skewness ($sampleSkewness) for a symmetric uniform distribution should be close to 0."
-    assert(abs(sampleSkewness - theoreticalSkewness) < tolerance, hint)
+    assert(
+      cond = abs(sampleSkewness - theoreticalSkewness) < tolerance,
+      clue = s"Sample skewness ($sampleSkewness) for a symmetric uniform distribution should be close to 0."
+    )
   }
 
   rngTest("Uniform distribution's sample excess kurtosis should be -1.2") {
@@ -79,9 +85,11 @@ class ContinuousUniformDistributionSpec extends RngSuite {
     val sampleStdDev   = sqrt(samples.map(x => pow(x - sampleMean, 2)).sum / (sampleCount - 1))
     val sampleKurtosis = (samples.map(x => pow((x - sampleMean) / sampleStdDev, 4)).sum / sampleCount) - 3.0
 
-    val hint = s"Sample excess kurtosis ($sampleKurtosis) for a uniform distribution should be close to -1.2."
     // Kurtosis estimation is noisy.
-    assert(abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2, hint)
+    assert(
+      cond = abs(sampleKurtosis - theoreticalKurtosis) < tolerance * 2,
+      clue = s"Sample excess kurtosis ($sampleKurtosis) for a uniform distribution should be close to -1.2."
+    )
   }
 
   // --- Edge Cases and Special Values ---
@@ -91,9 +99,18 @@ class ContinuousUniformDistributionSpec extends RngSuite {
     val degenerate = Uncertain.uniform(value, value)
     val samples    = degenerate.take(1000)
 
-    assert(samples.forall(_ == value), s"U($value, $value) must always produce $value.")
-    assertEquals(degenerate.expectedValue(1000), value)
-    assertEquals(degenerate.standardDeviation(1000), 0.0)
+    assert(
+      cond = samples.forall(_ == value),
+      clue = s"U($value, $value) must always produce $value."
+    )
+    assertEquals(
+      obtained = degenerate.mean(1000),
+      expected = value
+    )
+    assertEquals(
+      obtained = degenerate.standardDeviation(1000),
+      expected = 0.0
+    )
   }
 
   // --- Input Validation ---

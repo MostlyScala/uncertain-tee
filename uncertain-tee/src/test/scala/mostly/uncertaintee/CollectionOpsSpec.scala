@@ -29,7 +29,7 @@ class CollectionOpsSpec extends RngSuite with CollectionOps {
         List("A"),          // 1 A
         List.fill(10)("B"), // 10 Bs
         List.fill(10)("C"), // 10 Cs
-        List.fill(10)("D")  // 10 Ds
+        List.fill(10)("D") // 10 Ds
       )
       .map(_.indexOf("A")) // if interleaving goes well, A should be equally likely everywhere
 

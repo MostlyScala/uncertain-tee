@@ -41,13 +41,14 @@ class ConfidenceIntervalSpec extends RngSuite {
 
     val (sampleLower, sampleUpper) = normalDist.confidenceInterval(confidence, sampleCount)
 
-    val hintLower =
-      s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 95% CI of N(0,1)."
-    val hintUpper =
-      s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 95% CI of N(0,1)."
-
-    assert(abs(sampleLower - theoreticalLower) < tolerance, hintLower)
-    assert(abs(sampleUpper - theoreticalUpper) < tolerance, hintUpper)
+    assert(
+      cond = abs(sampleLower - theoreticalLower) < tolerance,
+      clue = s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 95% CI of N(0,1)."
+    )
+    assert(
+      cond = abs(sampleUpper - theoreticalUpper) < tolerance,
+      clue = s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 95% CI of N(0,1)."
+    )
   }
 
   rngTest("confidenceInterval for a continuous uniform distribution should be symmetric around the midpoint") {
@@ -63,13 +64,14 @@ class ConfidenceIntervalSpec extends RngSuite {
 
     val (sampleLower, sampleUpper) = uniformDist.confidenceInterval(confidence, sampleCount)
 
-    val hintLower =
-      s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 80% CI of U(0,10)."
-    val hintUpper =
-      s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 80% CI of U(0,10)."
-
-    assert(abs(sampleLower - theoreticalLower) < tolerance, hintLower)
-    assert(abs(sampleUpper - theoreticalUpper) < tolerance, hintUpper)
+    assert(
+      cond = abs(sampleLower - theoreticalLower) < tolerance,
+      clue = s"Sample lower bound ($sampleLower) should be close to theoretical bound ($theoreticalLower) for 80% CI of U(0,10)."
+    )
+    assert(
+      cond = abs(sampleUpper - theoreticalUpper) < tolerance,
+      clue = s"Sample upper bound ($sampleUpper) should be close to theoretical bound ($theoreticalUpper) for 80% CI of U(0,10)."
+    )
   }
 
   rngTest("confidenceInterval for a skewed (Exponential) distribution should be asymmetric") {
@@ -86,14 +88,15 @@ class ConfidenceIntervalSpec extends RngSuite {
 
     val (sampleLower, sampleUpper) = exponentialDist.confidenceInterval(confidence, sampleCount)
 
-    val hintLower =
-      s"Sample lower bound ($sampleLower) should be close to theoretical bound (${"%.4f".format(theoreticalLower)}) for 95% CI of Exp(1)."
-    val hintUpper =
-      s"Sample upper bound ($sampleUpper) should be close to theoretical bound (${"%.4f".format(theoreticalUpper)}) for 95% CI of Exp(1)."
-
     // The upper tail of a skewed distribution is harder to estimate, so we use a slightly larger tolerance.
-    assert(abs(sampleLower - theoreticalLower) < tolerance, hintLower)
-    assert(abs(sampleUpper - theoreticalUpper) < tolerance * 2, hintUpper)
+    assert(
+      cond = abs(sampleLower - theoreticalLower) < tolerance,
+      clue = s"Sample lower bound ($sampleLower) should be close to theoretical bound (${"%.4f".format(theoreticalLower)}) for 95% CI of Exp(1)."
+    )
+    assert(
+      cond = abs(sampleUpper - theoreticalUpper) < tolerance * 2,
+      clue = s"Sample upper bound ($sampleUpper) should be close to theoretical bound (${"%.4f".format(theoreticalUpper)}) for 95% CI of Exp(1)."
+    )
   }
 
   // --- Edge Case Tests ---
@@ -106,10 +109,14 @@ class ConfidenceIntervalSpec extends RngSuite {
     val (highConfLower, highConfUpper) = normalDist.confidenceInterval(highConfidence, sampleCount)
     val (midConfLower, midConfUpper)   = normalDist.confidenceInterval(0.95, sampleCount)
 
-    val hintLower = s"99.9% CI lower bound ($highConfLower) should be less than 95% CI lower bound ($midConfLower)."
-    val hintUpper = s"99.9% CI upper bound ($highConfUpper) should be greater than 95% CI upper bound ($midConfUpper)."
-    assert(highConfLower < midConfLower, hintLower)
-    assert(highConfUpper > midConfUpper, hintUpper)
+    assert(
+      cond = highConfLower < midConfLower,
+      clue = s"99.9% CI lower bound ($highConfLower) should be less than 95% CI lower bound ($midConfLower)."
+    )
+    assert(
+      cond = highConfUpper > midConfUpper,
+      clue = s"99.9% CI upper bound ($highConfUpper) should be greater than 95% CI upper bound ($midConfUpper)."
+    )
   }
 
   rngTest("confidenceInterval with low confidence (20%) should produce a narrower interval than a 95% CI") {
@@ -120,18 +127,30 @@ class ConfidenceIntervalSpec extends RngSuite {
     val (lowConfLower, lowConfUpper) = normalDist.confidenceInterval(lowConfidence, sampleCount)
     val (midConfLower, midConfUpper) = normalDist.confidenceInterval(0.95, sampleCount)
 
-    val hintLower = s"20% CI lower bound ($lowConfLower) should be greater than 95% CI lower bound ($midConfLower)."
-    val hintUpper = s"20% CI upper bound ($lowConfUpper) should be less than 95% CI upper bound ($midConfUpper)."
-    assert(lowConfLower > midConfLower, hintLower)
-    assert(lowConfUpper < midConfUpper, hintUpper)
+    assert(
+      cond = lowConfLower > midConfLower,
+      clue = s"20% CI lower bound ($lowConfLower) should be greater than 95% CI lower bound ($midConfLower)."
+    )
+    assert(
+      cond = lowConfUpper < midConfUpper,
+      clue = s"20% CI upper bound ($lowConfUpper) should be less than 95% CI upper bound ($midConfUpper)."
+    )
   }
 
   rngTest("confidenceInterval for a point distribution should have zero width") {
     val pointDist      = Uncertain.always(42.0)
     val (lower, upper) = pointDist.confidenceInterval(0.95, 1000)
 
-    assertEquals(lower, 42.0, "Lower bound of a point distribution's CI must be the point itself.")
-    assertEquals(upper, 42.0, "Upper bound of a point distribution's CI must be the point itself.")
+    assertEquals(
+      obtained = lower,
+      expected = 42.0,
+      clue = "Lower bound of a point distribution's CI must be the point itself."
+    )
+    assertEquals(
+      obtained = upper,
+      expected = 42.0,
+      clue = "Upper bound of a point distribution's CI must be the point itself."
+    )
   }
 
   // --- Input Validation Tests ---
