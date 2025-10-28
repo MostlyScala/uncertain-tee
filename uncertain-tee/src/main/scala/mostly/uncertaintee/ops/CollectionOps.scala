@@ -7,7 +7,14 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-/** probabilistic combinatorics */
+/** probabilistic combinatorics
+  *
+  * {{{
+  * import mostly.uncertaintee.syntax.boolean.*
+  * // or just import all the syntax (recommended)
+  * import mostly.uncertaintee.syntax.*
+  * }}}
+  */
 trait CollectionOps {
 
   extension (uncertain: Uncertain.type) {

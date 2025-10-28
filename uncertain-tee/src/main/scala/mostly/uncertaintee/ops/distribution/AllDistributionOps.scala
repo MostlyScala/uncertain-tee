@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package mostly.uncertaintee.ops
+package mostly.uncertaintee.ops.distribution
 
 import mostly.uncertaintee.*
-import mostly.uncertaintee.ops.distribution.*
 
 import scala.util.Random
 
-/** //TODO extensive scaladocs
-  *
-  * Constructors ("factory methods") for statistical distributions.
+/** Constructors ("factory methods") for statistical distributions.
   *
   * {{{
   * import mostly.uncertaintee.syntax.distribution.*

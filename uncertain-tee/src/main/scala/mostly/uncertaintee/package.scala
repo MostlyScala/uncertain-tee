@@ -16,6 +16,8 @@
 
 package mostly
 
+import mostly.uncertaintee.ops.distribution.AllDistributionOps
+
 package object uncertaintee {
 
   /** Allows access to syntax for operating on [[Uncertain]]
@@ -32,16 +34,16 @@ package object uncertaintee {
     *   import mostly.uncertaintee.syntax.arithmetic.*
     *   import mostly.uncertaintee.syntax.boolean.*
     *   import mostly.uncertaintee.syntax.chance.*
+    *   import mostly.uncertaintee.syntax.coin.*
     *   import mostly.uncertaintee.syntax.collection.*
     *   import mostly.uncertaintee.syntax.comparison.*
     *   import mostly.uncertaintee.syntax.conversion.*
-    *   import mostly.uncertaintee.syntax.coin.*
     *   import mostly.uncertaintee.syntax.dice.*
+    *   import mostly.uncertaintee.syntax.distribution.*
     *   import mostly.uncertaintee.syntax.functional.*
-    *   import mostly.uncertaintee.syntax.optionalOps.*
-    *   import mostly.uncertaintee.syntax.comparison.*
+    *   import mostly.uncertaintee.syntax.option.*
+    *   import mostly.uncertaintee.syntax.quantile.*
     *   import mostly.uncertaintee.syntax.statistical.*
-    *   import mostly.uncertaintee.syntax.chance.*
     * }}}
     */
   object syntax extends ops.AllOps {
@@ -49,14 +51,15 @@ package object uncertaintee {
     val arithmetic: ops.ArithmeticOps            = this
     val boolean: ops.BooleanOps                  = this
     val chance: ops.ChanceOps                    = this
+    val coin: ops.CoinFlipOps                    = this
     val collection: ops.CollectionOps            = this
     val comparison: ops.ComparisonOps            = this
     val conversion: ops.ConversionOps            = this
-    val coin: ops.CoinFlipOps                    = this
     val dice: ops.DiceRollingOps                 = this
-    val distribution: ops.AllDistributionOps     = this
+    val distribution: AllDistributionOps         = this
     val functional: ops.FunctionalProgrammingOps = this
     val option: ops.OptionOps                    = this
+    val quantile: ops.QuantileOps                = this
     val statistical: ops.StatisticalOps          = this
   }
 
