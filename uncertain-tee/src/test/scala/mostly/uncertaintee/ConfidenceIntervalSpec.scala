@@ -23,7 +23,7 @@ import scala.math.{abs, log}
 
 class ConfidenceIntervalSpec extends RngSuite {
 
-  private val sampleCount = 100_000
+  private val sampleCount = 250_000
   private val tolerance   = 0.01
 
   // --- Standard Distribution Tests ---

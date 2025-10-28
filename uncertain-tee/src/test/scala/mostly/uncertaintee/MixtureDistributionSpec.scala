@@ -22,7 +22,7 @@ import scala.math.{abs, pow}
 
 class MixtureDistributionSpec extends RngSuite {
 
-  private val sampleCount = 100_000
+  private val sampleCount = 250_000
   private val tolerance   = 0.05
 
   // --- General Mixture Model Tests ---

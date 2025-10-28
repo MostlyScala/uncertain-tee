@@ -17,7 +17,6 @@
 package mostly.uncertaintee.ops.distribution
 
 import mostly.uncertaintee.*
-import mostly.uncertaintee.syntax.*
 
 import scala.math.*
 import scala.util.Random
@@ -41,15 +40,12 @@ trait DistributionOpsDouble {
       standardDeviation: Double
     )(using random: Random = new Random()): Uncertain[Double] = {
       require(standardDeviation >= 0, "Standard deviation cannot be negative.")
-      Uncertain { () =>
-        if (standardDeviation == 0) mean
-        else {
-          // Box-Muller transform for generating normal samples
-          var u1 = Zero
-          while (u1 == Zero) u1 = random.nextDouble() // Avoid log(0)
-          val u2 = random.nextDouble()
-          val z0 = sqrt(MinusTwo * log(u1)) * cos(Two * Pi * u2)
-          mean + standardDeviation * z0
+      if (standardDeviation == 0) {
+        Uncertain.always(mean)
+      } else {
+        Uncertain { () =>
+          val gaussian = random.nextGaussian() * (One - Double.MinPositiveValue) + Double.MinPositiveValue
+          mean + (standardDeviation * gaussian)
         }
       }
     }
