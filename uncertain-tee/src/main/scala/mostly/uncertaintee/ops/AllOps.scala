@@ -16,6 +16,8 @@
 
 package mostly.uncertaintee.ops
 
+import mostly.uncertaintee.ops.distribution.AllDistributionOps
+
 /** A trait that mixes in all available syntax traits for easy importing.
   *
   * Best utilized via [[mostly.uncertaintee.syntax]] import
@@ -36,6 +38,7 @@ trait AllOps
     with DiceRollingOps
     with FunctionalProgrammingOps
     with OptionOps
+    with QuantileOps
     with StatisticalOps {
   // See traits
 }

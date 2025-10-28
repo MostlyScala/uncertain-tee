@@ -15,7 +15,7 @@ ThisBuild / developers       := List(
 
 ThisBuild / tlSitePublishBranch := Some("main")
 
-val scala3 = "3.3.6"
+val scala3 = "3.3.7"
 ThisBuild / crossScalaVersions := Seq(scala3)
 ThisBuild / scalaVersion       := scala3
 
