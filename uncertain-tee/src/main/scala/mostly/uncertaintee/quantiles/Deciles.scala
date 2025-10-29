@@ -41,7 +41,7 @@ final case class Deciles[T](
   d10: T
 ) extends Quantiles[T] {
 
-  override val n: Int = 10
+  override val quantileIntervals: Int = 10
 
   val median: T = d5
 
@@ -89,7 +89,7 @@ object Deciles {
   )(using ord: Ordering[T]): Deciles[T] = {
 
     val quantiles = Quantiles.ofSize[T](
-      n = 10,
+      quantileIntervals = 10,
       uncertain = uncertain,
       sampleCount = sampleCount
     )(using ord)

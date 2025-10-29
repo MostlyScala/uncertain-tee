@@ -20,7 +20,7 @@ final case class Tertiles[T](
   t3: T
 ) extends Quantiles[T] {
 
-  override val n: Int = 3
+  override val quantileIntervals: Int = 3
 
   def tertile(n: Int): T = n match {
     case 0         => t0
@@ -52,7 +52,7 @@ object Tertiles {
   )(using ord: Ordering[T]): Tertiles[T] = {
 
     val quantiles = Quantiles.ofSize[T](
-      n = 3,
+      quantileIntervals = 3,
       uncertain = uncertain,
       sampleCount = sampleCount
     )(using ord)

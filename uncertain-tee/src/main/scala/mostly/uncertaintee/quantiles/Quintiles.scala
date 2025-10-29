@@ -25,7 +25,7 @@ final case class Quintiles[T](
   q4: T,
   q5: T
 ) extends Quantiles[T] {
-  override val n = 5
+  override val quantileIntervals = 5
 
   def quintile(n: Int): T = n match {
     case 0         => q0
@@ -60,7 +60,7 @@ object Quintiles {
   )(using ord: Ordering[T]): Quintiles[T] = {
 
     val quantiles = Quantiles.ofSize[T](
-      n = 5,
+      quantileIntervals = 5,
       uncertain = uncertain,
       sampleCount = sampleCount
     )(using ord)

@@ -23,7 +23,7 @@ final case class Quartiles[T](
   q4: T
 ) extends Quantiles[T] {
 
-  override val n: Int = 4
+  override val quantileIntervals: Int = 4
 
   /** The median value (2nd quartile)
     *
@@ -73,7 +73,7 @@ object Quartiles {
   )(using ord: Ordering[T]): Quartiles[T] = {
 
     val quantiles = Quantiles.ofSize[T](
-      n = 4,
+      quantileIntervals = 4,
       uncertain = uncertain,
       sampleCount = sampleCount
     )(using ord)

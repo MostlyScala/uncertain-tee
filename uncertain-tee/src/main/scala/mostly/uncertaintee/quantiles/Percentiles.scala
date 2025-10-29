@@ -5,7 +5,7 @@ import mostly.uncertaintee.Uncertain
 /** Represents percentile values (100-quantiles) */
 trait Percentiles[T] extends Quantiles[T] {
 
-  override val n = 100
+  override val quantileIntervals = 100
 
   /** Returns the value at the given percentile boundary.
     *
@@ -81,7 +81,7 @@ object Percentiles {
     sampleCount: Int
   )(using ord: Ordering[T]): Percentiles[T] = {
     val underlying = Quantiles.ofSize[T](
-      n = 100,
+      quantileIntervals = 100,
       uncertain = uncertain,
       sampleCount = sampleCount
     )(using ord)
