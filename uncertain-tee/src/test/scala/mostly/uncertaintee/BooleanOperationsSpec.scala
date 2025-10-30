@@ -34,7 +34,7 @@ class BooleanOperationsSpec extends RngSuite {
 
     // P(!A) = 1 - P(A) -> 1 - 0.75 = 0.25
     val theoreticalMean = 0.25
-    val sampleMean      = notB.mean(sampleCount)
+    val sampleMean      = notB.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -51,7 +51,7 @@ class BooleanOperationsSpec extends RngSuite {
 
     // P(A and B) = P(A) * P(B) -> 0.6 * 0.5 = 0.3
     val theoreticalMean = 0.3
-    val sampleMean      = bAnd.mean(sampleCount)
+    val sampleMean      = bAnd.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -68,7 +68,7 @@ class BooleanOperationsSpec extends RngSuite {
 
     // P(A or B) = P(A) + P(B) - P(A and B) -> 0.3 + 0.4 - (0.3 * 0.4) = 0.58
     val theoreticalMean = 0.58
-    val sampleMean      = bOr.mean(sampleCount)
+    val sampleMean      = bOr.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -84,7 +84,7 @@ class BooleanOperationsSpec extends RngSuite {
     val bAndB = b && b
 
     // The result should have the same probability as the original.
-    val sampleMean = bAndB.mean(sampleCount)
+    val sampleMean = bAndB.probability(sampleCount)
     assert(
       cond = abs(sampleMean - p) < tolerance,
       clue = s"Expected value of correlated `b && b` where P(b)=0.8 should be approx 0.8. Got $sampleMean"
@@ -97,7 +97,7 @@ class BooleanOperationsSpec extends RngSuite {
     val bOrB = b || b
 
     // The result should have the same probability as the original.
-    val sampleMean = bOrB.mean(sampleCount)
+    val sampleMean = bOrB.probability(sampleCount)
     assert(
       cond = abs(sampleMean - p) < tolerance,
       clue = s"Expected value of correlated `b || b` where P(b)=0.25 should be approx 0.25. Got $sampleMean"
@@ -116,7 +116,7 @@ class BooleanOperationsSpec extends RngSuite {
       clue = "`b || !b` must always evaluate to true due to correlation."
     )
     assertEquals(
-      obtained = tautology.mean(1000),
+      obtained = tautology.probability(1000),
       expected = 1.0,
       clue = "The expected value of `b || !b` must be exactly 1.0"
     )
@@ -134,7 +134,7 @@ class BooleanOperationsSpec extends RngSuite {
       clue = "`b && !b` must always evaluate to false due to correlation."
     )
     assertEquals(
-      obtained = contradiction.mean(1000),
+      obtained = contradiction.probability(1000),
       expected = 0.0,
       clue = "The expected value of `b && !b` must be exactly 0.0"
     )
@@ -147,7 +147,7 @@ class BooleanOperationsSpec extends RngSuite {
     val b        = Uncertain.bernoulli(p)
     val bAndTrue = b && Uncertain.always(true)
 
-    val sampleMean = bAndTrue.mean(sampleCount)
+    val sampleMean = bAndTrue.probability(sampleCount)
     assert(
       cond = abs(sampleMean - p) < tolerance,
       clue = s"Expected value of `b && true` where P(b)=0.65 should be approx 0.65. Got $sampleMean"
@@ -160,7 +160,7 @@ class BooleanOperationsSpec extends RngSuite {
     val bAndFalse = b && Uncertain.always(false)
 
     assertEquals(
-      obtained = bAndFalse.mean(1000),
+      obtained = bAndFalse.probability(1000),
       expected = 0.0,
       clue = "The expected value of `b && false` must be 0.0"
     )
@@ -172,7 +172,7 @@ class BooleanOperationsSpec extends RngSuite {
     val bOrTrue = b || Uncertain.always(true)
 
     assertEquals(
-      obtained = bOrTrue.mean(1000),
+      obtained = bOrTrue.probability(1000),
       expected = 1.0,
       clue = "The expected value of `b || true` must be 1.0"
     )
@@ -183,7 +183,7 @@ class BooleanOperationsSpec extends RngSuite {
     val b        = Uncertain.bernoulli(p)
     val bOrFalse = b || Uncertain.always(false)
 
-    val sampleMean = bOrFalse.mean(sampleCount)
+    val sampleMean = bOrFalse.probability(sampleCount)
     assert(
       cond = abs(sampleMean - p) < tolerance,
       clue = s"Expected value of `b || false` where P(b)=0.55 should be approx 0.55. Got $sampleMean"
@@ -201,8 +201,8 @@ class BooleanOperationsSpec extends RngSuite {
     val leftSide  = !(b1 && b2)
     val rightSide = !b1 || !b2
 
-    val leftMean  = leftSide.mean(sampleCount)
-    val rightMean = rightSide.mean(sampleCount)
+    val leftMean  = leftSide.probability(sampleCount)
+    val rightMean = rightSide.probability(sampleCount)
 
     // Theoretical mean = 1 - (p1 * p2) -> 1 - (0.7 * 0.2) = 0.86
     val theoreticalMean = 0.86
@@ -229,8 +229,8 @@ class BooleanOperationsSpec extends RngSuite {
     val leftSide  = !(b1 || b2)
     val rightSide = !b1 && !b2
 
-    val leftMean  = leftSide.mean(sampleCount)
-    val rightMean = rightSide.mean(sampleCount)
+    val leftMean  = leftSide.probability(sampleCount)
+    val rightMean = rightSide.probability(sampleCount)
 
     // Theoretical mean = (1 - p1) * (1 - p2) -> (1 - 0.1) * (1 - 0.4) = 0.54
     val theoreticalMean = 0.54
@@ -260,7 +260,7 @@ class BooleanOperationsSpec extends RngSuite {
 
     // P(A XOR B) = P(A) + P(B) - 2*P(A)*P(B) -> 0.6 + 0.3 - 2 * 0.6 * 0.3 = 0.54
     val theoreticalMean = 0.54
-    val sampleMean      = xor.mean(sampleCount)
+    val sampleMean      = xor.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,

@@ -22,6 +22,12 @@ import scala.math.*
 import scala.util.Random
 
 trait DistributionOpsDouble {
+
+  /** The inverse CDF maps from probability 0 to 1, to a value */
+  trait InverseCdfFunction {
+    def fromProbabilityToValue(zeroToOne: Double): Double
+  }
+
   extension (u: Uncertain.type) {
 
     /** Creates a normal (bell curve) distribution.
@@ -227,5 +233,27 @@ trait DistributionOpsDouble {
         }
       }
     }
+
+    /** Creates an Uncertain[Double] from an inverse CDF function.
+      *
+      * The inverse CDF maps from probability [0,1] to values
+      *
+      * @example
+      *   {{{
+      *    // example uniform distribution `a` to `b`
+      *   val uniform = Uncertain.fromInverseCdf { p => a + p * (b - a) }
+      *   // Exponential distribution with rate λ
+      *   val exponential = Uncertain.fromInverseCdf { p => -math.log(1 - p) / lambda }
+      *   }}}
+      * @param inverseCdf
+      *   Function mapping probability 0 to 1 to a value
+      * @return
+      *   Uncertain[Double] that samples by generating uniform random probabilities and transforming them via the inverse CDF
+      */
+    def fromInverseCdf(inverseCdf: InverseCdfFunction)(using random: Random = new Random()): Uncertain[Double] =
+      Uncertain { () =>
+        val zeroToOne = random.nextDouble()
+        inverseCdf.fromProbabilityToValue(zeroToOne)
+      }
   }
 }

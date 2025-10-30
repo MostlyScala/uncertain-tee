@@ -17,7 +17,7 @@
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.*
-import mostly.uncertaintee.StatisticallyConvertible.given
+import mostly.uncertaintee.syntax.*
 
 import scala.math.*
 
@@ -101,7 +101,8 @@ trait StatisticalOps {
       */
     def kurtosis(
       sampleCount: Int,
-      mesokurticTolerance: Double = 0.5
+      mesokurticTolerance: Double = 0.5,
+      effectivelyZero: Double = 1e-12
     ): Kurtosis = {
       require(sampleCount > 3, "sampleCount must be greater than 3.")
       require(mesokurticTolerance >= 0, "Threshold must be non-negative.")
@@ -133,7 +134,7 @@ trait StatisticalOps {
       val variance = m2 / (n - 1)
       val stdDev   = sqrt(variance)
 
-      if (stdDev < Double.MinPositiveValue) {
+      if (stdDev < effectivelyZero) {
         Kurtosis.Undefined
       } else {
         val m2_sample = m2 / (n - 1)
@@ -150,22 +151,22 @@ trait StatisticalOps {
   }
 
   /** Statistical methods for uncertain values that can be represented numerically. */
-  extension [T](uncertain: Uncertain[T])(using sc: StatisticallyConvertible[T]) {
+  extension [T](uncertain: Uncertain[T])(using num: Numeric[T]) {
 
-    /** Estimates the mean by sampling (alias for [[mean]] */
+    /** Estimates the mean by sampling (alias for [[mean]]) */
     def expectedValue(sampleCount: Int): Double = mean(sampleCount)
 
     /** Estimates the mean by sampling. */
     def mean(sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
-      val samples = uncertain.take(sampleCount).map(sc.toDouble)
+      val samples = uncertain.take(sampleCount).map(num.toDouble)
       samples.sum / samples.length.toDouble
     }
 
     /** Estimates population standard deviation. */
     def populationStandardDeviation(sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
-      val samples  = uncertain.take(sampleCount).map(sc.toDouble)
+      val samples  = uncertain.take(sampleCount).map(num.toDouble)
       val meanVal  = samples.sum / samples.length
       val variance = samples.foldLeft(Zero)((acc, sample) => acc + pow(sample - meanVal, 2)) / samples.length
       sqrt(variance)
@@ -174,14 +175,13 @@ trait StatisticalOps {
     /** Estimates sample standard deviation with Bessel's correction. */
     def standardDeviation(sampleCount: Int): Double = {
       require(sampleCount >= 2, "Need at least 2 samples for sample standard deviation.")
-      val samples  = uncertain.take(sampleCount).map(sc.toDouble)
+      val samples  = uncertain.take(sampleCount).map(num.toDouble)
       val meanVal  = samples.sum / samples.length
       val variance = samples.foldLeft(Zero)((acc, sample) => acc + pow(sample - meanVal, 2)) / (samples.length - 1)
       sqrt(variance)
     }
   }
 
-  /** Order-based statistics for uncertain values with comparable types. */
   extension [T](uncertain: Uncertain[T])(using ord: Ordering[T]) {
 
     /** Estimates a confidence interval using sample percentiles. */
@@ -200,8 +200,7 @@ trait StatisticalOps {
     /** Estimates the Cumulative Distribution Function - P(X ≤ value). */
     def cdf(value: T, sampleCount: Int): Double = {
       require(sampleCount > 0, "Sample count must be positive.")
-      val samples   = uncertain.take(sampleCount)
-      val successes = samples.count(ord.lteq(_, value))
+      val successes = uncertain.iterator.take(sampleCount).count(ord.lteq(_, value))
       successes.toDouble / sampleCount
     }
   }
@@ -213,12 +212,16 @@ trait StatisticalOps {
       * This is useful for understanding the success rate of a [[Uncertain.filter]]
       */
     def probabilityOfSuccess(sampleCount: Int): Double =
-      uncertainOption.map(_.isDefined).mean(sampleCount)
+      uncertainOption
+        .map(_.isDefined)
+        .probability(sampleCount)
 
     /** Calculates the probability that the Option is a `None`.
       */
     def probabilityOfFailure(sampleCount: Int): Double =
-      uncertainOption.map(_.isEmpty).mean(sampleCount)
+      uncertainOption
+        .map(_.isEmpty)
+        .probability(sampleCount)
 
   }
 }

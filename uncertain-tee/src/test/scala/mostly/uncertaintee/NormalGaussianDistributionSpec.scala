@@ -238,7 +238,7 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val isGreaterThanMean = normal > mean
 
     // The resulting Uncertain[Boolean] should therefore have an expected value of 0.5.
-    val sampleProbability = isGreaterThanMean.mean(sampleCount)
+    val sampleProbability = isGreaterThanMean.probability(sampleCount)
     assert(
       cond = abs(sampleProbability - 0.5) < tolerance,
       clue = s"P(normal > mean) should be ~0.5, but was $sampleProbability"
@@ -256,13 +256,13 @@ class NormalGaussianDistributionSpec extends RngSuite {
     val isAbove85 = iq > (mean - stdDev) // Theoretical P(true) is ~0.841
 
     assert(
-      cond = isAbove85.probability(exceeds = 0.8, maxSamples = sampleCount),
+      cond = isAbove85.probabilityExceeds(exceeds = 0.8, maxSamples = sampleCount),
       clue = "Should be confident that P(iq > 85) exceeds 80%"
     )
 
     // Conversely, a hypothesis that the probability exceeds 0.9 should be rejected.
     assert(
-      cond = !isAbove85.probability(exceeds = 0.9, maxSamples = sampleCount),
+      cond = !isAbove85.probabilityExceeds(exceeds = 0.9, maxSamples = sampleCount),
       clue = "Should not be confident that P(iq > 85) exceeds 90%"
     )
   }

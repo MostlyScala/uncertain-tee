@@ -126,8 +126,8 @@ class MonadicBehaviourSpec extends RngSuite {
     val uncertainStatus: Uncertain[TemperatureStatus] = uncertainCelsius.map(classifyTemperature)
 
     // Calculate the theoretical probabilities for each status
-    val pCold = (uncertainCelsius < 15.0).mean(sampleCount)
-    val pHot  = (uncertainCelsius >= 25.0).mean(sampleCount)
+    val pCold = (uncertainCelsius < 15.0).probability(sampleCount)
+    val pHot  = (uncertainCelsius >= 25.0).probability(sampleCount)
     val pWarm = 1.0 - pCold - pHot
 
     // Get the observed frequencies from our mapped distribution

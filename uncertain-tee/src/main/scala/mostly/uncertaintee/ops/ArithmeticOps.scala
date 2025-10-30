@@ -36,7 +36,7 @@ trait ArithmeticOps {
   /** A type alias for all supported numeric types. */
   type SupportedNum = Double | Float | Long | Int | Char | Short | Byte
 
-  /** This is a private, "dummy" given instance.
+  /** This is a private, "dummy" instance.
     *
     * Its only job is to help the compiler differentiate between overloaded methods.
     *
@@ -44,7 +44,7 @@ trait ArithmeticOps {
     */
   sealed trait Left2Right_Uncertain_Uncertain
 
-  /** This is a private, "dummy" given instance.
+  /** This is a private, "dummy" instance.
     *
     * Its only job is to help the compiler differentiate between overloaded methods.
     *
@@ -52,10 +52,18 @@ trait ArithmeticOps {
     */
   sealed trait Left2Right_SupportedNum_Uncertain
 
-  /** @see [[Left2Right_Uncertain_Uncertain]] */
+  /** @see
+    *   [[Left2Right_Uncertain_Uncertain]]
+    * @see
+    *   [[mostly.uncertaintee.styledocs.ImplicitsVsGivenExplanation]]
+    */
   given Left2Right_Uncertain_Uncertain = new Left2Right_Uncertain_Uncertain {}
 
-  /** @see [[Left2Right_SupportedNum_Uncertain]] */
+  /** @see
+    *   [[Left2Right_SupportedNum_Uncertain]]
+    * @see
+    *   [[mostly.uncertaintee.styledocs.ImplicitsVsGivenExplanation]]
+    */
   given Left2Right_SupportedNum_Uncertain = new Left2Right_SupportedNum_Uncertain {}
 
   /** Allows SupportedNum-on-LHS operations, e.g.

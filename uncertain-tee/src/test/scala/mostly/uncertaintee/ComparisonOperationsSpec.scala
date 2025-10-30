@@ -37,7 +37,7 @@ class ComparisonOperationsSpec extends RngSuite {
     // We need to find P(Z > 0) for Z ~ N(1, sqrt(2)). The z-score for 0 is (0-1)/sqrt(2) ≈ -0.707.
     // The standard normal CDF for -0.707 is ~0.24. So, P(Z > 0) = 1 - 0.24 = 0.76.
     val theoreticalProb = 0.7602 // More precise value
-    val sampleProb      = (x > y).mean(sampleCount)
+    val sampleProb      = (x > y).probability(sampleCount)
 
     assert(
       cond = abs(sampleProb - theoreticalProb) < tolerance,
@@ -54,7 +54,7 @@ class ComparisonOperationsSpec extends RngSuite {
     // the intersection of the two ranges, which is 1/8.
     // Therefore, P(X < Y) = 1 - 1/8 = 0.875.
     val theoreticalProb = 0.875
-    val sampleProb      = (x < y).mean(sampleCount)
+    val sampleProb      = (x < y).probability(sampleCount)
 
     assert(
       cond = abs(sampleProb - theoreticalProb) < tolerance,
@@ -73,7 +73,7 @@ class ComparisonOperationsSpec extends RngSuite {
     // P(X===Y) = Σ [P(X=k)]² for k from 0 to n
     // For Binomial(5, 0.5), this is 0.24609375.
     val theoreticalProb = 0.24609375
-    val sampleProb      = (x === y).mean(sampleCount)
+    val sampleProb      = (x === y).probability(sampleCount)
 
     assert(
       cond = abs(sampleProb - theoreticalProb) < tolerance,
@@ -87,8 +87,8 @@ class ComparisonOperationsSpec extends RngSuite {
     val x = Uncertain.normal(10, 2)
     val y = Uncertain.normal(11, 2)
 
-    val probGreaterOrEqual = (x >= y).mean(sampleCount)
-    val probNotLess        = (!(x < y)).mean(sampleCount)
+    val probGreaterOrEqual = (x >= y).probability(sampleCount)
+    val probNotLess        = (!(x < y)).probability(sampleCount)
 
     assert(
       cond = abs(probGreaterOrEqual - probNotLess) < tolerance,
@@ -100,8 +100,8 @@ class ComparisonOperationsSpec extends RngSuite {
     val x = Uncertain.normal(10, 2)
     val y = Uncertain.normal(9, 2)
 
-    val probLessOrEqual = (x <= y).mean(sampleCount)
-    val probNotGreater  = (!(x > y)).mean(sampleCount)
+    val probLessOrEqual = (x <= y).probability(sampleCount)
+    val probNotGreater  = (!(x > y)).probability(sampleCount)
 
     assert(
       cond = abs(probLessOrEqual - probNotGreater) < tolerance,
@@ -113,8 +113,8 @@ class ComparisonOperationsSpec extends RngSuite {
     val x = Uncertain.binomial(10, 0.5)
     val y = Uncertain.binomial(10, 0.5)
 
-    val probNotEqual = (x !== y).mean(sampleCount)
-    val probNotSame  = (!(x === y)).mean(sampleCount)
+    val probNotEqual = (x !== y).probability(sampleCount)
+    val probNotSame  = (!(x === y)).probability(sampleCount)
 
     assert(
       cond = abs(probNotEqual - probNotSame) < tolerance,
@@ -133,7 +133,7 @@ class ComparisonOperationsSpec extends RngSuite {
       clue = "`x > x` must always be false."
     )
     assertEquals(
-      obtained = result.mean(sampleCount),
+      obtained = result.probability(sampleCount),
       expected = 0.0
     )
   }
@@ -147,7 +147,7 @@ class ComparisonOperationsSpec extends RngSuite {
       clue = "`x >= x` must always be true."
     )
     assertEquals(
-      obtained = result.mean(sampleCount),
+      obtained = result.probability(sampleCount),
       expected = 1.0
     )
   }
@@ -161,7 +161,7 @@ class ComparisonOperationsSpec extends RngSuite {
       clue = "`x === x` must always be true."
     )
     assertEquals(
-      obtained = result.mean(sampleCount),
+      obtained = result.probability(sampleCount),
       expected = 1.0
     )
   }
