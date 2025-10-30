@@ -210,13 +210,13 @@ class UniformDistributionSpec extends RngSuite {
 
     // Test a hypothesis that should be accepted.
     assert(
-      cond = isAbove8.probabilityExceeds(exceeds = 0.15, maxSamples = sampleCount),
+      cond = isAbove8.probabilityExceeds(exceeds = 0.15, sampleCount = sampleCount),
       clue = "Should be confident that P(uniform > 8) exceeds 15%"
     )
 
     // Test a hypothesis that should be rejected.
     assert(
-      cond = !isAbove8.probabilityExceeds(exceeds = 0.25, maxSamples = sampleCount),
+      cond = !isAbove8.probabilityExceeds(exceeds = 0.25, sampleCount = sampleCount),
       clue = "Should not be confident that P(uniform > 8) exceeds 25%"
     )
   }

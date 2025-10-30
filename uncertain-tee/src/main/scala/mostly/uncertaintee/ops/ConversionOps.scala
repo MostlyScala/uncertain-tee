@@ -26,19 +26,7 @@ import mostly.uncertaintee.Uncertain
   */
 trait ConversionOps {
 
-  /** 'implicit', not 'given' is a deliberate choice.
-    *
-    * In scala 3, a wildcard import does not mean importing everything.
-    *
-    * {{{
-    *   mostly.uncertaintee.syntax.{given, *}
-    * }}}
-    *
-    * `given` needs to be explicitly imported: https://docs.scala-lang.org/scala3/reference/contextual/given-imports.html
-    *
-    * `implicit` still works, though this may change in future versions of scala 3 LTS according to the link above; at which point we will change this to be given, and consumers
-    * (and all documentation) will have to make the breaking change to `import mostly.uncertaintee.syntax.{given, *}`
-    */
+  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
   implicit val convertBoolToInt: Conversion[Boolean, Int] = {
     case true  => 1
     case false => 0

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.*
@@ -47,36 +46,101 @@ trait BooleanOps {
       rhsSample <- rhs
     } yield lhsSample || rhsSample
 
-    def probability(sampleCount: Int): Double =
-      lhs.to[Int].mean(sampleCount)
+    /** Converts an uncertain Boolean to an uncertain integer (0 or 1).
+      *
+      * Mathematically, this is the **indicator function** (also called the **characteristic function**) of the event defined by the Boolean:
+      *
+      * {{{
+      *   1_P =
+      *     1, if the condition P is true
+      *     0, if the condition P is false
+      * }}}
+      *
+      * In this context, the uncertain Boolean is treated as a random variable, and `indicator` converts it into a numeric form suitable for computing means, probabilities, or
+      * other statistical operations.
+      *
+      * See also: https://en.wikipedia.org/wiki/Indicator_function
+      */
 
-    /** Tests if the probability of this being true exceeds a threshold. */
+    def indicator: Uncertain[Int] = lhs.map {
+      case true  => 1
+      case false => 0
+    }
+
+    /** Estimates the probability that the uncertain Boolean is true.
+      *
+      * Formally, if X is the indicator random variable of the Boolean:
+      * {{{
+      *   P(X = 1) = E[X] = mean of indicator samples
+      * }}}
+      *
+      * @param sampleCount
+      *   the number of samples to approximate the probability
+      * @return
+      *   estimated probability of the Boolean being true
+      *
+      * See also: https://en.wikipedia.org/wiki/Indicator_function
+      */
+    def probability(sampleCount: Int): Double =
+      lhs.indicator.mean(sampleCount)
+
+    /** Performs a hypothesis test to determine whether the probability of this uncertain Boolean being true exceeds a given threshold.
+      *
+      * Uses a sequential probability ratio test (SPRT) or normal approximation.
+      *
+      * Mathematically, testing H0: p ≤ threshold versus H1: p > threshold, where p = P(Boolean = true), the method returns `true` if H1 is accepted.
+      *
+      * @param exceeds
+      *   threshold probability to test against
+      * @param alpha
+      *   Type I error rate
+      * @param beta
+      *   Type II error rate
+      * @param delta
+      *   optional minimum effect size
+      * @param sampleCount
+      *   maximum number of samples to consider
+      * @return
+      *   `true` if the estimated probability exceeds the threshold with statistical confidence
+      *
+      * See also: https://en.wikipedia.org/wiki/Sequential_probability_ratio_test
+      */
     def probabilityExceeds(
       exceeds: Double,
       alpha: Double = 0.05,
       beta: Double = 0.05,
       delta: Option[Double] = None,
-      maxSamples: Int
+      sampleCount: Int
     ): Boolean = {
       require(exceeds >= 0 && exceeds <= 1, s"Threshold ($exceeds) must be between 0 and 1.")
       require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1.")
       require(beta > 0 && beta < 1, s"Beta ($beta) must be between 0 and 1.")
-      require(maxSamples > 0, "Max samples must be positive.")
+      require(sampleCount > 0, "Max samples must be positive.")
 
       val effectSize = delta.getOrElse(math.max(0.01, 0.1 * (One - exceeds)))
       require(exceeds + effectSize <= One, s"Threshold + effect size too large: ${exceeds + effectSize}")
 
-      val result = evaluateHypothesis(exceeds, alpha, beta, effectSize, maxSamples)
+      val result = evaluateHypothesis(exceeds, alpha, beta, effectSize, sampleCount)
       result.decision
     }
 
-    /** Shorthand for testing if something is "more likely than not" (> 50% chance). */
-    def isProbable(alpha: Double = 0.05, beta: Double = 0.05, maxSamples: Int): Boolean =
+    /** Shorthand for testing if an uncertain Boolean is "more likely than not" (i.e., probability > 0.5).
+      *
+      * @param alpha
+      *   Type I error rate
+      * @param beta
+      *   Type II error rate
+      * @param sampleCount
+      *   maximum number of samples to consider
+      * @return
+      *   `true` if estimated probability > 0.5 with statistical confidence
+      */
+    def isProbable(alpha: Double = 0.05, beta: Double = 0.05, sampleCount: Int): Boolean =
       probabilityExceeds(
         exceeds = 0.5,
         alpha = alpha,
         beta = beta,
-        maxSamples = maxSamples
+        sampleCount = sampleCount
       )
 
     /** Performs Sequential Probability Ratio Test for hypothesis testing. */
@@ -85,14 +149,14 @@ trait BooleanOps {
       alpha: Double,
       beta: Double,
       delta: Double,
-      maxSamples: Int
+      sampleCount: Int
     ): HypothesisResult = {
       require(threshold >= 0 && threshold <= 1, s"Threshold ($threshold) must be between 0 and 1.")
       require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1.")
       require(beta > 0 && beta < 1, s"Beta ($beta) must be between 0 and 1.")
       require(delta > 0, s"Effect size delta ($delta) must be positive.")
       require(threshold + delta <= One, s"Threshold + delta (${threshold + delta}) must be ≤ 1.0")
-      require(maxSamples > 0, "Maximum samples must be positive.")
+      require(sampleCount > 0, "Maximum samples must be positive.")
 
       val p0 = threshold
       val p1 = threshold + delta
@@ -103,7 +167,7 @@ trait BooleanOps {
       var successes = 0
       var samples   = 0
 
-      while (samples < maxSamples) {
+      while (samples < sampleCount) {
         val sample = lhs.sample()
         if (sample) successes += 1
         samples += 1

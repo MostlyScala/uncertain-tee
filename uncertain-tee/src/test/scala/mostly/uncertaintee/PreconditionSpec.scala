@@ -154,16 +154,16 @@ class PreconditionSpec extends RngSuite {
 
   rngTest("`probability` should throw IllegalArgumentException for invalid `exceeds` value") {
     intercept[IllegalArgumentException] {
-      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = -0.1, maxSamples = sampleCount)
+      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = -0.1, sampleCount = sampleCount)
     }
     intercept[IllegalArgumentException] {
-      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = 1.1, maxSamples = sampleCount)
+      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = 1.1, sampleCount = sampleCount)
     }
   }
 
-  rngTest("`probability` should throw IllegalArgumentException for non-positive `maxSamples`") {
+  rngTest("`probability` should throw IllegalArgumentException for non-positive `sampleCount`") {
     intercept[IllegalArgumentException] {
-      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = 0.5, maxSamples = 0)
+      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = 0.5, sampleCount = 0)
     }
   }
 
