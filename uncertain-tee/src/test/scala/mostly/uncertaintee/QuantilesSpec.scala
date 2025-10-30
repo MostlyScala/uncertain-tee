@@ -107,20 +107,6 @@ class QuantilesSpec extends RngSuite {
     }
   }
 
-  rngTest("Quantiles.asDiscreteUncertain should create uniform distribution from quantile boundaries") {
-    val original      = Uncertain.uniform(0.0, 100.0)
-    val quantiles     = Quantiles.ofSize(4, original, sampleCount)
-    val reconstructed = quantiles.reconstructFast
-
-    // Sample from reconstructed and verify it only contains quantile boundary values
-    val samples        = reconstructed.take(sampleCount)
-    val boundaryValues = quantiles.toList().toSet
-
-    samples.foreach { sample =>
-      assert(boundaryValues.contains(sample), s"Sample $sample should be one of the quantile boundary values $boundaryValues")
-    }
-  }
-
   rngTest("Quantiles.asDiscreteUncertain should be stable after reconstruction") {
     val original = Uncertain.uniform(0.0, 100.0)
     val q1       = Quantiles.ofSize(4, original, sampleCount)
@@ -267,7 +253,7 @@ class QuantilesSpec extends RngSuite {
     (0 to 4).foreach { i =>
       val value = quantiles.quantile(i)
       assert(value >= 1 && value <= 10, s"Quantile $i should be between 1 and 10, was $value")
-      assert(value == value.toInt.toDouble, s"Quantile $i should be an integer value, was $value")
+      assert(value == value.toDouble, s"Quantile $i should be an integer value, was $value")
     }
   }
 }

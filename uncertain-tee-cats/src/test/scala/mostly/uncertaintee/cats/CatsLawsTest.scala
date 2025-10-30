@@ -17,28 +17,24 @@
 package mostly.uncertaintee.cats
 
 import cats.Eq
-import cats.kernel.laws.discipline.GroupTests
-import cats.kernel.laws.discipline.MonoidTests
-import cats.laws.discipline.ApplicativeTests
-import cats.laws.discipline.FunctorTests
-import cats.laws.discipline.MonadTests
-import cats.laws.discipline.SemigroupalTests
-import cats.syntax.eq._
-import mostly.uncertaintee._
+import cats.kernel.laws.discipline.{GroupTests, MonoidTests}
+import cats.laws.discipline.{ApplicativeTests, FunctorTests, MonadTests, SemigroupalTests}
+import cats.syntax.eq.*
+import mostly.uncertaintee.*
 import munit.DisciplineSuite
-import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Cogen
+import org.scalacheck.{Arbitrary, Cogen}
 
 class CatsLawsTest extends DisciplineSuite {
-  private given [A: Arbitrary]: Arbitrary[Uncertain[A]] = Arbitrary(arbitrary[A].map(x => Uncertain(() => x)))
+  implicit private def arbUncertainA[A: Arbitrary]: Arbitrary[Uncertain[A]] = Arbitrary(arbitrary[A].map(Uncertain.always))
 
   // Testing the laws for truly uncertain values.
   // Note this type of equality only matches some amount of samples against each other, so it only makes sense for this test - as in,
   // there is no good way of implementing the Eq typeclass for Uncertain.
-  private given [A: Eq]: Eq[Uncertain[A]] with
-    override def eqv(x: Uncertain[A], y: Uncertain[A]): Boolean =
+  implicit private def eqUncertainA[A: Eq]: Eq[Uncertain[A]] = new Eq[Uncertain[A]] {
+    def eqv(x: Uncertain[A], y: Uncertain[A]): Boolean =
       x.take(50) === y.take(50)
+  }
 
   checkAll("Uncertain.FunctorLaws", FunctorTests[Uncertain].functor[Int, Int, String])
   checkAll("Uncertain.ApplyLaws", ApplicativeTests[Uncertain].apply[Int, Int, String])

@@ -16,58 +16,52 @@
 
 package mostly.uncertaintee
 
-import _root_.cats._
-import _root_.cats.syntax.all._
-import mostly.uncertaintee._
-import mostly.uncertaintee.syntax._
+import _root_.cats.*
+import _root_.cats.syntax.all.*
+import mostly.uncertaintee.*
 
+import scala.language.implicitConversions
 import scala.util.NotGiven
 
 package object cats {
 
-  given uncertainFunctor: Functor[Uncertain] with {
+  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
+  implicit val uncertainFunctor: Functor[Uncertain] = new Functor[Uncertain] {
     override def map[A, B](fa: Uncertain[A])(f: A => B): Uncertain[B] = fa.map(f)
   }
 
-  given uncertainMonad: StackSafeMonad[Uncertain] with {
-    override def flatMap[A, B](fa: Uncertain[A])(f: A => Uncertain[B]): Uncertain[B] =
-      fa.flatMap(f)
-
-    override def pure[A](x: A): Uncertain[A] = Uncertain.always(x)
+  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
+  implicit val uncertainMonad: StackSafeMonad[Uncertain] = new StackSafeMonad[Uncertain] {
+    override def flatMap[A, B](fa: Uncertain[A])(f: A => Uncertain[B]): Uncertain[B] = fa.flatMap(f)
+    override def pure[A](x: A): Uncertain[A]                                         = Uncertain.always(x)
   }
 
-  given uncertainMonoid[T](using Monoid[T]): Monoid[Uncertain[T]] with {
-    override def empty: Uncertain[T] =
-      Uncertain.always(Monoid[T].empty)
-
-    override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] =
-      x.flatMap(a => y.map(b => Monoid[T].combine(a, b)))
+  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
+  implicit def uncertainMonoid[T](using Monoid[T]): Monoid[Uncertain[T]] = new Monoid[Uncertain[T]] {
+    override def empty: Uncertain[T]                                     = Uncertain.always(Monoid[T].empty)
+    override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] = x.flatMap(a => y.map(b => Monoid[T].combine(a, b)))
   }
 
   /** If we don't have a full monoid for T, at least we can provide combine (|+|) capability via a semigroup. Combines uncertain values element-wise using the underlying Semigroup.
     *
     * @note
     *   This instance has a lower priority (uses `NotGiven[Monoid[T]]`) than uncertainMonoid to avoid ambiguity when both Monoid[T] and Semigroup[T] are available.
+    * @see
+    *   [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]]
     */
-  given uncertainSemigroup[T](using
+  implicit def uncertainSemigroup[T](using
     Semigroup[T],
     NotGiven[Monoid[T]]
-  ): Semigroup[Uncertain[T]] =
-    (x, y) =>
-      for {
-        sampleX <- x
-        sampleY <- y
-      } yield sampleX |+| sampleY
+  ): Semigroup[Uncertain[T]] = (x, y) =>
+    for {
+      sampleX <- x
+      sampleY <- y
+    } yield sampleX |+| sampleY
 
-  given uncertainGroup[T](using Group[T]): Group[Uncertain[T]] with {
-    override def empty: Uncertain[T] =
-      Uncertain.always(Group[T].empty)
-
-    override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] =
-      x.flatMap(a => y.map(b => Group[T].combine(a, b)))
-
-    override def inverse(x: Uncertain[T]): Uncertain[T] =
-      x.map(a => Group[T].inverse(a))
+  implicit def uncertainGroup[T](using Group[T]): Group[Uncertain[T]] = new Group[Uncertain[T]] {
+    override def empty: Uncertain[T]                                     = Uncertain.always(Group[T].empty)
+    override def combine(x: Uncertain[T], y: Uncertain[T]): Uncertain[T] = x.flatMap(a => y.map(b => Group[T].combine(a, b)))
+    override def inverse(x: Uncertain[T]): Uncertain[T]                  = x.map(a => Group[T].inverse(a))
   }
 
 }

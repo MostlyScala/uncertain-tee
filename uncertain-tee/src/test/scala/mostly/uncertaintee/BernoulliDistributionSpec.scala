@@ -37,7 +37,7 @@ class BernoulliDistributionSpec extends RngSuite {
     // The mean (or expected value) of a Bernoulli distribution is p.
     // See: https://en.wikipedia.org/wiki/Expected_value
     val theoreticalMean = p
-    val sampleMean      = bernoulli.mean(sampleCount)
+    val sampleMean      = bernoulli.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -54,7 +54,7 @@ class BernoulliDistributionSpec extends RngSuite {
     // See: https://en.wikipedia.org/wiki/Variance
     val theoreticalVariance = p * (1.0 - p)
     // The library's `standardDeviation` returns sqrt(variance), so we square it.
-    val sampleVariance      = pow(bernoulli.standardDeviation(sampleCount), 2)
+    val sampleVariance      = pow(bernoulli.to[Int].standardDeviation(sampleCount), 2)
 
     assert(
       cond = abs(sampleVariance - theoreticalVariance) < tolerance,
@@ -115,12 +115,12 @@ class BernoulliDistributionSpec extends RngSuite {
       clue = "Bernoulli(0.0) must always be false."
     )
     assertEquals(
-      obtained = bernoulli.mean(1000),
+      obtained = bernoulli.probability(1000),
       expected = 0.0,
       clue = "The expected value of Bernoulli(0.0) must be 0.0"
     )
     assertEquals(
-      obtained = pow(bernoulli.standardDeviation(1000), 2),
+      obtained = pow(bernoulli.to[Int].standardDeviation(1000), 2),
       expected = 0.0,
       clue = "The variance of Bernoulli(0.0) must be 0.0"
     )
@@ -135,12 +135,12 @@ class BernoulliDistributionSpec extends RngSuite {
       clue = "Bernoulli(1.0) must always be true."
     )
     assertEquals(
-      obtained = bernoulli.mean(1000),
+      obtained = bernoulli.probability(1000),
       expected = 1.0,
       clue = "The expected value of Bernoulli(1.0) must be 1.0"
     )
     assertEquals(
-      obtained = pow(bernoulli.standardDeviation(1000), 2),
+      obtained = pow(bernoulli.to[Int].standardDeviation(1000), 2),
       expected = 0.0,
       clue = "The variance of Bernoulli(1.0) must be 0.0"
     )
@@ -153,8 +153,8 @@ class BernoulliDistributionSpec extends RngSuite {
 
     // For a symmetric distribution like Bernoulli(0.5), the third central moment (skewness) is 0.
     // See: https://en.wikipedia.org/wiki/Skewness
-    val mean           = bernoulli.mean(sampleCount)
-    val stdDev         = bernoulli.standardDeviation(sampleCount)
+    val mean           = bernoulli.probability(sampleCount)
+    val stdDev         = bernoulli.to[Int].standardDeviation(sampleCount)
     val sampleSkewness = samples.map(x => pow((x - mean) / stdDev, 3)).sum / sampleCount
 
     assert(
@@ -173,7 +173,7 @@ class BernoulliDistributionSpec extends RngSuite {
     // If P(b=true) = p, then P(!b=true) = 1 - p.
     // The expected value of !b should therefore be 1 - p.
     val theoreticalMean = 1.0 - p
-    val sampleMean      = notB.mean(sampleCount)
+    val sampleMean      = notB.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -193,7 +193,7 @@ class BernoulliDistributionSpec extends RngSuite {
     // The expected value of the resulting distribution is p1 * p2.
     // See: https://en.wikipedia.org/wiki/And_gate#Probability
     val theoreticalMean = p1 * p2
-    val sampleMean      = bAnd.mean(sampleCount)
+    val sampleMean      = bAnd.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -213,7 +213,7 @@ class BernoulliDistributionSpec extends RngSuite {
     // This is the Principle of Inclusion-Exclusion for probability.
     // See: https://en.wikipedia.org/wiki/Inclusion%E2%80%93exclusion_principle#In_probability
     val theoreticalMean = p1 + p2 - (p1 * p2)
-    val sampleMean      = bOr.mean(sampleCount)
+    val sampleMean      = bOr.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -232,7 +232,7 @@ class BernoulliDistributionSpec extends RngSuite {
     val bAndB = b && b
 
     val theoreticalMean = p
-    val sampleMean      = bAndB.mean(sampleCount)
+    val sampleMean      = bAndB.probability(sampleCount)
 
     assert(
       cond = abs(sampleMean - theoreticalMean) < tolerance,
@@ -256,7 +256,7 @@ class BernoulliDistributionSpec extends RngSuite {
       clue = "`b || !b` must always evaluate to true due to correlation."
     )
     assertEquals(
-      obtained = tautology.mean(1000),
+      obtained = tautology.probability(1000),
       expected = 1.0,
       clue = "The expected value of `b || !b` must be exactly 1.0"
     )
@@ -278,7 +278,7 @@ class BernoulliDistributionSpec extends RngSuite {
       clue = "`b && !b` must always evaluate to false due to correlation."
     )
     assertEquals(
-      obtained = contradiction.mean(1000),
+      obtained = contradiction.probability(1000),
       expected = 0.0,
       clue = "The expected value of `b && !b` must be exactly 0.0"
     )

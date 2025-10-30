@@ -17,6 +17,7 @@
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.*
+import mostly.uncertaintee.syntax.*
 
 import scala.math.*
 
@@ -213,22 +214,14 @@ trait StatisticalOps {
     def probabilityOfSuccess(sampleCount: Int): Double =
       uncertainOption
         .map(_.isDefined)
-        .map {
-          case true  => 1
-          case false => 0
-        }
-        .mean(sampleCount)
+        .probability(sampleCount)
 
     /** Calculates the probability that the Option is a `None`.
       */
     def probabilityOfFailure(sampleCount: Int): Double =
       uncertainOption
         .map(_.isEmpty)
-        .map {
-          case true  => 1
-          case false => 0
-        }
-        .mean(sampleCount)
+        .probability(sampleCount)
 
   }
 }

@@ -16,24 +16,22 @@
 
 package mostly.uncertaintee.squants
 
-import _root_.squants._
-import _root_.squants.electro._
-import _root_.squants.energy._
-import _root_.squants.information._
-import _root_.squants.mass._
-import _root_.squants.motion._
-import _root_.squants.photo._
-import _root_.squants.radio._
-import _root_.squants.space._
-import _root_.squants.thermal._
-import _root_.squants.time._
-import mostly.uncertaintee._
+import _root_.squants.*
+import _root_.squants.electro.*
+import _root_.squants.energy.*
+import _root_.squants.information.*
+import _root_.squants.mass.*
+import _root_.squants.motion.*
+import _root_.squants.photo.*
+import _root_.squants.radio.*
+import _root_.squants.space.*
+import _root_.squants.thermal.*
+import _root_.squants.time.*
+import mostly.uncertaintee.*
 
 /** TODO - this might be better to build atop BigDecimal instead of double, or provide `...viaBigDouble` methods since
   *
   * Typeclass for computing statistics on Quantity types.
-  *
-  * Similar to [[StatisticallyConvertible]] bidirectional and unit-aware, allowing statistical operations to preserve quantity types and units.
   */
 trait QuantityStatisticallyConvertible[Q <: Quantity[Q]] {
 

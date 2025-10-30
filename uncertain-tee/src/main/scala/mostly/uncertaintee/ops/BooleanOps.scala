@@ -17,6 +17,7 @@
 package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.*
+import mostly.uncertaintee.syntax.*
 
 import scala.math.*
 
@@ -46,8 +47,11 @@ trait BooleanOps {
       rhsSample <- rhs
     } yield lhsSample || rhsSample
 
+    def probability(sampleCount: Int): Double =
+      lhs.to[Int].mean(sampleCount)
+
     /** Tests if the probability of this being true exceeds a threshold. */
-    def probability(
+    def probabilityExceeds(
       exceeds: Double,
       alpha: Double = 0.05,
       beta: Double = 0.05,
@@ -68,7 +72,7 @@ trait BooleanOps {
 
     /** Shorthand for testing if something is "more likely than not" (> 50% chance). */
     def isProbable(alpha: Double = 0.05, beta: Double = 0.05, maxSamples: Int): Boolean =
-      probability(
+      probabilityExceeds(
         exceeds = 0.5,
         alpha = alpha,
         beta = beta,

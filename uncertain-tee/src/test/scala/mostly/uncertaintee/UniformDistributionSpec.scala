@@ -195,7 +195,7 @@ class UniformDistributionSpec extends RngSuite {
 
     // Due to symmetry, the probability of a sample being greater than the midpoint is 0.5.
     val isGreaterThanMidpoint = uniform > midpoint
-    val sampleProbability     = isGreaterThanMidpoint.mean(sampleCount)
+    val sampleProbability     = isGreaterThanMidpoint.probability(sampleCount)
     assert(
       cond = abs(sampleProbability - 0.5) < tolerance,
       clue = s"P(uniform > midpoint) should be ~0.5, but was $sampleProbability"
@@ -210,13 +210,13 @@ class UniformDistributionSpec extends RngSuite {
 
     // Test a hypothesis that should be accepted.
     assert(
-      cond = isAbove8.probability(exceeds = 0.15, maxSamples = sampleCount),
+      cond = isAbove8.probabilityExceeds(exceeds = 0.15, maxSamples = sampleCount),
       clue = "Should be confident that P(uniform > 8) exceeds 15%"
     )
 
     // Test a hypothesis that should be rejected.
     assert(
-      cond = !isAbove8.probability(exceeds = 0.25, maxSamples = sampleCount),
+      cond = !isAbove8.probabilityExceeds(exceeds = 0.25, maxSamples = sampleCount),
       clue = "Should not be confident that P(uniform > 8) exceeds 25%"
     )
   }

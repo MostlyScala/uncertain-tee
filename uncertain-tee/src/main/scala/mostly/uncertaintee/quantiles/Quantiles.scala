@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 Mostly Codes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package mostly.uncertaintee.quantiles
 
 import mostly.uncertaintee.Uncertain
@@ -314,6 +329,59 @@ trait Quantiles[T] {
     val spline: SmoothSpline = SmoothSpline(valuesAsDoubles)
     Uncertain.fromInverseCdf((probability: Double) => spline(xCoordinate = probability))
   }
+
+  /** Compares this Quantiles instance approximately, within a given epsilon tolerance.
+    *
+    * Works even if the two Quantiles have different interval counts (e.g. deciles vs percentiles) by interpolating both to a common normalized quantile domain [0, 1].
+    *
+    * @param other
+    *   another Quantiles instance to compare against
+    * @param eps
+    *   numeric tolerance for approximate equality (default = 1e-9)
+    * @param num
+    *   numeric evidence for type T
+    * @return
+    *   true if all interpolated boundary values differ by less than or equal to eps
+    */
+  def approxEquals(other: Quantiles[T], eps: Double = 1e-9)(using num: Numeric[T]): Boolean = {
+    // Determine a common resolution — use the finer one
+    val steps = math.max(this.quantileIntervals, other.quantileIntervals)
+    val n     = steps + 1
+
+    // Convert this Quantiles to a linear interpolator
+    def interpolator(q: Quantiles[T]): Double => Double = {
+      val xs = (0 to q.quantileIntervals).map(i => i.toDouble / q.quantileIntervals)
+      val ys = xs.map(i => num.toDouble(q.quantile((i * q.quantileIntervals).toInt)))
+
+      (p: Double) =>
+        if (p <= 0.0) ys.head
+        else if (p >= 1.0) ys.last
+        else {
+          val idx = xs.indexWhere(_ >= p)
+          if (idx <= 0) ys.head
+          else {
+            val x0 = xs(idx - 1)
+            val x1 = xs(idx)
+            val y0 = ys(idx - 1)
+            val y1 = ys(idx)
+            val t  = (p - x0) / (x1 - x0)
+            y0 + t * (y1 - y0)
+          }
+        }
+    }
+
+    val fA = interpolator(this)
+    val fB = interpolator(other)
+
+    // Compare both quantile functions at evenly spaced normalized positions
+    (0 to steps).forall { i =>
+      val p  = i.toDouble / steps
+      val va = fA(p)
+      val vb = fB(p)
+      math.abs(va - vb) <= eps
+    }
+  }
+
 }
 
 object Quantiles {
