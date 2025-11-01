@@ -1,24 +1,23 @@
-package mostly.uncertaintee.internal
+package mostly.uncertaintee.ops
 
 import mostly.uncertaintee.Uncertain
 import mostly.uncertaintee.syntax.histogram
 
 import scala.math.Ordering.Implicits.*
 
-object Equivalence {
-  object KolmogorovSmirnov {
+trait EquivalenceOps {
 
-    /** Calculates the (Komogorov-Smirnov statistic)[https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test], a metric for analysing the total similarity of two
-      * distributions.
+  extension (u: Uncertain.type)
+    /** Calculates the (Komogorov-Smirnov statistic)[https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test], a metric for analysing the total similarity of two distributions.
       *
       * @see
       *   [[KolmogorovSmirnov.test]] for direct comparisons when deciding equivalence.
       *
       * @note
       *   The values `n` and `m` inform the number of samples taken of each distribution. The higher the number the more accurate the representation of the distribution, but with a
-      *   larger impact on overall performance. We then compare these samples across `x` values where `x` represents the range of possible values. For example, if both
-      *   distributions return an `Int` then in theory we should check all values from `Int.MinValue` to `Int.MaxValue`. For performance reasons this isn't practical so the
-      *   `xValues` should represent a realistic range of expected values. The more values included means a more accurate result at the cost of performance.
+      *   larger impact on overall performance. We then compare these samples across `x` values where `x` represents the range of possible values. For example, if both distributions
+      *   return an `Int` then in theory we should check all values from `Int.MinValue` to `Int.MaxValue`. For performance reasons this isn't practical so the `xValues` should
+      *   represent a realistic range of expected values. The more values included means a more accurate result at the cost of performance.
       *
       * @example
       *   Calculates the statistic for two static distributions, which produce values between 0 and 10.
@@ -47,7 +46,9 @@ object Equivalence {
       * @return
       *   the largest difference between two distributions
       */
-    def statistic[T: Ordering](f1: Uncertain[T], n: Int, f2: Uncertain[T], m: Int, xValues: Seq[T]): Double = {
+    def ksStatistic[T: Ordering](f1: Uncertain[T], n: Int, f2: Uncertain[T], m: Int, xValues: Seq[T]): Double = {
+      require(xValues.nonEmpty, "x-values was empty! while technically valid, probably not what you wanted.")
+
       val sampleA = f1.histogram(sampleCount = n)
       val sampleB = f2.histogram(sampleCount = m)
 
@@ -84,13 +85,12 @@ object Equivalence {
       *   distribution type
       * @return
       */
-    def test[T: Ordering](f1: Uncertain[T], n: Int, f2: Uncertain[T], m: Int, xValues: Seq[T], alpha: Double): Boolean = {
-      val statistic  = KolmogorovSmirnov.statistic(f1, n, f2, m, xValues)
-      val confidence = math.sqrt(-math.log(alpha / 2) * 0.5)
+    def ksTest[T: Ordering](f1: Uncertain[T], n: Int, f2: Uncertain[T], m: Int, xValues: Seq[T], alpha: Double): Boolean = {
+      val statistic  = Uncertain.ksStatistic(f1, n, f2, m, xValues)
+      val confidence = math.sqrt(-math.log(alpha / 2) * 0.5).min(0).max(0)
 
       // the point where we can't consider the two distributions equal
       val threshold = confidence * math.sqrt((n + m).toDouble / (n * m))
       statistic <= threshold
     }
-  }
 }
