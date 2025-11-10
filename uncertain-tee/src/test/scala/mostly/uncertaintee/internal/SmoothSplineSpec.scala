@@ -12,20 +12,20 @@ class SmoothSplineSpec extends FunSuite {
 
   test("buildSpline should require at least 3 values") {
     intercept[IllegalArgumentException] {
-      SmoothSpline.apply(List())
+      SmoothSpline(List())
     }
 
     intercept[IllegalArgumentException] {
-      SmoothSpline.apply(List(1.0))
+      SmoothSpline(List(1.0))
     }
 
     intercept[IllegalArgumentException] {
-      SmoothSpline.apply(List(1.0, 2.0))
+      SmoothSpline(List(1.0, 2.0))
     }
   }
 
   test("buildSpline should work with minimum 3 values (linear increasing data)") {
-    val spline = SmoothSpline.apply(List(0.0, 1.0, 2.0))
+    val spline = SmoothSpline(List(0.0, 1.0, 2.0))
 
     // Should have correct x-coordinates (evenly spaced from 0 to 1)
     assert(
@@ -54,7 +54,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("buildSpline should interpolate given points exactly (non-monotonic data)") {
     val values = List(1.0, 3.0, 2.0, 4.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Test that spline passes through all original points
     for (i <- values.indices) {
@@ -70,7 +70,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should handle boundary cases correctly (linear increasing data)") {
     val values = List(1.0, 2.0, 3.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Test before first point
     assert(
@@ -87,7 +87,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should work for linear increasing data") {
     val values = List(0.0, 1.0, 2.0, 3.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Test evaluation at midpoint between first two points
     val midX = 1.0 / 6.0 // halfway between x=0 and x=1/3
@@ -115,7 +115,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should work for linear decreasing data") {
     val values = List(4.0, 3.0, 2.0, 1.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Test monotonicity - values should decrease
     val x1 = 0.1
@@ -133,7 +133,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should handle non-monotonic data") {
     val values = List(1.0, 3.0, 2.0, 4.0, 1.5)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should still interpolate exact points
     for (i <- values.indices) {
@@ -149,7 +149,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should handle flat/constant segments") {
     val values = List(1.0, 2.0, 2.0, 2.0, 3.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should interpolate exact points
     for (i <- values.indices) {
@@ -171,7 +171,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should preserve monotonicity in strictly linear increasing data") {
     val values = List(0.0, 1.0, 2.0, 3.0, 4.0, 5.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Sample many points and verify monotonicity
     val samplePoints  = (0 to 100).map(_ * 0.01) // x from 0.0 to 1.0 in steps of 0.01
@@ -187,7 +187,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("evaluate should handle steep changes (step function data)") {
     val values = List(0.0, 0.1, 10.0, 10.1)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should interpolate exact points even with steep changes
     for (i <- values.indices) {
@@ -237,7 +237,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("buildSpline should work with larger datasets (sinusoidal data)") {
     val values = (0 to 10).map(i => math.sin(i * 0.5)).toList
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should have correct number of segments
     assert(
@@ -260,7 +260,7 @@ class SmoothSplineSpec extends FunSuite {
     // This data pattern forces the algorithm to apply monotonicity constraints
     // The sharp reversal between points 1-2 would cause overshooting without constraints
     val values = List(0.0, 1.0, 0.5, 2.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should still interpolate all points exactly
     for (i <- values.indices) {
@@ -285,7 +285,7 @@ class SmoothSplineSpec extends FunSuite {
   test("should handle very small x-intervals without numerical instability") {
     // Test with very close x-coordinates that might cause numerical issues
     val values = List(1.0, 1.0000001, 2.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should not throw exceptions or produce NaN/Inf values
     for (i <- values.indices) {
@@ -311,7 +311,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("should work correctly with negative y-values") {
     val values = List(-5.0, -2.0, -1.0, 3.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should interpolate all points exactly
     for (i <- values.indices) {
@@ -334,7 +334,7 @@ class SmoothSplineSpec extends FunSuite {
 
   test("should handle large dynamic ranges without precision loss") {
     val values = List(1e-6, 1e3, 1e-9, 1e6)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should interpolate all points exactly despite large dynamic range
     for (i <- values.indices) {
@@ -361,7 +361,7 @@ class SmoothSplineSpec extends FunSuite {
   test("should handle zero slopes and flat transitions correctly") {
     // Data that creates zero slopes in some segments
     val values = List(1.0, 1.0, 2.0, 2.0, 3.0)
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should interpolate all points exactly
     for (i <- values.indices) {
@@ -389,7 +389,7 @@ class SmoothSplineSpec extends FunSuite {
   test("should produce reasonable tangent estimates with weighted harmonic mean") {
     // Test data that exercises the tangent calculation logic
     val values = List(0.0, 1.0, 4.0, 5.0) // varying slopes: 1, 3, 1
-    val spline = SmoothSpline.apply(values)
+    val spline = SmoothSpline(values)
 
     // Should interpolate exact points
     for (i <- values.indices) {
