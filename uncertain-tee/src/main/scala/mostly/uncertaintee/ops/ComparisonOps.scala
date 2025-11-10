@@ -50,10 +50,42 @@ trait ComparisonOps {
 
   /** Comparison operations for uncertain values with ordered types. */
   extension [T](lhs: Uncertain[T])(using ord: Ordering[T]) {
-    def gt(value: T): Uncertain[Boolean]  = lhs.map(a => ord.gt(a, value))
-    def lt(value: T): Uncertain[Boolean]  = lhs.map(a => ord.lt(a, value))
-    def gte(value: T): Uncertain[Boolean] = lhs.map(a => ord.gteq(a, value))
-    def lte(value: T): Uncertain[Boolean] = lhs.map(a => ord.lteq(a, value))
+    def gt(value: T): Uncertain[Boolean]  = lhs.map(ord.gt(_, value))
+    def lt(value: T): Uncertain[Boolean]  = lhs.map(ord.lt(_, value))
+    def gte(value: T): Uncertain[Boolean] = lhs.map(ord.gteq(_, value))
+    def lte(value: T): Uncertain[Boolean] = lhs.map(ord.lteq(_, value))
+    def between(
+      a: T,
+      b: T,
+      minInclusive: Boolean,
+      maxInclusive: Boolean
+    ): Uncertain[Boolean] = {
+      val min: T = ord.min(a, b)
+      val max: T = ord.max(a, b)
+      (minInclusive, maxInclusive) match {
+        case (true, false)  => lhs.map(x => ord.gteq(min, x) && ord.lt(max, x))
+        case (true, true)   => lhs.map(x => ord.gteq(min, x) && ord.lteq(max, x))
+        case (false, false) => lhs.map(x => ord.gt(min, x) && ord.lt(max, x))
+        case (false, true)  => lhs.map(x => ord.gt(min, x) && ord.lteq(max, x))
+      }
+    }
+
+    def between(
+      uncertainA: Uncertain[T],
+      uncertainB: Uncertain[T],
+      minInclusive: Boolean,
+      maxInclusive: Boolean
+    ): Uncertain[Boolean] =
+      uncertainA
+        .product(uncertainB)
+        .flatMap((x: T, y: T) =>
+          lhs.between(
+            a = x,
+            b = y,
+            minInclusive = minInclusive,
+            maxInclusive = maxInclusive
+          )
+        )
 
     def >(value: T): Uncertain[Boolean]  = gt(value)
     def <(value: T): Uncertain[Boolean]  = lt(value)

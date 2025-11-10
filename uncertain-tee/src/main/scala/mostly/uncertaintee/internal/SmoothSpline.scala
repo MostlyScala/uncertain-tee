@@ -15,7 +15,6 @@
  */
 package mostly.uncertaintee.internal
 
-import scala.annotation.tailrec
 import scala.collection.Searching.{Found, InsertionPoint}
 
 /** Represents a single cubic polynomial segment (a + b*t + c*t² + d*t³)
@@ -45,15 +44,16 @@ final private[uncertaintee] case class CubicSegment(
     * @return
     *   polynomial value at t
     */
-  @tailrec
-  def apply(t: Double): Double =
-    if (t <= 0) {
-      valueAtStart
+  def apply(t: Double): Double = {
+    val clampedT = if (t <= 0) {
+      0.0
     } else if (t <= 1.0) {
-      valueAtStart + (t * (linearCoefficient + (t * (quadraticCoefficient + (t * cubicCoefficient)))))
-    } else { // if t > 1
-      this.apply(1.0)
+      t
+    } else {
+      1.0
     }
+    valueAtStart + (clampedT * (linearCoefficient + (clampedT * (quadraticCoefficient + (clampedT * cubicCoefficient)))))
+  }
 }
 
 /** A complete monotonic cubic spline with segments and evaluation method.
@@ -120,15 +120,12 @@ private[uncertaintee] object SmoothSpline {
     * @param values
     *   The list of `y`-coordinates (dependent variable) to interpolate. Must have at least 3 values.
     */
-  def apply(
-    values: List[Double],
-    slopeEffectivelyZeroWhenLessThan: Double = 1e-15
-  ): SmoothSpline = {
+  def apply(values: List[Double]): SmoothSpline = {
     require(values.length >= 3, "Must have at least 3 values in order to calculate a smooth spline")
     // picture, if you will, an X/Y coordinate system with x from 0-1, evenly split into [values.length] segments.
     val x = values.indices.map(i => i.toDouble / (values.length - 1)).toVector
     val y = values.toVector
-    build(x, y)(slopeEffectivelyZeroWhenLessThan)
+    build(x, y)
   }
 
   /** Builds a monotonic cubic spline through the given points.
@@ -146,14 +143,16 @@ private[uncertaintee] object SmoothSpline {
   private def build(
     x: Vector[Double],
     y: Vector[Double]
-  )(slopeEpsilon: Double): SmoothSpline = {
+  ): SmoothSpline = {
     require(x.length == y.length, s"x and y must be of equal length, was ${x.length} and ${y.length} respectively.")
     require(x.length >= 3, "Must have at least 3 values in order to calculate a smooth spline")
+
     val intervals: Vector[Double]           = x.sliding(2).map(previousAndNext => previousAndNext.last - previousAndNext.head).toVector
     val slopes: Vector[Double]              = y.zip(y.tail).zip(intervals).map { case ((yPrev, yNext), interval) => (yNext - yPrev) / interval }
     val rawTangents: Vector[Double]         = calculateRawTangents(x.length, slopes, intervals)
-    val monotoneTangents: Vector[Double]    = calculateMonotoneTangents(x.length, slopeEpsilon, slopes, rawTangents)
+    val monotoneTangents: Vector[Double]    = calculateMonotoneTangents(x.length, slopes, rawTangents)
     val cubicSegments: Vector[CubicSegment] = calculateCubicSegments(x.length, y, intervals, monotoneTangents)
+
     SmoothSpline(
       x = x,
       segments = cubicSegments
@@ -179,47 +178,67 @@ private[uncertaintee] object SmoothSpline {
 
   private def calculateMonotoneTangents(
     numPoints: Int,
-    slopeEpsilon: Double,
-    slopes: Vector[Double],
-    rawTangents: Vector[Double]
+    segmentSlopes: Vector[Double],
+    rawTangents: Vector[Double],
+    epsilon: Double = 1e-12
   ): Vector[Double] = {
-    val monotoneTangents: Seq[Double] = rawTangents.indices.map { pointIndex =>
-      if (pointIndex == numPoints - 1) rawTangents(pointIndex)
-      else {
-        val segmentSlope = slopes(pointIndex)
-        val tangentStart = rawTangents(pointIndex)
-        val tangentEnd   = rawTangents(pointIndex + 1)
 
-        if (math.abs(segmentSlope) <= slopeEpsilon) {
-          0.0
+    val numSegments = numPoints - 1
+
+    // ---- Pass 1: compute immutable scaling factors for each segment ----
+    // Each segment produces a tuple: (scaleForStartTangent, scaleForEndTangent)
+    val segmentScales: Vector[(Double, Double)] = (0 until numSegments).map { i =>
+      val segmentSlope = segmentSlopes(i)
+      val tangentStart = rawTangents(i)
+      val tangentEnd   = rawTangents(i + 1)
+      if (math.abs(segmentSlope) <= epsilon || tangentStart / segmentSlope < 0.0 || tangentEnd / segmentSlope < 0.0) {
+        // Flat segment or tangent points away from slope → zero tangents
+        (0.0, 0.0)
+      } else {
+        val startRatio = tangentStart / segmentSlope
+        val endRatio   = tangentEnd / segmentSlope
+        if (startRatio * startRatio + endRatio * endRatio > 9.0) {
+          // Scale both tangents to fit inside the monotonicity circle
+          val scale = 3.0 / math.sqrt(startRatio * startRatio + endRatio * endRatio)
+          (scale, scale)
         } else {
-          val ratioStart        = tangentStart / segmentSlope
-          val ratioEnd          = tangentEnd / segmentSlope
-          val maxSlopeFactor    = 3.0
-          val ratioStartClamped = math.max(0.0, ratioStart)
-          val ratioEndClamped   = math.max(0.0, ratioEnd)
-          val scale             =
-            if (ratioStartClamped * ratioStartClamped + ratioEndClamped * ratioEndClamped > 9.0)
-              maxSlopeFactor / math.sqrt(ratioStartClamped * ratioStartClamped + ratioEndClamped * ratioEndClamped)
-            else 1.0
-          scale * ratioStartClamped * segmentSlope
+          // No scaling needed
+          (1.0, 1.0)
         }
       }
-    }
-    monotoneTangents.toVector :+ rawTangents.last
+    }.toVector
+
+    // ---- Pass 2: compute final tangents for each point ----
+    (0 until numPoints).map { i =>
+      val scaleFromLeftSegment  = if (i == 0) segmentScales.head._1 else segmentScales(i - 1)._2
+      val scaleFromRightSegment = if (i == numPoints - 1) segmentScales.last._2 else segmentScales(i)._1
+      val finalScale            = math.min(scaleFromLeftSegment, scaleFromRightSegment)
+      rawTangents(i) * finalScale
+    }.toVector
   }
 
+  /** Calculates initial tangent estimates using weighted harmonic mean.
+    *
+    * For interior points, uses the Fritsch-Carlson weighted harmonic mean formula which accounts for non-uniform spacing between points.
+    */
   private def calculateRawTangents(
     numPoints: Int,
     slopes: Vector[Double],
     intervals: Vector[Double]
   ): Vector[Double] =
     (0 until numPoints).map { pointIndex =>
-      if (pointIndex == 0) slopes.head
-      else if (pointIndex == numPoints - 1) slopes.last
-      else {
+      if (pointIndex == 0) {
+        // First point: use first segment slope
+        slopes.head
+      } else if (pointIndex == numPoints - 1) {
+        // Last point: use last segment slope
+        slopes.last
+      } else {
+        // Interior point: weighted harmonic mean of adjacent slopes
         val slopePrev = slopes(pointIndex - 1)
         val slopeNext = slopes(pointIndex)
+
+        // If slopes have opposite signs or either is zero, we're at a local extremum
         if (slopePrev * slopeNext <= 0) {
           0.0
         } else {
