@@ -20,13 +20,13 @@ trait CollectionOps {
   extension [T](head: Uncertain[T]) {
 
     /** 'cons' or 'construct' operator for prepending a T to a List[T] */
-    def ::(tail: Uncertain[List[T]]): Uncertain[List[T]] = for {
+    def ::[B >: T](tail: Uncertain[List[T]]): Uncertain[List[B]] = for {
       head_ <- head
       tail_ <- tail
     } yield head_ :: tail_
 
     /** 'cons' or 'construct' operator for creating a new List from two T elements */
-    def ::(elem: Uncertain[T])(using DummyImplicit): Uncertain[List[T]] = for {
+    def ::[B >: T](elem: Uncertain[B])(using DummyImplicit): Uncertain[List[B]] = for {
       head_ <- head
       tail_ <- elem
     } yield List(head_, tail_)
