@@ -17,6 +17,30 @@ import scala.util.Random
   */
 trait CollectionOps {
 
+  extension [T](head: Uncertain[T]) {
+
+    /** 'cons' or 'construct' operator for prepending a T to a List[T] */
+    def ::(tail: Uncertain[List[T]]): Uncertain[List[T]] = for {
+      head_ <- head
+      tail_ <- tail
+    } yield head_ :: tail_
+
+    /** 'cons' or 'construct' operator for creating a new List from two T elements */
+    def ::(elem: Uncertain[T])(using DummyImplicit): Uncertain[List[T]] = for {
+      head_ <- head
+      tail_ <- elem
+    } yield List(head_, tail_)
+  }
+
+  extension [T](lhs: Uncertain[List[T]]) {
+
+    /** 'concat' or 'concatinate' operator to combine a LHS `Uncertain[List[T]]` and RHS `Uncertain[List[T]]` into one `Uncertain[List]` */
+    def ++(rhs: Uncertain[List[T]]): Uncertain[List[T]] = for {
+      heads <- lhs
+      tails <- rhs
+    } yield heads ++ tails
+  }
+
   extension (uncertain: Uncertain.type) {
 
     /** All possible sub-ranges are equally likely. The resulting sub-range maintains the same step size as the input range.
@@ -273,12 +297,12 @@ trait CollectionOps {
       * @example
       *   {{{
       *   val items = List("A", "B", "C", "D", "E")
-      *   val fixedSubseq = Uncertain.subsequenceOfFixedSize(3, items)
+      *   val fixedSubseq = Uncertain.subsequencesOfFixedSize(3, items)
       *   fixedSubseq.sample() // Could be List("A", "C", "E"), List("B", "D", "E"), etc.
       *   // Note: Will never produce List("C", "A", "B") because that violates original ordering
       *   }}}
       */
-    def subsequenceOfFixedSize[T](size: Int, from: List[T]): Uncertain[List[T]] = {
+    def subsequencesOfFixedSize[T](size: Int, from: List[T]): Uncertain[List[T]] = {
       require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size}")
       Uncertain.subsequencesOfVaryingSize(
         ofSize = size to size,

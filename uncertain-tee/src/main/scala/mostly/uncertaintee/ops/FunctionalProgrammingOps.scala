@@ -76,12 +76,7 @@ trait FunctionalProgrammingOps {
     def sequence[T](uncertainTs: Iterable[Uncertain[T]])(using random: Random = new Random()): Uncertain[List[T]] =
       uncertainTs.foldRight {
         Uncertain.always(List.empty[T])(using random)
-      } { (elem, acc) =>
-        for {
-          h <- elem
-          t <- acc
-        } yield h :: t
-      }
+      }(_ :: _)
 
     /** Applies a function to each element in a collection, where the function returns an `Uncertain` value, then sequences the results into a single `Uncertain` collection.
       *

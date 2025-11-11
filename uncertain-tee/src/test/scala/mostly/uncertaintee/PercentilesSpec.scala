@@ -28,7 +28,7 @@ class PercentilesSpec extends RngSuite {
     val p: Percentiles[Int] = Uncertain.always(42).percentiles(1000)
     (0 to 100).foreach { n =>
       assert(
-        p.percentile(n) == 42,
+        p(n) == 42,
         s"Percentile $n should be exactly 42 when underlying distribution always returns 42"
       )
     }
@@ -40,7 +40,7 @@ class PercentilesSpec extends RngSuite {
     val toleranceForTest     = tolerance * percentileBucketSize
     (0 to 100).foreach { n =>
       val theoretical = n * percentileBucketSize
-      val actual      = p.percentile(n)
+      val actual      = p(n)
       assert(
         abs(theoretical - actual) <= toleranceForTest,
         s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"
@@ -54,7 +54,7 @@ class PercentilesSpec extends RngSuite {
     val toleranceForTest     = tolerance * percentileBucketSize
     (0 to 100).foreach { n =>
       val theoretical = n * percentileBucketSize
-      val actual      = p.percentile(n)
+      val actual      = p(n)
       assert(
         abs(theoretical - actual) <= toleranceForTest,
         s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"
@@ -68,7 +68,7 @@ class PercentilesSpec extends RngSuite {
     val toleranceForTest     = tolerance * percentileBucketSize
     (0 to 100).foreach { n =>
       val theoretical = n * percentileBucketSize
-      val actual      = p.percentile(n)
+      val actual      = p(n)
       assert(
         abs(theoretical - actual) <= toleranceForTest,
         s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"

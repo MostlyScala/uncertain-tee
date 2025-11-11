@@ -43,7 +43,7 @@ trait Quantiles[T] {
 
   /** Returns the value at the specified quantile boundary.
     *
-    * A quantile boundary is a position that divides the distribution. This method returns the actual data value at that boundary position.
+    * A quantile boundary is a position that divides the distribution; This method returns the actual data value at that boundary position.
     *
     * {{{
     *  Quantile boundaries (indices): 0     1     2     3     4     5
@@ -57,21 +57,21 @@ trait Quantiles[T] {
     * @return
     *   the data value at the specified quantile boundary
     */
-  def quantile(index: Int): T
+  def apply(index: Int): T
 
   /** Maximum value (Nth quantile boundary value)
     *
     * @return
     *   the maximum value (data value at the nth quantile boundary)
     */
-  def max: T = quantile(quantileIntervals)
+  def max: T = this.apply(quantileIntervals)
 
   /** Minimum value (0th quantile boundary value)
     *
     * @return
     *   the minimum value (data value at the 0th quantile boundary)
     */
-  def min: T = quantile(0)
+  def min: T = this.apply(0)
 
   /** Returns a sequence of quantile boundary values.
     *
@@ -93,10 +93,10 @@ trait Quantiles[T] {
     */
   def toList(includeMin: Boolean = true, includeMax: Boolean = true): List[T] =
     (includeMin, includeMax) match {
-      case (true, true)   => (0 to quantileIntervals).map(quantile).toList
-      case (true, false)  => (0 until quantileIntervals).map(quantile).toList
-      case (false, true)  => (1 to quantileIntervals).map(quantile).toList
-      case (false, false) => (1 until quantileIntervals).map(quantile).toList
+      case (true, true)   => (0 to quantileIntervals).map(this.apply).toList
+      case (true, false)  => (0 until quantileIntervals).map(this.apply).toList
+      case (false, true)  => (1 to quantileIntervals).map(this.apply).toList
+      case (false, false) => (1 until quantileIntervals).map(this.apply).toList
     }
 
   /** Returns a Map[Int, T] of quantile boundary values.
@@ -121,10 +121,10 @@ trait Quantiles[T] {
     */
   def toMap(includeMin: Boolean = true, includeMax: Boolean = true): Map[Int, T] =
     (includeMin, includeMax) match {
-      case (true, true)   => (0 to quantileIntervals).map(i => i -> quantile(i)).toMap
-      case (true, false)  => (0 until quantileIntervals).map(i => i -> quantile(i)).toMap
-      case (false, true)  => (1 to quantileIntervals).map(i => i -> quantile(i)).toMap
-      case (false, false) => (1 until quantileIntervals).map(i => i -> quantile(i)).toMap
+      case (true, true)   => (0 to quantileIntervals).map(i => i -> this.apply(i)).toMap
+      case (true, false)  => (0 until quantileIntervals).map(i => i -> this.apply(i)).toMap
+      case (false, true)  => (1 to quantileIntervals).map(i => i -> this.apply(i)).toMap
+      case (false, false) => (1 until quantileIntervals).map(i => i -> this.apply(i)).toMap
     }
 
   /** Reconstructs quantiles as a discrete uniform distribution over boundary values.
@@ -471,8 +471,8 @@ object Quantiles {
     }
 
     new Quantiles[T] {
-      override val quantileIntervals: Int  = capturedN
-      override def quantile(index: Int): T = {
+      override val quantileIntervals: Int = capturedN
+      override def apply(index: Int): T   = {
         require(index >= 0 && index <= quantileIntervals, s"quantile index must be in range 0 to $quantileIntervals, was: $index")
         quantileValues(index)
       }

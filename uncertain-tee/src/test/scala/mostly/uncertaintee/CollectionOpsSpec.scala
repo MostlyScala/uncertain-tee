@@ -23,6 +23,41 @@ class CollectionOpsSpec extends RngSuite with CollectionOps {
 
   private val sampleCount = 250_000
 
+  test("cons operator (::) should combine two elems that are not lists") {
+    val value = Uncertain.always(1) :: Uncertain.always(2) :: Uncertain.always(3) :: Uncertain.always(4)
+    assertEquals(
+      obtained = value.sample(),
+      expected = List(1, 2, 3, 4),
+      clue = "Uncertains should be joinable to list"
+    )
+  }
+  test("cons operator (::) should prepend the element on LHS") {
+    val value = Uncertain.always(1) :: Uncertain.always(List(2, 3, 4))
+    assertEquals(
+      obtained = value.sample(),
+      expected = List(1, 2, 3, 4),
+      clue = "Uncertains should be joinable to list"
+    )
+  }
+
+  test("cons operator (::) should prepend list when the list is on lhs") {
+    val value = Uncertain.always(List(1)) :: Uncertain.always(List(2, 3, 4))
+    assertEquals(
+      obtained = value.sample(),
+      expected = List(List(1), 2, 3, 4),
+      clue = "Uncertains should be joinable to list"
+    )
+  }
+
+  test("append all operator (++) should append a list when the list is on lhs") {
+    val value = Uncertain.always(List(1)) :: Uncertain.always(List(2, 3, 4))
+    assertEquals(
+      obtained = value.sample(),
+      expected = List(List(1), 2, 3, 4),
+      clue = "Uncertains should be joinable to list"
+    )
+  }
+
   rngTest("Interleaving a list of size 1 with large lists should result in an equal distribution of positions for the small list") {
     val positions = Uncertain
       .interleave(

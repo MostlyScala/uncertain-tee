@@ -1,11 +1,29 @@
 # Uncertain[T] - Working with Probabilistic Data
 
+Uncertain-tee is a **monte carlo simulation based** and **correlation preserving** library for working with Uncertain data, called an **Uncertain[T]**.
+
 `Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
 any value that has uncertainty. Instead of just working with single values, you work with *distributions* of possible
 values.
 
-Instead of saying "the user will click the button," with `Uncertain[T]` you say "there's a 75% chance the user
-will click the button" and write code that handles that uncertainty without needing to hand-roll
+```scala
+val frontend = Uncertain.triangular(5, 10, 20)  // days
+val backend = Uncertain.triangular(8, 15, 30)
+val testing = Uncertain.triangular(3, 5, 10)
+
+val total = frontend + backend + testing
+
+val onTimeProb = (total < 30).probability(sampleCount = 100_000)
+val percentiles = Quantiles.percentiles(total, sampleCount = 100_000)
+
+println(s"50% chance: ${percentiles.percentile(50)} days")
+println(s"90% chance: ${percentiles.percentile(90)} days")
+println(s"Probability of finishing in 30 days: $onTimeProb")
+
+```
+
+When coding with uncertainty, you don't say "the user will click the button," instead we say "there's a 75% chance the user
+will click the button" - and write code that handles that uncertainty, without needing to hand-roll
 a big block of statistics-calculating-code.
 
 The primary guarantee of this library is **correlation preserving** operations that make combining, calculating and
@@ -420,11 +438,10 @@ These methods are for performing statistical analysis on `Uncertain` values. The
 * Feel like contributing? Read
   the [Code of Conduct](https://github.com/MostlyScala/uncertain-tee/blob/main/CODE_OF_CONDUCT.md]) first 🙏
 
-
-
 ## Cats Support
 
-The cats-support library exposes the following typeclasses for `Uncertain[T]`; `Functor`, `Applicative`, `Monad`, `Monoid`.
+The cats-support library exposes the following typeclasses for `Uncertain[T]`; `Functor`, `Applicative`, `Monad`,
+`Monoid`.
 
 Use these instances by including the support module, and the following import:
 

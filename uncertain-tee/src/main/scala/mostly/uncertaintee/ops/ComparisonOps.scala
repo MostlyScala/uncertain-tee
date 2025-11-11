@@ -182,11 +182,11 @@ trait ComparisonOps {
     (a, b) => {
       val steps = math.max(a.quantileIntervals, b.quantileIntervals)
 
-      def quantAt(q: Quantiles[T], p: Double): T = {
-        val n: Double          = q.quantileIntervals.toDouble
+      def quantAt(quantiles: Quantiles[T], p: Double): T = {
+        val n: Double          = quantiles.quantileIntervals.toDouble
         val idealIndex: Double = p * n
         val index: Int         = math.round(idealIndex).toInt
-        q.quantile(math.min(math.max(index, 0), q.quantileIntervals))
+        quantiles(math.min(math.max(index, 0), quantiles.quantileIntervals))
       }
 
       (0 to steps).map { i =>
@@ -202,19 +202,19 @@ trait ComparisonOps {
       val steps = math.max(a.quantileIntervals, b.quantileIntervals)
 
       /** Linearly interpolates the value at percentile p, returning as Double. */
-      def quantAt(q: Quantiles[T], p: Double): Double = {
-        val n                  = q.quantileIntervals
+      def quantAt(quantiles: Quantiles[T], p: Double): Double = {
+        val n                  = quantiles.quantileIntervals
         val idealIndex: Double = p * n
         val lowerIndex         = math.floor(idealIndex).toInt
         val upperIndex         = math.ceil(idealIndex).toInt
 
         if (lowerIndex == upperIndex) {
           // p maps exactly to a boundary
-          num.toDouble(q.quantile(lowerIndex))
+          num.toDouble(quantiles(lowerIndex))
         } else {
           // Get boundary values as Doubles
-          val lowerValue_d = num.toDouble(q.quantile(lowerIndex))
-          val upperValue_d = num.toDouble(q.quantile(upperIndex))
+          val lowerValue_d = num.toDouble(quantiles(lowerIndex))
+          val upperValue_d = num.toDouble(quantiles(upperIndex))
 
           // 'weight' is how far p is between the two boundaries
           val weight = idealIndex - lowerIndex

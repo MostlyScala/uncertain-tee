@@ -17,7 +17,8 @@ package mostly.uncertaintee.quantiles
 
 import mostly.uncertaintee.Uncertain
 
-/** Represents percentile values (100-quantiles) */
+/** Represents percentile values (100-quantiles).
+  */
 trait Percentiles[T] extends Quantiles[T] {
 
   override val quantileIntervals = 100
@@ -29,7 +30,7 @@ trait Percentiles[T] extends Quantiles[T] {
     * @return
     *   the value at the specified percentile boundary
     */
-  def percentile(n: Int): T = quantile(n)
+  override def apply(n: Int): T
 
   /** Represent as quartiles
     *
@@ -37,11 +38,11 @@ trait Percentiles[T] extends Quantiles[T] {
     *   quartiles derived from this percentile distribution
     */
   def toQuartiles: Quartiles[T] = Quartiles[T](
-    q0 = percentile(0),
-    q1 = percentile(25),
-    q2 = percentile(50),
-    q3 = percentile(75),
-    q4 = percentile(100)
+    q0 = this.apply(0),
+    q1 = this.apply(25),
+    q2 = this.apply(50),
+    q3 = this.apply(75),
+    q4 = this.apply(100)
   )
 
   /** Represent as quintiles
@@ -50,12 +51,12 @@ trait Percentiles[T] extends Quantiles[T] {
     *   quintiles derived from this percentile distribution
     */
   def toQuintiles: Quintiles[T] = Quintiles[T](
-    q0 = percentile(0),
-    q1 = percentile(20),
-    q2 = percentile(40),
-    q3 = percentile(60),
-    q4 = percentile(80),
-    q5 = percentile(100)
+    q0 = this.apply(0),
+    q1 = this.apply(20),
+    q2 = this.apply(40),
+    q3 = this.apply(60),
+    q4 = this.apply(80),
+    q5 = this.apply(100)
   )
 
   /** Represent as Deciles
@@ -64,17 +65,17 @@ trait Percentiles[T] extends Quantiles[T] {
     *   deciles derived from this percentile distribution
     */
   def toDeciles: Deciles[T] = Deciles[T](
-    d0 = percentile(0),
-    d1 = percentile(10),
-    d2 = percentile(20),
-    d3 = percentile(30),
-    d4 = percentile(40),
-    d5 = percentile(50),
-    d6 = percentile(60),
-    d7 = percentile(70),
-    d8 = percentile(80),
-    d9 = percentile(90),
-    d10 = percentile(100)
+    d0 = this.apply(0),
+    d1 = this.apply(10),
+    d2 = this.apply(20),
+    d3 = this.apply(30),
+    d4 = this.apply(40),
+    d5 = this.apply(50),
+    d6 = this.apply(60),
+    d7 = this.apply(70),
+    d8 = this.apply(80),
+    d9 = this.apply(90),
+    d10 = this.apply(100)
   )
 }
 
@@ -94,12 +95,11 @@ object Percentiles {
   def fromUncertain[T](
     uncertain: Uncertain[T],
     sampleCount: Int
-  )(using ord: Ordering[T]): Percentiles[T] = {
-    val underlying = Quantiles.ofSize[T](
-      quantileIntervals = 100,
-      uncertain = uncertain,
-      sampleCount = sampleCount
-    )(using ord)
-    (n: Int) => underlying.quantile(n)
-  }
+  )(using ord: Ordering[T]): Percentiles[T] =
+    Quantiles
+      .ofSize[T](
+        quantileIntervals = 100,
+        uncertain = uncertain,
+        sampleCount = sampleCount
+      )(using ord)(_)
 }

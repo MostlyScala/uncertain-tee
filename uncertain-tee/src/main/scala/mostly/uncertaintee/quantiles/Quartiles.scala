@@ -47,17 +47,14 @@ final case class Quartiles[T](
     */
   def median: T = q2
 
-  /** Returns the value at the given quartile boundary.
-    *
-    * Method exists for parity with [[Quantiles.quantile]], [[Deciles.decile]] and [[Percentiles.percentile]]; it may be easier to just pattern match Quartiles itself, depending on
-    * your usage.
-    *
-    * @param n
-    *   quartile boundary index (0 to 4)
-    * @return
-    *   the value at the specified quartile boundary
-    */
-  def quartile(n: Int): T = n match {
+  /** Returns the value at the given Quartile boundary.
+   *
+   * @param n
+   * percentile boundary index (0 to 5)
+   * @return
+   * the value at the specified percentile boundary
+   */
+  override def apply(n: Int): T = n match {
     case 0         => q0
     case 1         => q1
     case 2         => q2
@@ -65,8 +62,6 @@ final case class Quartiles[T](
     case 4         => q4
     case otherwise => throw new IllegalArgumentException(s"Quartile must be in range (0 to 4), was: $otherwise")
   }
-
-  override def quantile(n: Int): T = quartile(n)
 }
 
 object Quartiles {
@@ -94,11 +89,11 @@ object Quartiles {
     )(using ord)
 
     Quartiles[T](
-      q0 = quantiles.quantile(0),
-      q1 = quantiles.quantile(1),
-      q2 = quantiles.quantile(2),
-      q3 = quantiles.quantile(3),
-      q4 = quantiles.quantile(4)
+      q0 = quantiles(0),
+      q1 = quantiles(1),
+      q2 = quantiles(2),
+      q3 = quantiles(3),
+      q4 = quantiles(4)
     )
   }
 }

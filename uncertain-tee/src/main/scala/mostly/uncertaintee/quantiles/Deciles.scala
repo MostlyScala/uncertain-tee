@@ -57,8 +57,7 @@ final case class Deciles[T](
 ) extends Quantiles[T] {
 
   override val quantileIntervals: Int = 10
-
-  val median: T = d5
+  val median: T                       = d5
 
   /** Returns the value at the given decile boundary.
     *
@@ -67,7 +66,7 @@ final case class Deciles[T](
     * @return
     *   the value at the specified decile boundary
     */
-  def decile(n: Int): T = n match {
+  override def apply(n: Int): T = n match {
     case 0         => d0
     case 1         => d1
     case 2         => d2
@@ -81,8 +80,6 @@ final case class Deciles[T](
     case 10        => d10
     case otherwise => throw new IllegalArgumentException(s"Deciles are in range (0 to 10), was $otherwise")
   }
-
-  override def quantile(n: Int): T = decile(n)
 }
 
 object Deciles {
@@ -110,17 +107,17 @@ object Deciles {
     )(using ord)
 
     Deciles[T](
-      d0 = quantiles.quantile(0),
-      d1 = quantiles.quantile(1),
-      d2 = quantiles.quantile(2),
-      d3 = quantiles.quantile(3),
-      d4 = quantiles.quantile(4),
-      d5 = quantiles.quantile(5),
-      d6 = quantiles.quantile(6),
-      d7 = quantiles.quantile(7),
-      d8 = quantiles.quantile(8),
-      d9 = quantiles.quantile(9),
-      d10 = quantiles.quantile(10)
+      d0 = quantiles(0),
+      d1 = quantiles(1),
+      d2 = quantiles(2),
+      d3 = quantiles(3),
+      d4 = quantiles(4),
+      d5 = quantiles(5),
+      d6 = quantiles(6),
+      d7 = quantiles(7),
+      d8 = quantiles(8),
+      d9 = quantiles(9),
+      d10 = quantiles(10)
     )
   }
 }

@@ -39,11 +39,11 @@ class QuantilesSpec extends RngSuite {
     val uniform   = Uncertain.uniform(0.0, 100.0)
     val quantiles = Quantiles.ofSize(4, uniform, sampleCount) // quartiles
 
-    val q0 = quantiles.quantile(0) // min
-    val q1 = quantiles.quantile(1) // 25th percentile
-    val q2 = quantiles.quantile(2) // 50th percentile (median)
-    val q3 = quantiles.quantile(3) // 75th percentile
-    val q4 = quantiles.quantile(4) // max
+    val q0 = quantiles(0) // min
+    val q1 = quantiles(1) // 25th percentile
+    val q2 = quantiles(2) // 50th percentile (median)
+    val q3 = quantiles(3) // 75th percentile
+    val q4 = quantiles(4) // max
 
     assert(abs(q0 - 0.0) < tolerance * 100, s"Min should be close to 0, was $q0")
     assert(abs(q1 - 25.0) < tolerance * 100, s"Q1 should be close to 25, was $q1")
@@ -58,8 +58,8 @@ class QuantilesSpec extends RngSuite {
 
     assert(abs(quantiles.min - 10.0) < tolerance * 100, s"Min should be close to 10, was ${quantiles.min}")
     assert(abs(quantiles.max - 90.0) < tolerance * 100, s"Max should be close to 90, was ${quantiles.max}")
-    assert(quantiles.min == quantiles.quantile(0), "Min should equal quantile(0)")
-    assert(quantiles.max == quantiles.quantile(quantiles.quantileIntervals), "Max should equal quantile(n)")
+    assert(quantiles.min == quantiles(0), "Min should equal quantile(0)")
+    assert(quantiles.max == quantiles(quantiles.quantileIntervals), "Max should equal quantile(n)")
   }
 
   rngTest("Quantiles.toList should return correct sequence based on inclusion parameters") {
@@ -103,7 +103,7 @@ class QuantilesSpec extends RngSuite {
 
     // Verify map values match quantile values
     fullMap.foreach { case (index, value) =>
-      assert(value == quantiles.quantile(index), s"Map value at index $index should match quantile($index)")
+      assert(value == quantiles(index), s"Map value at index $index should match quantile($index)")
     }
   }
 
@@ -115,8 +115,8 @@ class QuantilesSpec extends RngSuite {
 
     // Quantile boundaries should be approximately the same after reconstruction
     (0 to 4).foreach { i =>
-      val diff = abs(q1.quantile(i) - q2.quantile(i))
-      assert(diff < tolerance * 100, s"Quantile $i should be stable: q1=${q1.quantile(i)}, q2=${q2.quantile(i)}, diff=$diff")
+      val diff = abs(q1(i) - q2(i))
+      assert(diff < tolerance * 100, s"Quantile $i should be stable: q1=${q1(i)}, q2=${q2(i)}, diff=$diff")
     }
   }
 
@@ -219,16 +219,16 @@ class QuantilesSpec extends RngSuite {
     val quantiles = Quantiles.ofSize(4, uniform, sampleCount)
 
     intercept[IllegalArgumentException] {
-      quantiles.quantile(-1)
+      quantiles(-1)
     }
 
     intercept[IllegalArgumentException] {
-      quantiles.quantile(5) // > quantileIntervals
+      quantiles(5) // > quantileIntervals
     }
 
     // Valid indices should work
-    val q0 = quantiles.quantile(0)
-    val q4 = quantiles.quantile(4)
+    val q0 = quantiles(0)
+    val q4 = quantiles(4)
     assert(q0 >= 0.0, "quantile(0) should return a valid value")
     assert(q4 <= 100.0, "quantile(4) should return a valid value")
   }
@@ -238,7 +238,7 @@ class QuantilesSpec extends RngSuite {
     val quantiles = Quantiles.ofSize(4, point, sampleCount)
 
     (0 to 4).foreach { i =>
-      assert(quantiles.quantile(i) == 42.0, s"All quantiles should be 42.0 for point distribution, quantile($i) was ${quantiles.quantile(i)}")
+      assert(quantiles(i) == 42.0, s"All quantiles should be 42.0 for point distribution, quantile($i) was ${quantiles(i)}")
     }
 
     assert(quantiles.min == 42.0, "Min should be 42.0")
@@ -251,7 +251,7 @@ class QuantilesSpec extends RngSuite {
 
     // All quantile values should be integers from 1 to 10
     (0 to 4).foreach { i =>
-      val value = quantiles.quantile(i)
+      val value = quantiles(i)
       assert(value >= 1 && value <= 10, s"Quantile $i should be between 1 and 10, was $value")
       assert(value == value.toDouble, s"Quantile $i should be an integer value, was $value")
     }

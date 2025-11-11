@@ -42,7 +42,14 @@ final case class Quintiles[T](
 ) extends Quantiles[T] {
   override val quantileIntervals = 5
 
-  def quintile(n: Int): T = n match {
+  /** Returns the value at the given Quintile boundary.
+   *
+   * @param n
+   * percentile boundary index (0 to 5)
+   * @return
+   * the value at the specified percentile boundary
+   */
+  override def apply(n: Int): T = n match {
     case 0         => q0
     case 1         => q1
     case 2         => q2
@@ -51,8 +58,6 @@ final case class Quintiles[T](
     case 5         => q5
     case otherwise => throw new IllegalArgumentException(s"Quintile has to be in range (0 to 5), was: $otherwise")
   }
-
-  override def quantile(n: Int): T = quintile(n)
 
 }
 
@@ -81,12 +86,12 @@ object Quintiles {
     )(using ord)
 
     Quintiles[T](
-      q0 = quantiles.quantile(0),
-      q1 = quantiles.quantile(1),
-      q2 = quantiles.quantile(2),
-      q3 = quantiles.quantile(3),
-      q4 = quantiles.quantile(4),
-      q5 = quantiles.quantile(5)
+      q0 = quantiles(0),
+      q1 = quantiles(1),
+      q2 = quantiles(2),
+      q3 = quantiles(3),
+      q4 = quantiles(4),
+      q5 = quantiles(5)
     )
   }
 }

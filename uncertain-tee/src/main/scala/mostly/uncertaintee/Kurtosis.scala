@@ -46,7 +46,7 @@ sealed trait Kurtosis {
 
 /** Represents a Kurtosis value that is guaranteed to be defined (i.e., not [[Kurtosis.Undefined]]).
   */
-trait DefinedKurtosis extends Kurtosis {
+sealed trait DefinedKurtosis extends Kurtosis {
 
   /** The numerical excess kurtosis value (fourth standardized moment - 3). */
   def excessValue: Double

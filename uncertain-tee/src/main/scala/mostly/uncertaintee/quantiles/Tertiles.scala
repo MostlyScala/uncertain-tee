@@ -37,7 +37,14 @@ final case class Tertiles[T](
 
   override val quantileIntervals: Int = 3
 
-  def tertile(n: Int): T = n match {
+  /** Returns the value at the given Tertile boundary.
+    *
+    * @param n
+    *   percentile boundary index (0 to 3)
+    * @return
+    *   the value at the specified percentile boundary
+    */
+  override def apply(n: Int): T = n match {
     case 0         => t0
     case 1         => t1
     case 2         => t2
@@ -45,7 +52,6 @@ final case class Tertiles[T](
     case otherwise => throw new IllegalArgumentException(s"Tertile has to be in range (0 to 3), was: $otherwise")
   }
 
-  override def quantile(n: Int): T = tertile(n)
 }
 
 object Tertiles {
@@ -73,10 +79,10 @@ object Tertiles {
     )(using ord)
 
     Tertiles[T](
-      t0 = quantiles.quantile(0),
-      t1 = quantiles.quantile(1),
-      t2 = quantiles.quantile(2),
-      t3 = quantiles.quantile(3)
+      t0 = quantiles(0),
+      t1 = quantiles(1),
+      t2 = quantiles(2),
+      t3 = quantiles(3)
     )
   }
 }
