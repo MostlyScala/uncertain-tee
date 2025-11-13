@@ -41,7 +41,11 @@ trait StatisticalOps {
     /** Creates a frequency count of all sample values. */
     def histogram(sampleCount: Int): Map[T, Int] = {
       require(sampleCount > 0, "Sample count must be positive.")
-      uncertain.take(sampleCount).groupBy(identity).view.mapValues(_.length).toMap
+      uncertain.iterator
+        .take(sampleCount)
+        .foldLeft(Map.empty.withDefaultValue(0)) {
+          case (acc, value) => acc.updated(value, acc(value) + 1)
+        }
     }
 
     /** Estimates the information entropy (randomness) of the distribution. */
