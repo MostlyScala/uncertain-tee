@@ -291,7 +291,7 @@ object Uncertain {
   /** Creates an uncertain value from any sampling function.
     *
     * @param sampler
-    *   Function that produces a new sample each time it's called
+    *   Function that produces a new sample each time it's called and has access to summoning a Random instance (if necessary) when calculating the sample
     * @param random
     *   Random number generator to use (defaults to a new Random instance)
     * @return

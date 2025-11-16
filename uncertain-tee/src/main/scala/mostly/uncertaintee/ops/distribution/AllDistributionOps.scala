@@ -78,6 +78,9 @@ trait AllDistributionOps
     def normal(mean: Double, standardDeviation: Double)(using random: Random = new Random()): Uncertain[Double] =
       Uncertain.normalDouble(mean, standardDeviation)(using random)
 
+    def gaussian(mean: Double, standardDeviation: Double)(using random: Random = new Random()): Uncertain[Double] =
+      Uncertain.normalDouble(mean, standardDeviation)(using random)
+
     def geometric(probability: Double)(using random: Random = new Random()): Uncertain[Int] =
       Uncertain.geometricViaDouble(probability)(using random)
 
