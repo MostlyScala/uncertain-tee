@@ -16,8 +16,7 @@
 
 package mostly.uncertaintee.ops.distribution
 
-import mostly.uncertaintee._
-import mostly.uncertaintee.syntax.*
+import mostly.uncertaintee.*
 
 import scala.util.Random
 

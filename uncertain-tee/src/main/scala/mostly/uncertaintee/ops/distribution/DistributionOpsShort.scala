@@ -16,8 +16,7 @@
 
 package mostly.uncertaintee.ops.distribution
 
-import mostly.uncertaintee._
-import mostly.uncertaintee.syntax.*
+import mostly.uncertaintee.*
 
 import scala.util.Random
 
@@ -32,7 +31,6 @@ trait DistributionOpsShort {
       if (minInclusive == maxExclusive) Uncertain.always(minInclusive)
       else Uncertain(() => random.between(minInclusive.toInt, maxExclusive.toInt).toShort)
     }
-
   }
 
 }
