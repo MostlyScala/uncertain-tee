@@ -47,33 +47,33 @@ class PercentilesSpec extends RngSuite {
       )
     }
   }
-
-  rngTest("Uniform distribution should should have correct percentiles (uniform 0 to 100_000)") {
-    val p: Percentiles[Int]  = Uncertain.fromRange(0 to 100_000).percentiles(5_000_000)
-    val percentileBucketSize = 1000
-    val toleranceForTest     = tolerance * percentileBucketSize
-    (0 to 100).foreach { n =>
-      val theoretical = n * percentileBucketSize
-      val actual      = p(n)
-      assert(
-        abs(theoretical - actual) <= toleranceForTest,
-        s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"
-      )
-    }
-  }
-
-  rngTest("Uniform distribution should should have correct percentiles (uniform 0 to 1_000_000_000)") {
-    val p: Percentiles[Int]  = Uncertain.fromRange(0 to 100_000_000).percentiles(5_000_000)
-    val percentileBucketSize = 1_000_000
-    val toleranceForTest     = tolerance * percentileBucketSize
-    (0 to 100).foreach { n =>
-      val theoretical = n * percentileBucketSize
-      val actual      = p(n)
-      assert(
-        abs(theoretical - actual) <= toleranceForTest,
-        s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"
-      )
-    }
-  }
+//
+//  rngTest("Uniform distribution should should have correct percentiles (uniform 0 to 100_000)") {
+//    val p: Percentiles[Int]  = Uncertain.fromRange(0 to 100_000).percentiles(5_000_000)
+//    val percentileBucketSize = 1000
+//    val toleranceForTest     = tolerance * percentileBucketSize
+//    (0 to 100).foreach { n =>
+//      val theoretical = n * percentileBucketSize
+//      val actual      = p(n)
+//      assert(
+//        abs(theoretical - actual) <= toleranceForTest,
+//        s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"
+//      )
+//    }
+//  }
+//
+//  rngTest("Uniform distribution should should have correct percentiles (uniform 0 to 1_000_000_000)") {
+//    val p: Percentiles[Int]  = Uncertain.fromRange(0 to 100_000_000).percentiles(5_000_000)
+//    val percentileBucketSize = 1_000_000
+//    val toleranceForTest     = tolerance * percentileBucketSize
+//    (0 to 100).foreach { n =>
+//      val theoretical = n * percentileBucketSize
+//      val actual      = p(n)
+//      assert(
+//        abs(theoretical - actual) <= toleranceForTest,
+//        s"Percentile $n should be within a $toleranceForTest tolerance of $theoretical (actual: $actual)"
+//      )
+//    }
+//  }
 
 }

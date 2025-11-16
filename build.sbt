@@ -24,6 +24,7 @@ ThisBuild / tlSiteHelium := Helium.defaults
 lazy val root = tlCrossRootProject.aggregate(
   uncertainTee,
   uncertainTeeCats,
+  uncertainTeeScalacheck,
   uncertainTeeSquants
 )
 
@@ -45,6 +46,16 @@ lazy val uncertainTeeCats = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(uncertainTee)
 
+lazy val uncertainTeeScalacheck = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uncertain-tee-scalacheck"))
+  .settings(
+    name := "uncertain-tee-scalacheck",
+    libraryDependencies ++= Dependencies.scalaCheck,
+    libraryDependencies ++= Dependencies.test
+  )
+  .dependsOn(uncertainTee)
+
 lazy val uncertainTeeSquants = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("uncertain-tee-squants"))
@@ -54,16 +65,6 @@ lazy val uncertainTeeSquants = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.test
   )
   .dependsOn(uncertainTee)
-
-//lazy val uncertainTeeCatsEffect = crossProject(JVMPlatform, JSPlatform)
-//  .crossType(CrossType.Pure)
-//  .in(file("uncertain-tee-cats-effect"))
-//  .settings(
-//    name := "uncertain-tee-cats-effect",
-//    libraryDependencies ++= Dependencies.catsEffect,
-//    libraryDependencies ++= Dependencies.test
-//  )
-//  .dependsOn(uncertainTeeCats)
 
 lazy val docs = project
   .in(file("site"))
@@ -93,6 +94,10 @@ lazy val Dependencies = new {
 
   val squants = Seq(
     "org.typelevel" %% "squants" % V.squants
+  )
+
+  val scalaCheck = Seq(
+    "org.scalacheck" %% "scalacheck" % V.scalacheck
   )
 
   val test = Seq(
