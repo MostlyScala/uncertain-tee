@@ -72,6 +72,44 @@ trait AllDistributionOps
       Uncertain(() => indexedData(random.nextInt(indexedData.length)))
     }
 
+    /** Creates a Beta distribution.
+      *
+      * The Beta distribution is a continuous probability distribution on [0,1] parameterized by two positive shape parameters. It is widely used to model random variables limited
+      * to intervals of finite length in Bayesian statistics.
+      *
+      * @see
+      *   https://en.wikipedia.org/wiki/Beta_distribution
+      *
+      * @param alpha
+      *   The first shape parameter (must be positive and finite). Higher values shift the distribution right.
+      * @param beta
+      *   The second shape parameter (must be positive and finite). Higher values shift the distribution left.
+      * @param random
+      *   Random number generator to use for sampling.
+      * @return
+      *   An uncertain value following a Beta distribution on the interval [0,1].
+      * @note
+      *   Common special cases:
+      *   - Beta(1,1) is uniform on [0,1]
+      *   - Beta(α,α) is symmetric around 0.5
+      *   - Beta(0.5,0.5) is U-shaped (concentrated near 0 and 1)
+      *   - Beta(2,5) is left-skewed, Beta(5,2) is right-skewed
+      * @note
+      *   Implementation uses the Gamma ratio method: if X ~ Gamma(α,1) and Y ~ Gamma(β,1), then X/(X+Y) ~ Beta(α,β). Gamma samples are generated using the Marsaglia-Tsang method.
+      * @example
+      *   {{{
+      * // Symmetric distribution around 0.5
+      * val symmetric = Uncertain.betaViaDouble(2.0, 2.0)
+      *
+      * // Right-skewed distribution
+      * val rightSkewed = Uncertain.betaViaDouble(5.0, 2.0)
+      *
+      * // U-shaped distribution (concentrated at extremes)
+      * val uShaped = Uncertain.betaViaDouble(0.5, 0.5)
+      *   }}}
+      */
+    def beta(alpha: Double, beta: Double)(using random: Random = new Random()): Uncertain[Double] = Uncertain.betaViaDouble(alpha, beta)(using random)
+
     def categorical[T](outcomes: Map[T, Double])(using random: Random = new Random()): Uncertain[T] =
       Uncertain.categoricalViaDouble(outcomes)(using random)
 

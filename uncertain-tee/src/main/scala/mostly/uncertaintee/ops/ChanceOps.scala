@@ -86,6 +86,30 @@ trait ChanceOps {
       */
     def oneIn(y: Int)(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.xInY(1, y)(using random)
 
+    /** Creates a yes/no outcome based on odds like "2 out of 33" chance.
+      *
+      * Uses a Bernoulli distribution: https://en.wikipedia.org/wiki/Bernoulli_distribution
+      *
+      * @param n
+      *   The number of favorable outcomes (e.g., 1 for "1 out of 10")
+      * @param outOf
+      *   The total number of possible outcomes (e.g., 10 for "1 out of 10")
+      * @return
+      *   An uncertain Boolean that's true with probability favorable/outOf
+      * @example
+      *   {{{
+      *   val rareEvent = Uncertain.chanceOf(2, outOf = 333)  // 2 out of 333 chance
+      *   val coinFlip = Uncertain.chanceOf(1, outOf = 2)      // 1 out of 2 chance
+      *   val impossible = Uncertain.chanceOf(0, outOf = 100)  // 0% chance
+      *   }}}
+      */
+    def nOutOf(n: Int, outOf: Int)(using random: Random = new Random()): Uncertain[Boolean] = {
+      require(n >= 0, s"Favorable outcomes must be non-negative, got $n")
+      require(outOf > 0, s"Total outcomes must be positive, got $outOf")
+      require(n <= outOf, s"Favorable outcomes ($n) cannot exceed total outcomes ($outOf)")
+      Uncertain.bernoulliViaDouble(probability = n.toDouble / outOf)
+    }
+
     // ------------------
     // -- "One in Y" Helpers
     // ------------------
@@ -164,6 +188,137 @@ trait ChanceOps {
 
     /** 1-to-10 odds. ~9.1% probability. */
     def oddsOneToTen(using random: Random = new Random()): Uncertain[Boolean] = odds(1, 10)(using random)
+
+    /** Creates a 50/50 random true/false outcome.
+      *
+      * This is equivalent to a fair coin flip, but with clearer intent for yes/no decisions.
+      *
+      * Uses a Bernoulli distribution: https://en.wikipedia.org/wiki/Bernoulli_distribution
+      *
+      * @return
+      *   An uncertain Boolean with equal probability of true or false
+      * @example
+      *   {{{
+      *   val shouldRetry = Uncertain.maybe()
+      *   if (shouldRetry.sample()) {
+      *     println("Retrying...")
+      *   }
+      *
+      *   val optionalFeature = Uncertain.maybe()
+      *   // Use in A/B testing, random branching, etc.
+      *   }}}
+      */
+    def maybe()(using random: Random = new Random()): Uncertain[Boolean] =
+      Uncertain.bernoulliViaDouble(probability = 0.5)
+
+    /** Picks N random items from a collection without replacement.
+      *
+      * @param items
+      *   The collection to pick from. For performance sensitive code, prefer IndexedSeq (Vector, Array, etc.) for O(1) random access.
+      * @param n
+      *   Number of items to pick (must be <= items.size)
+      * @return
+      *   An uncertain List containing n randomly selected items
+      * @example
+      *   {{{
+      *   val contestants = List("Alice", "Bob", "Charlie", "Diana", "Eve")
+      *   val winners = Uncertain.pickN(contestants, 3)
+      *   // Sample: List("Diana", "Alice", "Charlie")
+      *
+      *   val deck = (1 to 52).toList
+      *   val hand = Uncertain.pickN(deck, 5)
+      *   // Deal a poker hand
+      *
+      *   val playlist = List("Song A", "Song B", "Song C", "Song D")
+      *   val shuffled = Uncertain.pickN(playlist, playlist.size)
+      *   }}}
+      */
+    def pickWithoutReplacement[T](items: Seq[T], n: Int)(using random: Random = new Random()): Uncertain[List[T]] = {
+      require(n >= 0, "Cannot pick negative number of items")
+      require(n <= items.size, s"Cannot pick $n items from collection of size ${items.size}")
+      if (n > items.size / 2) {
+        // For large N we do a shuffle since there's no point optimizing
+        Uncertain(() => random.shuffle(items).take(n).toList)
+      } else {
+        // For small N, partial Fisher-Yates avoids unnecessary work. Is this faster than std lib shuffle? Maybe we should actually benchmark it.
+        Uncertain { () =>
+          val arrayOfShuffledIndexes: Array[Int] = items.indices.toArray
+          // Partial Fisher-Yates: only shuffle the first N elements
+          for (originalIndex <- 0 until n) {
+            val indexToSwapWith = originalIndex + random.nextInt(items.size - originalIndex)
+            // Swap the values at originalIndex and indexToSwapWith
+            val temp            = arrayOfShuffledIndexes(indexToSwapWith)
+            arrayOfShuffledIndexes(indexToSwapWith) = arrayOfShuffledIndexes(originalIndex)
+            arrayOfShuffledIndexes(originalIndex) = temp
+          }
+          // Take the first N (the shuffled indexes) and retrieve the corresponding items
+          arrayOfShuffledIndexes.iterator
+            .take(n)
+            .map(randomizedIndex => items(randomizedIndex))
+            .toList
+        }
+      }
+
+    }
+
+    /** Draws a given number of items randomly from a collection, without replacement.
+      *
+      * This is like reaching into a hat and pulling out a few items — once an item is drawn, it can't be drawn again in the same sample.
+      *
+      * @param items
+      *   The collection of items to draw from. For performance, prefer `IndexedSeq` (Vector, Array, etc.) for O(1) random access.
+      * @param itemsToDraw
+      *   Number of items to pick (must be <= items.size)
+      * @return
+      *   An uncertain `List` containing `itemsToDraw` randomly selected items
+      * @example
+      *   {{{
+      *   val contestants = List("Alice", "Bob", "Charlie", "Diana")
+      *   val winners = Uncertain.drawFromHat(contestants, 2)
+      *   // Sample result: List("Charlie", "Alice")
+      *
+      *   val deck = (1 to 52).toList
+      *   val hand = Uncertain.drawFromHat(deck, 5)
+      *   // Deals a random poker hand
+      *   }}}
+      */
+    def drawFromHat[T](items: Seq[T], itemsToDraw: Int)(using random: Random = Random()): Uncertain[List[T]] =
+      Uncertain.pickWithoutReplacement(items = items, n = itemsToDraw)
+
+    /** Simulates drawing straws and tells you if you drew one of the "short" straws.
+      *
+      * Each straw has an equal chance of being a short straw. By default, drawing a short straw returns `true`.
+      *
+      * @param totalStraws
+      *   Total number of straws in the pool (must be >= 1)
+      * @param shortStraws
+      *   How many straws are considered "short" (must be >= 0 and <= total straws)
+      * @return
+      *   An uncertain `Boolean` — `true` if you drew a short straw (or as controlled by `treatShortAsTrue`)
+      * @example
+      *   {{{
+      *   // One short straw among ten
+      *   val drewShort = Uncertain.drawStraws(10)
+      *   // Multiple short straws
+      *   val drewOneOfTwoShort: Uncertaion[Boolean] = Uncertain.drawStraws(shortStraws = 2, totalStraws = 10)
+      *   }}}
+      */
+    def drawStraws(
+      shortStraws: Int = 1,
+      totalStraws: Int
+    )(using random: Random = new Random()): Uncertain[Boolean] = {
+      require(totalStraws > 0, "Must have at least one straw")
+      require(shortStraws >= 0, "Must have non-negative number of short straws")
+      require(shortStraws <= totalStraws, "Cannot have more short straws than total straws")
+      if (shortStraws == 0) {
+        Uncertain.always(false)
+      } else if (shortStraws == totalStraws) {
+        Uncertain.always(true)
+      } else {
+        val probability: Double = shortStraws.toDouble / totalStraws.toDouble
+        Uncertain.bernoulliViaDouble(probability)
+      }
+    }
 
     /** Models a simple "P percent" probability.
       *

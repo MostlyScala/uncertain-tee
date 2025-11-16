@@ -18,6 +18,7 @@ package mostly.uncertaintee.ops.distribution
 
 import mostly.uncertaintee.*
 
+import scala.annotation.tailrec
 import scala.math.*
 import scala.util.Random
 
@@ -255,5 +256,99 @@ trait DistributionOpsDouble {
         val zeroToOne = random.nextDouble()
         inverseCdf.fromProbabilityToValue(zeroToOne)
       }
+
+    /** Creates a Beta distribution.
+      *
+      * The Beta distribution is a continuous probability distribution on [0,1] parameterized by two positive shape parameters. It is widely used to model random variables limited
+      * to intervals of finite length in Bayesian statistics.
+      *
+      * @see
+      *   https://en.wikipedia.org/wiki/Beta_distribution
+      *
+      * @param alpha
+      *   The first shape parameter (must be positive and finite). Higher values shift the distribution right.
+      * @param beta
+      *   The second shape parameter (must be positive and finite). Higher values shift the distribution left.
+      * @param random
+      *   Random number generator to use for sampling.
+      * @return
+      *   An uncertain value following a Beta distribution on the interval [0,1].
+      * @note
+      *   Common special cases:
+      *   - Beta(1,1) is uniform on [0,1]
+      *   - Beta(α,α) is symmetric around 0.5
+      *   - Beta(0.5,0.5) is U-shaped (concentrated near 0 and 1)
+      *   - Beta(2,5) is left-skewed, Beta(5,2) is right-skewed
+      * @note
+      *   Implementation uses the Gamma ratio method: if X ~ Gamma(α,1) and Y ~ Gamma(β,1), then X/(X+Y) ~ Beta(α,β). Gamma samples are generated using the Marsaglia-Tsang method.
+      * @example
+      *   {{{
+      * // Symmetric distribution around 0.5
+      * val symmetric = Uncertain.betaViaDouble(2.0, 2.0)
+      *
+      * // Right-skewed distribution
+      * val rightSkewed = Uncertain.betaViaDouble(5.0, 2.0)
+      *
+      * // U-shaped distribution (concentrated at extremes)
+      * val uShaped = Uncertain.betaViaDouble(0.5, 0.5)
+      *   }}}
+      */
+    def betaViaDouble(alpha: Double, beta: Double)(using random: Random = new Random()): Uncertain[Double] = {
+      require(alpha > 0 && !alpha.isNaN && !alpha.isInfinite, s"Alpha must be positive and finite: alpha=$alpha")
+      require(beta > 0 && !beta.isNaN && !beta.isInfinite, s"Beta must be positive and finite: beta=$beta")
+
+      // Generates a sample from Gamma(shape, 1) distribution using Marsaglia-Tsang method
+      def sampleGamma(shape: Double): Double = {
+        require(shape > 0, s"Gamma shape parameter must be positive: shape=$shape")
+
+        // Marsaglia-Tsang transformation parameters
+        val transformD = if (shape < One) {
+          shape + One - One / 3.0
+        } else {
+          shape - One / 3.0
+        }
+        val transformC = One / sqrt(9.0 * transformD)
+
+        @tailrec
+        def acceptanceRejectionSample(maxAttempts: Int = 1000): Double = {
+          require(maxAttempts > 0, "Maximum attempts exhausted in Gamma sampling. This indicates a serious rng/numerical issue with the source of randomness.")
+
+          val standardNormal   = random.nextGaussian()
+          val transformedValue = One + transformC * standardNormal
+
+          if (transformedValue <= Zero) {
+            acceptanceRejectionSample(maxAttempts - 1)
+          } else {
+            val cubeTransformed = transformedValue * transformedValue * transformedValue
+            val uniformSample   = random.nextDouble()
+            val normalSquared   = standardNormal * standardNormal
+
+            val squeezeAccept = uniformSample < One - 0.0331 * normalSquared * normalSquared
+            val logAccept     = log(uniformSample) < 0.5 * normalSquared + transformD * (One - cubeTransformed + log(cubeTransformed))
+
+            if (squeezeAccept || logAccept) {
+              transformD * cubeTransformed
+            } else {
+              acceptanceRejectionSample(maxAttempts - 1)
+            }
+          }
+        }
+        val gammaSample                                                = acceptanceRejectionSample()
+
+        // For shape < 1, apply correction factor using theorem: if X ~ Gamma(a+1,1) then X*U^(1/a) ~ Gamma(a,1)
+        if (shape < One) {
+          val uniformCorrection = random.nextDouble() * (One - Double.MinPositiveValue) + Double.MinPositiveValue
+          gammaSample * pow(uniformCorrection, One / shape)
+        } else {
+          gammaSample
+        }
+      }
+
+      Uncertain { () =>
+        val gammaAlpha = sampleGamma(alpha)
+        val gammaBeta  = sampleGamma(beta)
+        gammaAlpha / (gammaAlpha + gammaBeta)
+      }
+    }
   }
 }
