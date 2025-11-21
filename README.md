@@ -2,7 +2,7 @@
 
 Uncertain-tee is a **monte carlo simulation based** and **correlation preserving** library for working with Uncertain data, called an **Uncertain[T]**.
 
-`Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
+An `Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
 any value that has uncertainty. Instead of just working with single values, you work with *distributions* of possible
 values.
 
