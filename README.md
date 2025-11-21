@@ -200,7 +200,7 @@ val attendance = weatherIsGood.flatMap { isGood =>
 println(s"Expected attendance: ${attendance.mean(sampleCount = 10_000)}")
 ```
 
-Here, `.flatMap` chains the two uncertain events (`weatherIsGood` and `attendance`) together.
+Here, `.flatMap` chains the two uncertain events (`weatherIsGood` and a normal distribution ("bell curve" of attendance) together.
 
 ### Measurement with Error
 
