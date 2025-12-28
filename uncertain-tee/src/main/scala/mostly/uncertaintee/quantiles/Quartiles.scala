@@ -48,12 +48,12 @@ final case class Quartiles[T](
   def median: T = q2
 
   /** Returns the value at the given Quartile boundary.
-   *
-   * @param n
-   * percentile boundary index (0 to 5)
-   * @return
-   * the value at the specified percentile boundary
-   */
+    *
+    * @param n
+    *   percentile boundary index (0 to 5)
+    * @return
+    *   the value at the specified percentile boundary
+    */
   override def apply(n: Int): T = n match {
     case 0         => q0
     case 1         => q1

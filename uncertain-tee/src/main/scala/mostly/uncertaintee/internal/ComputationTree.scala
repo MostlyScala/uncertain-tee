@@ -24,8 +24,9 @@ import scala.util.control.TailCalls
 
 /** Internal: A node in the computation graph (tree).
   *
-  * This is the core abstraction for building and evaluating probabilistic computations. Each node in the tree represents either a source of randomness ([[ComputationLeaf]]) or a
-  * transformation of uncertain values ([[ComputationFlatMapping]]).
+  * This is the core abstraction for building and evaluating probabilistic computations. Each node in the tree represents either a source of randomness ([[ComputationLeaf]]), a
+  * deterministic transformation of values ([[ComputationMapping]]), a transformation of nested [[Uncertain]] values ([[ComputationFlatMapping]]) or a constant value
+  * ([[ComputationPure]]).
   *
   * Evaluation is performed using trampolining to avoid stack overflow on deeply nested computations.
   *
@@ -54,13 +55,11 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
     * @return
     *   a tail-recursive computation that produces a value of type T
     */
-  private def evaluateTrampoline(context: SampleContext): TailCalls.TailRec[T] = this match {
-    case ComputationLeaf(id, sampler) =>
-      TailCalls.done {
-        context.getOrComputeSample(id, sampler)
-      }
-
-    case ComputationFlatMapping(source, f) =>
+  private[uncertaintee] def evaluateTrampoline(context: SampleContext): TailCalls.TailRec[T] = this match {
+    case ComputationPure(value)                => TailCalls.done(value)
+    case ComputationLeaf(id, sampler)          => TailCalls.done(context.getOrComputeSample(id, sampler))
+    case ComputationMapping(source, transform) => source.evaluateTrampoline(context).map(transform)
+    case ComputationFlatMapping(source, f)     =>
       source.evaluateTrampoline(context).flatMap { sourceValue =>
         val innerUncertain = f(sourceValue)
         innerUncertain.computationTree.evaluateTrampoline(context)
@@ -86,6 +85,26 @@ final private[uncertaintee] case class ComputationLeaf[T](
   id: UUID,
   sampler: () => T
 ) extends ComputationTree[T]
+
+/** A node representing a pure constant value.
+  *
+  * Used for e.g. `Uncertain.always(x)`. These values do not need to be cached in the SampleContext because they are immutable and identity-independent (5 is always 5).
+  */
+final private[uncertaintee] case class ComputationPure[T](value: T) extends ComputationTree[T]
+
+/** A node representing a deterministic transformation (map).
+  *
+  * Used for `x.map(f)`. Storing this explicitly allows for "Map Fusion": `x.map(f).map(g)` can be fused into `x.map(f andThen g)`, reducing tree depth and allocation.
+  *
+  * @param source
+  *   The upstream computation.
+  * @param transform
+  *   The pure function to apply.
+  */
+final private[uncertaintee] case class ComputationMapping[A, B](
+  source: ComputationTree[A],
+  transform: A => B
+) extends ComputationTree[B]
 
 /** Represents a monadic bind operation (flatMap) in the computation graph.
   *

@@ -32,6 +32,7 @@ package object cats {
 
   /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
   implicit val uncertainMonad: StackSafeMonad[Uncertain] = new StackSafeMonad[Uncertain] {
+    override def map[A, B](fa: Uncertain[A])(f: A => B): Uncertain[B]                = fa.map(f)
     override def flatMap[A, B](fa: Uncertain[A])(f: A => Uncertain[B]): Uncertain[B] = fa.flatMap(f)
     override def pure[A](x: A): Uncertain[A]                                         = Uncertain.always(x)
   }

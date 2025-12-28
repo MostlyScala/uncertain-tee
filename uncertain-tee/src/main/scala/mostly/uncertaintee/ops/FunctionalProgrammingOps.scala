@@ -19,8 +19,6 @@ package mostly.uncertaintee.ops
 import mostly.uncertaintee.Uncertain
 import mostly.uncertaintee.syntax.*
 
-import scala.util.Random
-
 /** {{{
   * import mostly.uncertaintee.syntax.functional.*
   * // or just import all the syntax (recommended)
@@ -73,9 +71,9 @@ trait FunctionalProgrammingOps {
       * @return
       *   A single `Uncertain` that, when sampled, produces a list of samples — one from each of the input `Uncertain` instances, preserving all correlations between them.
       */
-    def sequence[T](uncertainTs: Iterable[Uncertain[T]])(using random: Random = new Random()): Uncertain[List[T]] =
+    def sequence[T](uncertainTs: Iterable[Uncertain[T]]): Uncertain[List[T]] =
       uncertainTs.foldRight {
-        Uncertain.always(List.empty[T])(using random)
+        Uncertain.always(List.empty[T])
       }(_ :: _)
 
     /** Applies a function to each element in a collection, where the function returns an `Uncertain` value, then sequences the results into a single `Uncertain` collection.
@@ -117,9 +115,9 @@ trait FunctionalProgrammingOps {
       */
     def traverse[A, T](
       items: Iterable[A]
-    )(f: A => Uncertain[T])(using random: Random = new Random()): Uncertain[List[T]] =
+    )(f: A => Uncertain[T]): Uncertain[List[T]] =
       items.foldRight {
-        Uncertain.always(List.empty[T])(using random)
+        Uncertain.always(List.empty[T])
       } { (elem, acc) =>
         for {
           h <- f(elem)
