@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,8 +98,22 @@ sealed abstract class Uncertain[T] {
     * @return
     *   New uncertain value with the function applied to each sample
     */
-  def map[U](f: T => U): Uncertain[U] =
-    this.flatMap(value => Uncertain(() => f(value)))
+  def map[U](f: T => U): Uncertain[U] = {
+    val newTree: ComputationTree[U] = this.computationTree match {
+      case ComputationMapping(source, previousTransform) =>
+        // FUSION: Combine f(g(x)) into a single execution step
+        // We have to cast the source/transform because ComputationMap is generic (Input => Output)
+        // logic: previous is (Input => T), f is (T => U). composition is (Input => U)
+        val typedSource: ComputationTree[Any] = source
+        val typedPrev: Any => T               = previousTransform.asInstanceOf[Any => T]
+        val composed: Any => U                = typedPrev.andThen(f)
+        ComputationMapping(typedSource, composed)
+      case _                                             =>
+        // No fusion possible, create a new Map node
+        ComputationMapping(this.computationTree, f)
+    }
+    Uncertain(() => f(this.sample()), newTree)
+  }
 
   /** Chains uncertain computations together (monadic bind operation).
     *
@@ -262,7 +276,6 @@ sealed abstract class Uncertain[T] {
       case t if keepWhen(t) => Some(t)
       case _                => None
     }
-
 }
 
 /** Factory for creating uncertain values from various distributions and data sources. */
@@ -285,8 +298,11 @@ object Uncertain {
     *   // Time varies because distance varies, but speed is always 60
     *   }}}
     */
-  def always[T](value: T)(using random: Random = new Random()): Uncertain[T] =
-    Uncertain(() => value)(using random)
+  def always[T](value: T): Uncertain[T] =
+    Uncertain(
+      sampler = () => value,
+      underlying = ComputationPure(value)
+    )
 
   /** Creates an uncertain value from any sampling function.
     *

@@ -375,7 +375,7 @@ trait ChanceOps {
     def promille(p: Double)(using random: Random = new Random()): Uncertain[Boolean] = permille(p)(using random)
 
     // 0-9%
-    def percent0(using random: Random = new Random()): Uncertain[Boolean]  = Uncertain.always(false)
+    def percent0: Uncertain[Boolean]                                       = Uncertain.always(false)
     def percent1(using random: Random = new Random()): Uncertain[Boolean]  = Uncertain.bernoulli(0.01)(using random)
     def percent2(using random: Random = new Random()): Uncertain[Boolean]  = Uncertain.bernoulli(0.02)(using random)
     def percent3(using random: Random = new Random()): Uncertain[Boolean]  = Uncertain.bernoulli(0.03)(using random)
@@ -484,5 +484,6 @@ trait ChanceOps {
     def percent97(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.97)(using random)
     def percent98(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.98)(using random)
     def percent99(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.99)(using random)
+    def percent100: Uncertain[Boolean]                                     = Uncertain.always(true)
   }
 }

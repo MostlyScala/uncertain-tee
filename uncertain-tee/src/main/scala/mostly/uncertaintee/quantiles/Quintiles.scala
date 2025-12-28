@@ -43,12 +43,12 @@ final case class Quintiles[T](
   override val quantileIntervals = 5
 
   /** Returns the value at the given Quintile boundary.
-   *
-   * @param n
-   * percentile boundary index (0 to 5)
-   * @return
-   * the value at the specified percentile boundary
-   */
+    *
+    * @param n
+    *   percentile boundary index (0 to 5)
+    * @return
+    *   the value at the specified percentile boundary
+    */
   override def apply(n: Int): T = n match {
     case 0         => q0
     case 1         => q1

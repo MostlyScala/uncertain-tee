@@ -118,6 +118,4 @@ trait UncertainInstances {
     triangularUncertain()
   )
 
-
-
 }

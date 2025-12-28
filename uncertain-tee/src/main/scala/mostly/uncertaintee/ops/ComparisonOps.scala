@@ -178,7 +178,7 @@ trait ComparisonOps {
     *
     * Accuraccy is better if a and b have similar quantile count.
     */
-  implicit private def quantileApproxEqDiscrete[T](using ApproxEq[T], NotGiven[Numeric[T]]): ApproxEq[Quantiles[T]] =
+  implicit def quantileApproxEqDiscrete[T](using ApproxEq[T], NotGiven[Numeric[T]]): ApproxEq[Quantiles[T]] =
     (a, b) => {
       val steps = math.max(a.quantileIntervals, b.quantileIntervals)
 
@@ -197,7 +197,7 @@ trait ComparisonOps {
     }
 
   /** Provides high-accuracy approximate equality for numeric Quantiles. Uses linear interpolation by converting T values to Double. */
-  implicit private def quantileApproxEqInstanceNumeric[T](using num: Numeric[T]): ApproxEq[Quantiles[T]] =
+  implicit def quantileApproxEqInstanceNumeric[T](using num: Numeric[T]): ApproxEq[Quantiles[T]] =
     (a, b) => {
       val steps = math.max(a.quantileIntervals, b.quantileIntervals)
 
