@@ -395,7 +395,7 @@ trait ChanceOps {
     def percent16(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.16)(using random)
     def percent17(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.17)(using random)
     def percent18(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.18)(using random)
-    def percent19(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.29)(using random)
+    def percent19(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.19)(using random)
     // 20-29%
     def percent20(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.2)(using random)
     def percent21(using random: Random = new Random()): Uncertain[Boolean] = Uncertain.bernoulli(0.21)(using random)
