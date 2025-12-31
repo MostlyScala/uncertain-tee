@@ -50,9 +50,6 @@ trait CoinFlipOps {
       *   {{{
       *   val fairCoin = Uncertain.coinFlip()
       *   val biasedCoin = Uncertain.coinFlip(chanceOfHeads = 0.7)
-      *
-      *   // Multiple independent flips
-      *   val flips = List.fill(10)(Uncertain.coinFlip()).map(_.sample())
       *   }}}
       */
     def coinFlip(chanceOfHeads: Double = 0.5)(using random: Random = new Random()): Uncertain[Boolean] = {
@@ -545,7 +542,6 @@ trait CoinFlipOps {
       require(totalFlips >= 0, "Total flips must be non-negative")
       require(streakLength > 0, "Streak length must be positive")
       require(streakLength <= totalFlips, s"Cannot find streak of $streakLength in only $totalFlips flips")
-
       if (streakLength == 1) {
         // At least one heads in totalFlips - use analytical formula
         coinFlipAny(totalFlips = totalFlips, chanceOfHeads = chanceOfHeads)
@@ -553,9 +549,10 @@ trait CoinFlipOps {
         // All heads - use analytical formula
         coinFlipAll(totalFlips = totalFlips, chanceOfHeads = chanceOfHeads)
       } else {
+        val flip = coinFlip(chanceOfHeads)
         Uncertain { () =>
           // Simulate flips and check for streak using sliding window
-          val flips = List.fill(totalFlips)(coinFlip(chanceOfHeads).sample())
+          val flips = flip.take(totalFlips)
           flips.sliding(streakLength).exists(window => window.forall(identity))
         }
       }
@@ -650,12 +647,11 @@ trait CoinFlipOps {
       if (totalFlips == 0) {
         Uncertain.always(0)
       } else {
+        val flip = coinFlip(chanceOfHeads)
         Uncertain { () =>
-          val flips = List.fill(totalFlips)(coinFlip(chanceOfHeads).sample())
-
+          val flips         = flip.take(totalFlips)
           var currentStreak = 0
           var maxStreak     = 0
-
           flips.foreach { isHeads =>
             if (isHeads) {
               currentStreak += 1
@@ -664,7 +660,6 @@ trait CoinFlipOps {
               currentStreak = 0
             }
           }
-
           maxStreak
         }
       }

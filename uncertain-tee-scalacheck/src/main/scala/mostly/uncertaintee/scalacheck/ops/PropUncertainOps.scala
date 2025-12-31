@@ -36,7 +36,7 @@ trait PropUncertainOps {
       uncertain: Uncertain[T],
       samples: Int = 1000
     )(predicate: T => Boolean): Prop = Prop { _ =>
-      val results: List[T]                        = List.fill(samples)(uncertain.sample())
+      val results: List[T]                        = uncertain.take(samples)
       val (successes: List[T], failures: List[T]) = results.partition(predicate(_))
 
       if (failures.isEmpty) {

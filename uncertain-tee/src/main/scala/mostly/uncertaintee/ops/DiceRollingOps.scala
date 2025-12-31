@@ -81,7 +81,7 @@ trait DiceRollingOps {
       * @example
       *   {{{
       * val monopolyDice = Uncertain.d6() + Uncertain.d6()
-      * val yahtzee = List.fill(5)(Uncertain.d6())
+      * val yahtzee = Uncertain.d6().take(5)
       *   }}}
       * @see
       *   [[rollDie]] for custom-sided dice.
@@ -310,7 +310,7 @@ trait DiceRollingOps {
     def roll(dice: Int*)(using random: Random = new Random()): Uncertain[Int] = {
       require(dice.nonEmpty, "Must specify at least one die")
       require(dice.forall(_ >= 1), s"All dice must have at least one side, got: ${dice.mkString(", ")}")
-      dice.map(rollDie).reduce(_ + _)
+      dice.map(Uncertain.rollDie).reduce(_ + _)
     }
 
     /** Rolls multiple identical dice and sums their results.
@@ -347,9 +347,13 @@ trait DiceRollingOps {
     )(using random: Random = new Random()): Uncertain[Int] = {
       require(numberOfDice >= 0, s"Cannot roll negative number of dice, got: $numberOfDice")
       require(sides >= 1, s"Die must have at least one side, got: $sides")
-      if (numberOfDice == 0) Uncertain.always(0)
-      else if (numberOfDice == 1) rollDie(sides)
-      else Uncertain(() => rollDie(sides).take(numberOfDice).sum)
+      if (numberOfDice == 0) {
+        Uncertain.always(0)
+      } else {
+        val roll = rollDie(sides)
+        if (numberOfDice == 1) roll
+        else Uncertain(() => roll.take(numberOfDice).sum)
+      }
     }
 
     // ------------------------------------------
@@ -400,8 +404,9 @@ trait DiceRollingOps {
       require(sides >= 1, s"Die must have at least one side, got: $sides")
       require(keep >= 1, s"Must keep at least one die, got: $keep")
       require(keep <= numberOfDice, s"Cannot keep $keep dice when only rolling $numberOfDice")
+      val roll = Uncertain.rollDie(sides)
       Uncertain { () =>
-        rollDie(sides)
+        roll
           .take(numberOfDice)
           .sorted
           .takeRight(keep)
@@ -453,8 +458,9 @@ trait DiceRollingOps {
       require(sides >= 1, s"Die must have at least one side, got: $sides")
       require(keep >= 1, s"Must keep at least one die, got: $keep")
       require(keep <= numberOfDice, s"Cannot keep $keep dice when only rolling $numberOfDice")
+      val roll = Uncertain.rollDie(sides)
       Uncertain { () =>
-        rollDie(sides)
+        roll
           .take(numberOfDice)
           .sorted
           .take(keep)
@@ -486,7 +492,7 @@ trait DiceRollingOps {
         numberOfDice = 2,
         sides = sides,
         keep = 1
-      )(using random)
+      )
 
     /** Rolls two dice and keeps the lowest result (D&D 5e "Disadvantage").
       *
@@ -512,7 +518,7 @@ trait DiceRollingOps {
         numberOfDice = 2,
         sides = sides,
         keep = 1
-      )(using random)
+      )
 
     // -----------------------------------
     // ----- Exploding Dice Mechanics ----
@@ -549,7 +555,7 @@ trait DiceRollingOps {
         sides = sides,
         explodeThreshold = sides,
         maxExplosions = maxExplosions
-      )(using random)
+      )
 
     /** Rolls a die with "exploding" mechanics, rerolling and adding when the roll meets or exceeds a threshold.
       *
@@ -590,11 +596,11 @@ trait DiceRollingOps {
         explodeThreshold >= 1 && explodeThreshold <= sides,
         s"Explode threshold must be within the die's range [1, $sides], got: $explodeThreshold"
       )
+      val die = Uncertain.rollDie(sides)
       Uncertain { () =>
         var total       = 0
         var explosions  = 0
         var keepRolling = true
-        val die         = Uncertain.rollDie(sides)(using random)
         while (keepRolling && explosions <= maxExplosions) {
           val roll = die.sample()
           total += roll
@@ -656,8 +662,9 @@ trait DiceRollingOps {
         successThreshold >= 1 && successThreshold <= sides,
         s"Success threshold must be within the die's range [1, $sides], got: $successThreshold"
       )
+      val roll = Uncertain.rollDie(sides)
       Uncertain { () =>
-        Uncertain.rollDie(sides)(using random).take(numberOfDice).count(_ >= successThreshold)
+        roll.take(numberOfDice).count(_ >= successThreshold)
       }
     }
 
@@ -693,11 +700,9 @@ trait DiceRollingOps {
       numberOfDice: Int,
       sides: Int,
       successThreshold: Int
-    )(using random: Random = new Random()): Uncertain[Int] = {
+    )(using random: Random = new Random()): Uncertain[Int] =
       // Use rollCountSuccesses's requirements
-      val successes = Uncertain.rollCountSuccesses(numberOfDice, sides, successThreshold)(using random)
-      numberOfDice - successes
-    }
+      numberOfDice - Uncertain.rollCountSuccesses(numberOfDice, sides, successThreshold)
 
     /** Rolls a pool of dice and counts how many exactly match a target number.
       *
@@ -740,8 +745,104 @@ trait DiceRollingOps {
         target >= 1 && target <= sides,
         s"Target must be within the die's range [1, $sides], got: $target"
       )
+      val dieRoll = Uncertain.rollDie(sides)
       Uncertain { () =>
-        Uncertain.rollDie(sides)(using random).take(numberOfDice).count(_ == target)
+        dieRoll.take(numberOfDice).count(_ == target)
+      }
+    }
+
+    // -----------------------------------
+    // ----- Exploding Dice Mechanics ----
+    // -----------------------------------
+
+    /** Rolls a die with "exploding" mechanics — if you roll the maximum, roll again and add.
+      *
+      * This is a common mechanic in games like Savage Worlds. Each time the die shows its maximum value, it "explodes": you roll again and add the new result to the total.
+      *
+      * @param sides
+      *   Number of sides on the die (e.g., 6). The die explodes on this value.
+      * @param maxExplosions
+      *   Maximum number of times the die can explode (prevents infinite loops). Defaults to 100.
+      * @return
+      *   An uncertain integer that can exceed the normal maximum.
+      * @example
+      *   {{{
+      * // Exploding d6: if you roll 6, roll again and add
+      * val explodingD6 = Uncertain.rollExploding(sides = 6)
+      * // Can result in 1-6, or 7-12 (on explosion), or 13-18 (two explosions), etc.
+      *
+      * val skillCheck = Uncertain.rollExploding(sides = 8, maxExplosions = 10)
+      *   }}}
+      * @see
+      *   [[rollExplodingAtThreshold]] for a version with a custom threshold.
+      * @see
+      *   [[rollDie]] for standard non-exploding dice.
+      */
+    def rollExploding(
+      sides: Int,
+      maxExplosions: Int = 100
+    )(using random: Random = new Random()): Uncertain[Int] =
+      Uncertain.rollExplodingAtThreshold(
+        sides = sides,
+        explodeThreshold = sides,
+        maxExplosions = maxExplosions
+      )
+
+    /** Rolls a die with "exploding" mechanics, rerolling and adding when the roll meets or exceeds a threshold.
+      *
+      * This is a flexible version of the "exploding dice" mechanic, where the explosion can happen on values other than the maximum.
+      *
+      * @param sides
+      *   Number of sides on the die (must be ≥ 2).
+      * @param explodeThreshold
+      *   The minimum roll value (inclusive) that triggers an explosion. Must be `1 <= explodeThreshold <= sides`.
+      * @param maxExplosions
+      *   Maximum number of times the die can explode (prevents infinite loops). Defaults to 100.
+      * @return
+      *   An uncertain integer that can exceed the normal maximum.
+      * @example
+      *   {{{
+      * // Standard exploding d6: if you roll 6, roll again and add
+      * val explodingD6 = Uncertain.rollExplodingAtThreshold(sides = 6, explodeThreshold = 6)
+      *
+      * // World of Darkness: Explode on 10s for a d10
+      * val wodRoll = Uncertain.rollExplodingAtThreshold(sides = 10, explodeThreshold = 10)
+      *
+      * // Generous exploding d8: Explodes on 7 or 8
+      * val generousD8 = Uncertain.rollExplodingAtThreshold(sides = 8, explodeThreshold = 7)
+      *   }}}
+      * @see
+      *   [[rollExploding]] for the simpler version that explodes only on the max value.
+      * @see
+      *   [[rollDie]] for standard non-exploding dice.
+      */
+    def rollExplodingAtThreshold(
+      sides: Int,
+      explodeThreshold: Int,
+      maxExplosions: Int = 100
+    )(using random: Random = new Random()): Uncertain[Int] = {
+      require(sides >= 2, s"Exploding die must have at least 2 sides, got: $sides")
+      require(maxExplosions >= 0, s"Max explosions must be non-negative, got: $maxExplosions")
+      require(
+        explodeThreshold >= 1 && explodeThreshold <= sides,
+        s"Explode threshold must be within the die's range [1, $sides], got: $explodeThreshold"
+      )
+      val dieRoll = Uncertain.rollDie(sides)
+      Uncertain { () =>
+        var total       = 0
+        var explosions  = 0
+        var keepRolling = true
+        val die         = dieRoll
+        while (keepRolling && explosions <= maxExplosions) {
+          val roll = die.sample()
+          total += roll
+          if (roll >= explodeThreshold && explosions < maxExplosions) {
+            explosions += 1
+          } else {
+            keepRolling = false
+          }
+        }
+        total
       }
     }
 
@@ -749,27 +850,41 @@ trait DiceRollingOps {
     // ----- Exploding Dice Pool Mechanics ----
     // ----------------------------------------
 
-    /** Rolls a pool of exploding dice and counts how many meet or exceed a success threshold.
+    /** Rolls a pool of exploding dice (exploding on maximum) and counts successes.
       *
-      * This combines dice pool counting with exploding dice mechanics: each die that rolls at or above the `explodeThreshold` (here specified indirectly by `successThreshold`)
-      * explodes and is rolled again, adding to that die's total before the success comparison is made. This mirrors systems where high rolls can chain into even higher results
-      * before being checked against a target.
+      * This is the standard exploding pool mechanic: each die explodes when it rolls its maximum value, then the final total for each die is compared against the success
+      * threshold.
       *
-      * Uses [[rollExplodingAtThreshold]] internally and counts successes like [[rollCountSuccesses]].
+      * This is ideal for systems like World of Darkness where d10s explode on natural 10s, but successes are counted at a lower threshold (typically 8+).
       *
       * @param numberOfDice
       *   The total number of dice to roll in the pool (must be ≥ 0).
       * @param sides
       *   The number of sides on each die (must be ≥ 2 for exploding dice).
       * @param successThreshold
-      *   The minimum roll value (inclusive) on the final per-die total to count as one success. Also used as the explosion threshold when rolling each die.
+      *   The minimum roll value (inclusive) on the final per-die total to count as one success.
       * @param maxExplosions
-      *   Maximum number of explosion chains per die (must be ≥ 0). Prevents unbounded looping on frequent explosions.
+      *   Maximum number of explosion chains per die (must be ≥ 0). Defaults to 100.
       * @return
       *   An uncertain integer representing the total number of successes in the pool.
       * @example
-      *   {{ // World of Darkness-like: 10-sided dice, successes on 8+, explode on 10s (adjust threshold as desired) val pool = Uncertain.rollExplodingCountSuccesses( numberOfDice =
-      *   5, sides = 10, successThreshold = 8, maxExplosions = 10 ) }}
+      *   {{{
+      * // World of Darkness: Roll 5d10, explode on 10, succeed on 8+
+      * val wodPool = Uncertain.rollExplodingCountSuccesses(
+      *   numberOfDice = 5,
+      *   sides = 10,
+      *   successThreshold = 8
+      * )
+      *
+      * // Savage Worlds-style: Roll 3d6, explode on 6, succeed on 4+
+      * val swPool = Uncertain.rollExplodingCountSuccesses(
+      *   numberOfDice = 3,
+      *   sides = 6,
+      *   successThreshold = 4
+      * )
+      *   }}}
+      * @see
+      *   [[rollExplodingCountSuccessesAtThreshold]] for custom explosion thresholds.
       * @see
       *   [[rollCountSuccesses]] for non-exploding pools.
       * @see
@@ -779,38 +894,128 @@ trait DiceRollingOps {
       numberOfDice: Int,
       sides: Int,
       successThreshold: Int,
-      maxExplosions: Int
-    )(using random: Random = new Random()): Uncertain[Int] = {
-      require(numberOfDice >= 0, s"Cannot roll negative number of dice (was: $numberOfDice)")
-      require(sides >= 2, s"Exploding die must have at least 2 sides, got: $sides")
-      require(successThreshold >= 1 && successThreshold <= sides, s"Success threshold must be within the die's range [1, $sides], got: $successThreshold")
-      require(maxExplosions >= 0, s"Max explosions must be non-negative, got: $maxExplosions")
-      Uncertain { () =>
-        Uncertain
-          .rollExplodingAtThreshold(sides = sides, explodeThreshold = successThreshold, maxExplosions = maxExplosions)(using random)
-          .take(numberOfDice)
-          .count(_ >= successThreshold)
-      }
-    }
+      maxExplosions: Int = 100
+    )(using random: Random = new Random()): Uncertain[Int] =
+      rollExplodingCountSuccessesAtThreshold(
+        numberOfDice = numberOfDice,
+        sides = sides,
+        successThreshold = successThreshold,
+        explodeThreshold = sides,
+        maxExplosions = maxExplosions
+      )
 
-    /** Rolls a pool of exploding dice and counts how many fail to meet a success threshold.
+    /** Rolls a pool of exploding dice with a custom explosion threshold and counts successes.
       *
-      * This is the inverse of [[rollExplodingCountSuccesses]]: it counts all dice whose final exploding total is strictly less than `successThreshold`.
-      *
-      * Uses [[rollExplodingAtThreshold]] internally and counts failures like [[rollCountFailures]].
+      * This allows for systems where dice explode at values other than the maximum. Each die that meets or exceeds the explosion threshold will reroll and add to its total, then
+      * the final total is compared against the success threshold.
       *
       * @param numberOfDice
       *   The total number of dice to roll in the pool (must be ≥ 0).
       * @param sides
       *   The number of sides on each die (must be ≥ 2 for exploding dice).
       * @param successThreshold
-      *   The minimum roll value (inclusive) that would be considered a success; failures are values below this. Also used as the explosion threshold when rolling each die.
+      *   The minimum roll value (inclusive) on the final per-die total to count as one success.
+      * @param explodeThreshold
+      *   The minimum roll value (inclusive) that triggers an explosion.
       * @param maxExplosions
-      *   Maximum number of explosion chains per die (must be ≥ 0).
+      *   Maximum number of explosion chains per die (must be ≥ 0). Defaults to 100.
+      * @return
+      *   An uncertain integer representing the total number of successes in the pool.
+      * @example
+      *   {{{
+      * // Generous system: d8s explode on 7+, succeed on 5+
+      * val generousPool = Uncertain.rollExplodingCountSuccessesAtThreshold(
+      *   numberOfDice = 4,
+      *   sides = 8,
+      *   successThreshold = 5,
+      *   explodeThreshold = 7
+      * )
+      *
+      * // Edge case: any success also explodes (creates chains)
+      * val chainSuccesses = Uncertain.rollExplodingCountSuccessesAtThreshold(
+      *   numberOfDice = 4,
+      *   sides = 8,
+      *   successThreshold = 6,
+      *   explodeThreshold = 6
+      * )
+      *
+      * // World of Darkness with explicit threshold
+      * val wodExplicit = Uncertain.rollExplodingCountSuccessesAtThreshold(
+      *   numberOfDice = 5,
+      *   sides = 10,
+      *   successThreshold = 8,
+      *   explodeThreshold = 10  // Only natural 10s explode
+      * )
+      *   }}}
+      * @see
+      *   [[rollExplodingCountSuccesses]] for the common case (explode on maximum).
+      * @see
+      *   [[rollCountSuccesses]] for non-exploding pools.
+      * @see
+      *   [[rollExplodingAtThreshold]] for details of the exploding mechanic.
+      */
+    def rollExplodingCountSuccessesAtThreshold(
+      numberOfDice: Int,
+      sides: Int,
+      successThreshold: Int,
+      explodeThreshold: Int,
+      maxExplosions: Int = 100
+    )(using random: Random = new Random()): Uncertain[Int] = {
+      require(numberOfDice >= 0, s"Cannot roll negative number of dice (was: $numberOfDice)")
+      require(sides >= 2, s"Exploding die must have at least 2 sides, got: $sides")
+      require(
+        successThreshold >= 1 && successThreshold <= sides,
+        s"Success threshold must be within the die's range [1, $sides], got: $successThreshold"
+      )
+      require(
+        explodeThreshold >= 1 && explodeThreshold <= sides,
+        s"Explode threshold must be within the die's range [1, $sides], got: $explodeThreshold"
+      )
+      require(maxExplosions >= 0, s"Max explosions must be non-negative, got: $maxExplosions")
+
+      val explodeAtThresholdRoll = Uncertain
+        .rollExplodingAtThreshold(
+          sides = sides,
+          explodeThreshold = explodeThreshold,
+          maxExplosions = maxExplosions
+        )
+
+      Uncertain { () =>
+        explodeAtThresholdRoll.take(numberOfDice).count(_ >= successThreshold)
+      }
+    }
+
+    /** Rolls a pool of exploding dice (exploding on maximum) and counts failures.
+      *
+      * This is the inverse of [[rollExplodingCountSuccesses]]: it counts all dice whose final exploding total is strictly less than the success threshold.
+      *
+      * Each die explodes when it rolls its maximum value, then the final total is compared against the success threshold. Dice below the threshold are counted as failures.
+      *
+      * @param numberOfDice
+      *   The total number of dice to roll in the pool (must be ≥ 0).
+      * @param sides
+      *   The number of sides on each die (must be ≥ 2 for exploding dice).
+      * @param successThreshold
+      *   The minimum roll value (inclusive) that would be considered a success; failures are values below this.
+      * @param maxExplosions
+      *   Maximum number of explosion chains per die (must be ≥ 0). Defaults to 100.
       * @return
       *   An uncertain integer representing the total number of failures in the pool.
       * @example
-      *   {{ val failures = Uncertain.rollExplodingCountFailures( numberOfDice = 7, sides = 6, successThreshold = 5, maxExplosions = 5 ) }}
+      *   {{{
+      * // World of Darkness: count failures (< 8) with d10s exploding on 10
+      * val failures = Uncertain.rollExplodingCountFailures(
+      *   numberOfDice = 7,
+      *   sides = 10,
+      *   successThreshold = 8
+      * )
+      *
+      * // Note: successes + failures should equal numberOfDice
+      * val successes = Uncertain.rollExplodingCountSuccesses(7, 10, 8)
+      * val total = successes + failures  // Always equals 7
+      *   }}}
+      * @see
+      *   [[rollExplodingCountFailuresAtThreshold]] for custom explosion thresholds.
       * @see
       *   [[rollCountFailures]] for non-exploding pools.
       * @see
@@ -820,21 +1025,84 @@ trait DiceRollingOps {
       numberOfDice: Int,
       sides: Int,
       successThreshold: Int,
-      maxExplosions: Int
+      maxExplosions: Int = 100
+    )(using random: Random = new Random()): Uncertain[Int] =
+      rollExplodingCountFailuresAtThreshold(
+        numberOfDice = numberOfDice,
+        sides = sides,
+        successThreshold = successThreshold,
+        explodeThreshold = sides,
+        maxExplosions = maxExplosions
+      )
+
+    /** Rolls a pool of exploding dice with a custom explosion threshold and counts failures.
+      *
+      * This is the inverse of [[rollExplodingCountSuccessesAtThreshold]]: it counts all dice whose final exploding total is strictly less than the success threshold.
+      *
+      * @param numberOfDice
+      *   The total number of dice to roll in the pool (must be ≥ 0).
+      * @param sides
+      *   The number of sides on each die (must be ≥ 2 for exploding dice).
+      * @param successThreshold
+      *   The minimum roll value (inclusive) that would be considered a success; failures are values below this.
+      * @param explodeThreshold
+      *   The minimum roll value (inclusive) that triggers an explosion.
+      * @param maxExplosions
+      *   Maximum number of explosion chains per die (must be ≥ 0). Defaults to 100.
+      * @return
+      *   An uncertain integer representing the total number of failures in the pool.
+      * @example
+      *   {{{
+      * // Generous system: d6s explode on 5+, count failures (< 4)
+      * val failures = Uncertain.rollExplodingCountFailuresAtThreshold(
+      *   numberOfDice = 7,
+      *   sides = 6,
+      *   successThreshold = 4,
+      *   explodeThreshold = 5
+      * )
+      *
+      * // World of Darkness with explicit threshold
+      * val wodFailures = Uncertain.rollExplodingCountFailuresAtThreshold(
+      *   numberOfDice = 5,
+      *   sides = 10,
+      *   successThreshold = 8,
+      *   explodeThreshold = 10
+      * )
+      *   }}}
+      * @see
+      *   [[rollExplodingCountFailures]] for the common case (explode on maximum).
+      * @see
+      *   [[rollCountFailures]] for non-exploding pools.
+      * @see
+      *   [[rollExplodingAtThreshold]] for details of the exploding mechanic.
+      */
+    def rollExplodingCountFailuresAtThreshold(
+      numberOfDice: Int,
+      sides: Int,
+      successThreshold: Int,
+      explodeThreshold: Int,
+      maxExplosions: Int = 100
     )(using random: Random = new Random()): Uncertain[Int] = {
       require(numberOfDice >= 0, s"Cannot roll negative number of dice (was: $numberOfDice)")
       require(sides >= 2, s"Exploding die must have at least 2 sides, got: $sides")
-      require(successThreshold >= 1 && successThreshold <= sides, s"Success threshold must be within the die's range [1, $sides], got: $successThreshold")
+      require(
+        successThreshold >= 1 && successThreshold <= sides,
+        s"Success threshold must be within the die's range [1, $sides], got: $successThreshold"
+      )
+      require(
+        explodeThreshold >= 1 && explodeThreshold <= sides,
+        s"Explode threshold must be within the die's range [1, $sides], got: $explodeThreshold"
+      )
       require(maxExplosions >= 0, s"Max explosions must be non-negative, got: $maxExplosions")
+
+      val explodeRoll = Uncertain
+        .rollExplodingAtThreshold(
+          sides = sides,
+          explodeThreshold = explodeThreshold,
+          maxExplosions = maxExplosions
+        )
       Uncertain { () =>
-        Uncertain
-          .rollExplodingAtThreshold(
-            sides = sides,
-            explodeThreshold = successThreshold,
-            maxExplosions = maxExplosions
-          )(using random)
-          .take(numberOfDice)
-          .count(_ < successThreshold)
+        explodeRoll.take(numberOfDice).count(_ < successThreshold)
       }
     }
   }
