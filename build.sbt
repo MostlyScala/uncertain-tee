@@ -46,6 +46,16 @@ lazy val uncertainTeeCats = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(uncertainTee)
 
+lazy val zio = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uncertain-tee-zio"))
+  .settings(
+    name := "uncertain-tee-zio",
+    libraryDependencies ++= Dependencies.zio,
+    libraryDependencies ++= Dependencies.test
+  )
+  .dependsOn(uncertainTee)
+
 lazy val uncertainTeeScalacheck = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("uncertain-tee-scalacheck"))
@@ -90,6 +100,12 @@ lazy val Dependencies = new {
 
   val cats = Seq(
     "org.typelevel" %% "cats-core" % V.cats
+  )
+
+  val zio = Seq(
+    "dev.zio" %% "zio"         % "2.1.24",
+    "dev.zio" %% "zio-prelude" % "1.0.0-RC44",
+    "dev.zio" %% "zio-test"    % "2.1.24"
   )
 
   val squants = Seq(
