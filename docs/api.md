@@ -75,11 +75,9 @@ val positive = dist.filter(_ > 0)
 | Method | Description |
 |:-------|:------------|
 | `Uncertain.always(value)` | Constant (no uncertainty) |
-| `Uncertain.point(value)` | Alias for `always` |
 
 ```scala mdoc
 val constant = Uncertain.always(42)
-val alsoConstant = Uncertain.point(3.14)
 ```
 
 ### Common Distributions

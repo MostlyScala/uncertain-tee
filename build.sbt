@@ -24,6 +24,7 @@ ThisBuild / tlSiteHelium := Helium.defaults
 lazy val root = tlCrossRootProject.aggregate(
   uncertainTee,
   uncertainTeeCats,
+  uncertainTeeZio,
   uncertainTeeScalacheck,
   uncertainTeeSquants
 )
@@ -46,7 +47,7 @@ lazy val uncertainTeeCats = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(uncertainTee)
 
-lazy val zio = crossProject(JVMPlatform, JSPlatform)
+lazy val uncertainTeeZio = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("uncertain-tee-zio"))
   .settings(

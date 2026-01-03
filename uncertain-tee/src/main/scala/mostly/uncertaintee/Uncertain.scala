@@ -49,7 +49,7 @@ import scala.util.Random
   * @tparam T
   *   The type of the uncertain value (Double, Int, Boolean, String, etc.)
   */
-sealed abstract class Uncertain[T] {
+sealed abstract class Uncertain[+T] {
 
   /** The function that generates a single random sample from the distribution. */
   private[uncertaintee] val sampler: () => T

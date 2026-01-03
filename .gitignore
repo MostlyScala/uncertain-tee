@@ -24,3 +24,6 @@ metals.sbt
 # npm
 node_modules/
 cs
+
+# DSStore
+*.DS_Store

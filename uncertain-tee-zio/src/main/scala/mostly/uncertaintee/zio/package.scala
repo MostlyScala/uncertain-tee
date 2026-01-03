@@ -1,77 +1,36 @@
 package mostly.uncertaintee
 
+import _root_.zio.prelude.coherent.CovariantIdentityBoth
+import _root_.zio.prelude.{Debug, IdentityFlatten}
 import mostly.uncertaintee.*
 import mostly.uncertaintee.syntax.*
-import mostly.uncertaintee.zio.prelude.*
 
+import scala.reflect.ClassTag
+
+/** End users are expected to import `mostly.uncertaintee.zio.*` */
 package object zio {
 
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainAssociativeFlatten: AssociativeFlatten[Uncertain] =
-    new AssociativeFlatten[Uncertain] {
-      override def map[A, B](f: A => B): Uncertain[A] => Uncertain[B]     = _.map(f)
-      override def flatten[A](ffa: Uncertain[Uncertain[A]]): Uncertain[A] = ffa.flatMap(identity)
-    }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainIdentityFlatten: IdentityFlatten[Uncertain] =
-    new IdentityFlatten[Uncertain] {
-      override def map[A, B](f: A => B): Uncertain[A] => Uncertain[B]     = _.map(f)
-      override def flatten[A](ffa: Uncertain[Uncertain[A]]): Uncertain[A] = ffa.flatMap(identity)
-      override def any: Uncertain[Any]                                    = Uncertain.always(())
-    }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainCovariant: Covariant[Uncertain] = new Covariant[Uncertain] {
-    override def map[A, B](f: A => B): Uncertain[A] => Uncertain[B] = _.map(f)
-  }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainMonad: Monad[Uncertain] = new Monad[Uncertain] {
-    override def pure[A](a: A): Uncertain[A]                            = Uncertain.always(a)
-    override def map[A, B](f: A => B): Uncertain[A] => Uncertain[B]     = _.map(f)
-    override def flatten[A](ffa: Uncertain[Uncertain[A]]): Uncertain[A] = ffa.flatMap(identity)
-    override def any: Uncertain[Any]                                    = Uncertain.always(())
-  }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainForEach: ForEach[Uncertain] =
-    new ForEach[Uncertain] {
-      override def forEach[G[+_]: Covariant: IdentityBoth, A, B](fa: Uncertain[A])(f: A => G[B]): G[Uncertain[B]] = _.traverse(f)
-    }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainAssociativeBoth: AssociativeBoth[Uncertain] =
-    new AssociativeBoth[Uncertain] {
+  implicit val monad: CovariantIdentityBoth[Uncertain] with IdentityFlatten[Uncertain] =
+    new CovariantIdentityBoth[Uncertain] with IdentityFlatten[Uncertain] {
+      override def map[A, B](f: A => B): Uncertain[A] => Uncertain[B]                      = _.map(f)
       override def both[A, B](fa: => Uncertain[A], fb: => Uncertain[B]): Uncertain[(A, B)] = fa.product(fb)
-    }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit val uncertainIdentityBoth: IdentityBoth[Uncertain] =
-    new IdentityBoth[Uncertain] {
-      override def both[A, B](fa: => Uncertain[A], fb: => Uncertain[B]): Uncertain[(A, B)] = fa.product(fb)
+      override def flatten[A](ffa: Uncertain[Uncertain[A]]): Uncertain[A]                  = ffa.flatMap(identity)
       override def any: Uncertain[Any]                                                     = Uncertain.always(())
     }
 
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit def uncertainAssociative[T](using Associative[T]): Associative[Uncertain[T]] =
-    new Associative[Uncertain[T]] {
-      override def combine(l: => Uncertain[T], r: => Uncertain[T]): Uncertain[T] = l.zipWith(r)(Associative[T].combine)
-    }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit def uncertainIdentity[T](using Identity[T]): Identity[Uncertain[T]] =
-    new Identity[Uncertain[T]] {
-      override def identity: Uncertain[T]                                        = Uncertain.always(Identity[T].identity)
-      override def combine(l: => Uncertain[T], r: => Uncertain[T]): Uncertain[T] = l.zipWith(r)(Identity[T].combine)
-    }
-
-  /** @see [[mostly.uncertaintee.styledocs.WhyIsThisImplicitAndNotGiven]] */
-  implicit def uncertainInverse[T](using Inverse[T]): Inverse[Uncertain[T]] =
-    new Inverse[Uncertain[T]] {
-      override def identity: Uncertain[T]                                        = Uncertain.always(Inverse[T].identity)
-      override def combine(l: => Uncertain[T], r: => Uncertain[T]): Uncertain[T] = l.zipWith(r)(Inverse[T].combine)
-      override def inverse(a: => Uncertain[T]): Uncertain[T]                     = a.map(Inverse[T].inverse)
-    }
-
+  /** This one poses an interesting question - what does a Debug instance look like, when the instances of A are random samples? Unlike debugging an array or list where the
+    * elements are deterministic, the elements of an uncertain are pseudorandom samples from a distribution which may be discrete or may be continuous, or may be constant.
+    * Equivalent to trying to debug a Random.
+    *
+    * One answer may be to take ~50 samples of the distribution, but the breaking of determinism might not make that entirely helpful.
+    */
+  implicit def debug[A: ClassTag]: Debug[Uncertain[A]] = new Debug[Uncertain[A]] {
+    final private val className                     = summon[ClassTag[A]].runtimeClass.getSimpleName
+    final private val repr                          = Debug.Repr.VConstructor(
+      namespace = List("mostly", "uncertaintee"),
+      name = s"Uncertain[$className]",
+      reprs = List.empty
+    )
+    override def debug(a: Uncertain[A]): Debug.Repr = repr
+  }
 }

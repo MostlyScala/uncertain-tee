@@ -243,7 +243,7 @@ trait CollectionOps {
       require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be positive")
       val items: List[T] = from.toList
       Uncertain.fromRange(ofSize).flatMap {
-        case n if n == items.length => Uncertain.point(from) // for sets, ordering is irrelevant, so no need to randomize in this special case
+        case n if n == items.length => Uncertain.always(from) // for sets, ordering is irrelevant, so no need to randomize in this special case
         case n                      => rngTakeWithoutPutback(items, n).map(_.toSet)
       }
     }
