@@ -1,14 +1,7 @@
-<svg width="428" height="344" viewBox="0 0 428 344" xmlns="http://www.w3.org/2000/svg">
-    <path d="M323 44H236V245H192V44H104V0H323V44Z" fill="#CE3220"/>
-    <path d="M428 0L428 344L384 344L384 0" fill="#0B3540"/>
-    <rect x="341" width="59" height="44" fill="#0B3540"/>
-    <rect x="370" y="300" width="30" height="44" fill="#0B3540"/>
-    <path d="M0 0L0 344L44 344L44 0Z" fill="#0B3540"/>
-    <rect width="59" height="44" transform="matrix(-1 0 0 1 87 0)" fill="#0B3540"/>
-    <rect width="30" height="44" transform="matrix(-1 0 0 1 58 300)" fill="#0B3540"/>
-    <rect x="355" y="220" width="124" height="44" transform="rotate(90 355 220)" fill="#5C7A81"/>
-    <rect x="237" y="260" width="84" height="44" transform="rotate(90 237 260)" fill="#5C7A81"/>
-    <rect x="119" y="220" width="124" height="44" transform="rotate(90 119 220)" fill="#5C7A81"/>
-    <rect x="178" y="141" width="203" height="44" transform="rotate(90 178 141)" fill="#5C7A81"/>
-    <rect x="296" y="141" width="203" height="44" transform="rotate(90 296 141)" fill="#5C7A81"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="428" height="344">
+    <path fill="#ce3220" d="M323 44h-87v201h-44V44h-88V0h219z"/>
+    <path fill="#0b3540" d="M428 0v344h-44V0"/>
+    <path fill="#0b3540" d="M341 0h59v44h-59zm29 300h30v44h-30zM0 0v344h44V0Z"/>
+    <path fill="#0b3540" d="M87 0H28v44h59zM58 300H28v44h30z"/>
+    <path fill="#5c7a81" d="M355 220v124h-44V220zm-118 40v84h-44v-84zm-118-40v124H75V220zm59-79v203h-44V141zm118 0v203h-44V141z"/>
 </svg>
