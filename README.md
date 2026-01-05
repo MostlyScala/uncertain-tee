@@ -1,6 +1,13 @@
-# Uncertain[T] - Working with Probabilistic Data
+<div align="center">
+  <img 
+    width="25%" 
+    alt="Uncertain-tee logo - a red T rises out of a histogram bracketed by square brackets" 
+    src="https://raw.githubusercontent.com/MostlyScala/uncertain-tee/refs/heads/main/img/uncertain-tee-logo-sharp.svg"
+  />
+  <h1>Uncertain-Tee</h1>
+</div>
 
-Uncertain-tee is a **monte carlo simulation based** and **correlation preserving** library for working with Uncertain data, called an **Uncertain[T]**.
+`uncertain-tee` is a library for probabilistic computing. Uncertain-tee is a **monte carlo simulation based** and **correlation preserving** library for working with uncertain distributions of data, called an **Uncertain[T]**.
 
 An `Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
 any value that has uncertainty. Instead of just working with single values, you work with *distributions* of possible
