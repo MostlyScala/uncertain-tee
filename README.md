@@ -4,7 +4,7 @@
     alt="Uncertain-tee logo - a red T rises out of a histogram bracketed by square brackets" 
     src="https://raw.githubusercontent.com/MostlyScala/uncertain-tee/refs/heads/main/img/uncertain-tee-logo-sharp.svg"
   />
-  <h1>Uncertain-Tee</h1>
+  <h1>Uncertain-Tee | Uncertain[T]</h1>
 </div>
 
 `uncertain-tee` is a library for probabilistic computing. Uncertain-tee is a **monte carlo simulation based** and **correlation preserving** library for working with uncertain distributions of data, called an **Uncertain[T]**.
