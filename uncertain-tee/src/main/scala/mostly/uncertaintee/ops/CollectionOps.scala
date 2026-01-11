@@ -568,14 +568,14 @@ trait CollectionOps {
       // This algorithm can be conceptualized as shuffling together several suits of
       // cards, where each list we're trying to merge together can be visualised as a suit of cards lying face-up on a table.
       type Card     = T
-      type Suite    = List[Card]  // a pile of cards lying face-up - for instance [all 13 ♣]
-      type AllSuits = List[Suite] // [[all 13 ♦], [all 13 ♣], [all 13 ♥], [all 13 ♠]]
+      type Suit     = List[Card] // a pile of cards lying face-up - for instance [all 13 ♣]
+      type AllSuits = List[Suit] // [[all 13 ♦], [all 13 ♣], [all 13 ♥], [all 13 ♠]]
       type Deck     = ListBuffer[Card]
 
       // e.g. [[all 13 ♦], [all 13 ♣], [all 13 ♥], [all 13 ♠]]
-      val unmergedSuites: AllSuits = lists.toList
+      val unmergedSuits: AllSuits = lists.toList
       // e.g. 52
-      val fullDeckSize: Int        = lists.map(_.size).sum
+      val fullDeckSize: Int       = lists.map(_.size).sum
 
       Uncertain { () =>
         val resultingDeck: Deck = new ListBuffer[Card]()
@@ -591,31 +591,32 @@ trait CollectionOps {
             val cardNumber: Int = rand.nextInt(cardsRemaining)
 
             // ...find which suit this random number "falls into"
-            var cumulativeSize        = 0
-            val chosenSuiteIndex: Int = suits.indexWhere { suite =>
-              cumulativeSize += suite.size
+            var cumulativeSize       = 0
+            val chosenSuitIndex: Int = suits.indexWhere { suit =>
+              cumulativeSize += suit.size
               cardNumber < cumulativeSize
             }
 
-            val chosenSuite: Suite = suits(chosenSuiteIndex) // e.g. pick hearts suite [J,Q,K,A] because card number fell within that
+            val chosenSuit: Suit = suits(chosenSuitIndex) // e.g. pick hearts suit [J,Q,K,A] because card number fell within that
 
             // ...draw the first card from that chosen suit
-            val selectedCardFromSuite: Card  = chosenSuite.head // J
-            val restOfTheCardsInSuite: Suite = chosenSuite.tail // [Q,K,A]
+            val selectedCardFromSuit: Card = chosenSuit.head // J
+            val restOfTheCardsInSuit: Suit = chosenSuit.tail // [Q,K,A]
 
             // ...deal it to our deck
-            val _ = resultingDeck += selectedCardFromSuite
+            val _ = resultingDeck += selectedCardFromSuit
 
-            // ...and place the (now only containing [Q,K,A]) hearts-suite back on the table
-            val suitsAfterRemovingCardFromSuite: AllSuits = suits.updated(
-              index = chosenSuiteIndex,
-              elem = restOfTheCardsInSuite // [Q,K,A] overrides [J,Q,K,A]
+            // ...and place the (now only containing [Q,K,A]) hearts-suit back on the table
+            val suitsAfterRemovingCardFromSuit: AllSuits = suits.updated(
+              index = chosenSuitIndex,
+              elem = restOfTheCardsInSuit // [Q,K,A] overrides [J,Q,K,A]
             )
             // do it again
-            dealIntoResultingDeck(suits = suitsAfterRemovingCardFromSuite)
+            dealIntoResultingDeck(suits = suitsAfterRemovingCardFromSuit)
           }
 
-        dealIntoResultingDeck(unmergedSuites)
+        dealIntoResultingDeck(unmergedSuits)
+        // and back to a sane immutable world again
         resultingDeck.toList
       }
     }

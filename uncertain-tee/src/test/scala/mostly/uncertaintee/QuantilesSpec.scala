@@ -110,7 +110,7 @@ class QuantilesSpec extends RngSuite {
   rngTest("Quantiles.asDiscreteUncertain should be stable after reconstruction") {
     val original = Uncertain.uniform(0.0, 100.0)
     val q1       = Quantiles.ofSize(4, original, sampleCount)
-    val u1       = q1.reconstructFast
+    val u1       = q1.reconstructLinear
     val q2       = Quantiles.ofSize(4, u1, sampleCount)
 
     // Quantile boundaries should be approximately the same after reconstruction

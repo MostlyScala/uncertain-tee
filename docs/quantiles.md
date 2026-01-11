@@ -206,13 +206,13 @@ println(discrete.sample())
 - For discrete/categorical outcomes
 - Simplest reconstruction method
 
-### Fast Reconstruction (Linear)
+### Reconstruction (Linear)
 
 Uses linear interpolation between quantile boundaries.
 
 ```scala mdoc
 // Reconstruct with linear interpolation
-val linearReconstructed = quintiles.reconstructFast
+val linearReconstructed = quintiles.reconstructLinear
 
 // Samples continuously between boundaries
 println(linearReconstructed.sample())
@@ -362,7 +362,7 @@ Reconstructing preserves approximate quantile structure:
 ```scala mdoc
 val original = Uncertain.normal(100, 15)
 val q1 = Quantiles.quartiles(original, sampleCount = 50_000)
-val reconstructed = q1.reconstructFast
+val reconstructed = q1.reconstructLinear
 val q2 = Quantiles.quartiles(reconstructed, sampleCount = 50_000)
 
 // q1 ≈ q2 (within sampling error)

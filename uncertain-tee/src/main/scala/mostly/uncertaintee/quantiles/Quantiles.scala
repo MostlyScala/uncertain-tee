@@ -26,7 +26,7 @@ import scala.util.Random
   *
   * @note
   *   Outside of the statistical use, you can think of a [[Quantiles]] instance as a way to "serialize" an [[Uncertain]]; an approximate [[Uncertain]] can be re-constructed via
-  *   [[reconstructFast]], [[reconstructSmooth]] or [[reconstructDiscrete]]
+  *   [[reconstructLinear]], [[reconstructSmooth]], [[reconstructStep]] or [[reconstructDiscrete]]
   *
   * For common use cases see:
   *
@@ -99,6 +99,9 @@ trait Quantiles[T] {
       case (false, false) => (1 until quantileIntervals).map(this.apply).toList
     }
 
+  /** Equivalent to [[toList]] with includeMin = true, includeMax = true; provides tent poles. */
+  def boundaryValues: List[T] = toList(includeMin = true, includeMax = true)
+
   /** Returns a Map[Int, T] of quantile boundary values.
     *
     * The map keys are quantile boundary indices (0 to n), and values are the corresponding data values.
@@ -132,41 +135,41 @@ trait Quantiles[T] {
     * Creates a discrete distribution where each quantile boundary value has equal probability of being sampled. This is the simplest form of reconstruction - it preserves the
     * exact boundary values but loses all information about values between boundaries.
     *
-    * ==Information Loss==
+    * ==Comparison with Other Methods==
     *
-    * Quantiles only store values at boundary positions, not values between boundaries from the original distribution. This method cannot recreate the original distribution, but
-    * the operation does converge; applying it repeatedly produces stable results and identical quantile boundary values.
+    *   - vs [[reconstructStep]]: Step fills intervals uniformly; Discrete only returns exact boundary values.
+    *   - vs [[reconstructLinear]]: Linear interpolates values between boundaries; Discrete is "gappy".
+    *   - vs [[reconstructSmooth]]: Smooth creates a C1 continuous curve; Discrete is not continuous.
+    *
+    * ==When to Use==
+    *
+    *   - When the underlying data is inherently discrete (e.g., shoe sizes, counts).
+    *   - When you want to minimize assumptions about what happens between quantiles.
+    *   - When preserving the exact quantile values is more important than continuity.
+    *
+    * ==When NOT to Use==
+    *
+    *   - When the underlying phenomenon is continuous (e.g., height, temperature).
+    *   - When "gaps" in the output distribution would cause issues for downstream consumers.
+    *   - When you need to simulate a full range of values, not just specific markers.
     *
     * ==Example==
-    *
     * {{{
-    * // Original samples: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    * val original: Uncertain[Int] = ...
+    *  // Original samples: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    *  val original: Uncertain[Int] = ...
     *
-    * // Compute quintiles (5 intervals, 6 boundary values)
-    * val quintiles: Quintiles[Int] = Quantiles.quintiles(original, sampleCount = 100_000)
-    * // Boundary values: [0, 2, 4, 6, 8, 10]
+    *  // Compute quintiles (5 intervals, 6 boundary values)
+    *  val quintiles: Quintiles[Int] = Quantiles.quintiles(original, sampleCount = 100_000)
+    *  // Boundary values: [0, 2, 4, 6, 8, 10]
     *
-    * // Reconstruct as discrete uniform distribution
-    * val reconstructed = quintiles.toDiscreteUncertain
-    * // Possible samples: only [0, 2, 4, 6, 8, 10]
-    * // (values 1, 3, 5, 7, 9 are lost)
+    *  // Reconstruct as discrete uniform distribution
+    *  val reconstructed = quintiles.toDiscreteUncertain
+    *  // Possible samples: only [0, 2, 4, 6, 8, 10]
+    *  // (values 1, 3, 5, 7, 9 are lost)
     *
-    * // Re-computing quintiles produces the same boundary values
-    * val quintiles2: Quintiles[Int] = Quantiles.quintiles(reconstructed, sampleCount = 100_000)
-    * // Boundary values: [0, 2, 4, 6, 8, 10] (unchanged)
-    * }}}
-    *
-    * ==Stability Property==
-    *
-    * Once converted to discrete uniform over quantile boundary values, repeated application of `quantiles → discrete → quantiles` produces stable results:
-    *
-    * {{{
-    * val q1 = Quantiles.quintiles(uncertain, sampleCount = 100_000)
-    * val u1 = q1.toDiscreteUncertain
-    * val q2 = Quantiles.quintiles(u1, sampleCount = 100_000)
-    * val u2 = q2.toDiscreteUncertain
-    * // q1 == q2, u1 == u2 (structurally equivalent)
+    *  // Re-computing quintiles produces the same boundary values
+    *  val quintiles2: Quintiles[Int] = Quantiles.quintiles(reconstructed, sampleCount = 100_000)
+    *  // Boundary values: [0, 2, 4, 6, 8, 10] (unchanged)
     * }}}
     *
     * @param random
@@ -174,12 +177,97 @@ trait Quantiles[T] {
     * @return
     *   an [[Uncertain]] distribution that samples uniformly from quantile boundary values
     * @see
-    *   [[reconstructFast]] for continuous reconstruction with linear interpolation
+    *   [[reconstructStep]] for histogram-like reconstruction
+    * @see
+    *   [[reconstructLinear]] for continuous reconstruction with linear interpolation
     * @see
     *   [[reconstructSmooth]] for continuous reconstruction with cubic spline interpolation
     */
   def reconstructDiscrete(using random: Random = new Random()): Uncertain[T] =
     Uncertain.empirical(this.toList())(using random)
+
+  /** Reconstructs quantiles as a piecewise constant (step function) distribution.
+    *
+    * Creates a continuous distribution using a step function where each interval between quantile boundaries samples uniformly within that interval. This produces a histogram-like
+    * distribution that preserves the quantile structure while allowing values between boundaries.
+    *
+    * ==Statistical Method==
+    *
+    * This implements a **piecewise uniform distribution** (histogram approximation) using the inverse transform method. The empirical quantile function is approximated as constant
+    * within each quantile interval, creating a step function CDF.
+    *
+    * ==Comparison with Other Methods==
+    *
+    *   - vs [[reconstructDiscrete]]: Step allows values between boundaries, discrete only returns exact boundary values.
+    *   - vs [[reconstructLinear]]: Step has discontinuities at boundaries, linear interpolates smoothly.
+    *   - vs [[reconstructSmooth]]: Step is piecewise constant, smooth uses cubic splines.
+    *
+    * ==When to Use==
+    *
+    *   - When you want a histogram-like representation.
+    *   - For discrete-looking data that actually has continuous ranges.
+    *   - When you believe the original distribution was roughly uniform within quantile intervals.
+    *   - For visualization purposes where step functions are clearer than interpolation.
+    *
+    * ==When NOT to Use==
+    *
+    *   - When you know the underlying distribution is smooth (use [[reconstructSmooth]] instead).
+    *   - When you want exact boundary values only (use [[reconstructDiscrete]] instead).
+    *   - For small numbers of quantiles where linear interpolation is more natural.
+    *
+    * ==Round-Trip Property==
+    *
+    * The step reconstruction approximately preserves quantiles when resampled:
+    * {{{
+    * val original = Uncertain.uniform(0, 100)
+    * val deciles = Quantiles.deciles(original, sampleCount = 100_000)
+    * val stepped = deciles.reconstructStep
+    *
+    * // Recomputing deciles gives similar (but not identical) boundary values
+    * val newDeciles = Quantiles.deciles(stepped, sampleCount = 100_000)
+    * // newDeciles ≈ deciles (within sampling error)
+    * }}}
+    *
+    * @param num
+    *   numeric evidence for type T
+    * @param random
+    *   random number generator (implicit, defaults to new Random())
+    * @return
+    *   [[Uncertain]][Double] that samples from a piecewise constant distribution
+    * @note
+    *   Returns Uncertain[Double] regardless of input type T. Use `.map(_.toInt)` or similar to convert back to original type if needed.
+    * @note
+    *   Requires at least 2 quantile boundaries (1 interval). The method creates n intervals from n+1 boundary values.
+    * @see
+    *   [[reconstructDiscrete]] for sampling only exact boundary values
+    * @see
+    *   [[reconstructLinear]] for continuous linear interpolation between boundaries
+    * @see
+    *   [[reconstructSmooth]] for smooth cubic spline interpolation
+    */
+  def reconstructStep(using num: Numeric[T], random: Random = new Random()): Uncertain[Double] = {
+    val values: List[T] = this.boundaryValues
+    require(values.length >= 2, "Need at least 2 quantile boundaries for step reconstruction")
+
+    val valuesAsDouble: IndexedSeq[Double] = values.map(num.toDouble).toIndexedSeq
+    val n                                  = values.length - 1 // number of intervals
+
+    Uncertain.fromInverseCdf { p =>
+      // Determine which interval this probability falls into
+      // Each interval gets equal probability mass (1/n)
+      val intervalIndex = math.min((p * n).toInt, n - 1)
+
+      // Calculate the local position within the selected interval
+      val intervalStart = intervalIndex.toDouble / n
+      val intervalEnd   = (intervalIndex + 1).toDouble / n
+      val localPosition = (p - intervalStart) / (intervalEnd - intervalStart)
+
+      // Interpolate uniformly within the interval
+      val v0 = valuesAsDouble(intervalIndex)
+      val v1 = valuesAsDouble(intervalIndex + 1)
+      v0 + localPosition * (v1 - v0)
+    }
+  }
 
   /** Reconstructs quantiles as a continuous distribution using linear interpolation.
     *
@@ -194,6 +282,25 @@ trait Quantiles[T] {
     *   - Makes no assumptions about distribution type (normal, uniform, etc.)
     *   - Preserves quantile structure when resampled
     *
+    * ==Comparison with Other Methods==
+    *
+    *   - vs [[reconstructDiscrete]]: Linear creates a continuous range; Discrete is "gappy".
+    *   - vs [[reconstructStep]]: Linear connects points directly; Step creates a "staircase" histogram effect.
+    *   - vs [[reconstructSmooth]]: Linear has sharp "corners" at boundaries; Smooth has C1 continuity (smooth curves).
+    *
+    * ==When to Use==
+    *
+    *   - **Default Choice:** This is the most robust and predictable method for general continuous data.
+    *   - When you have a small number of quantiles (e.g., Tertiles, Quartiles).
+    *   - When you want to avoid potential "overshoot" or oscillations that can sometimes occur with splines.
+    *   - When performance is critical (linear is slightly faster than cubic splines).
+    *
+    * ==When NOT to Use==
+    *
+    *   - When you need smooth first derivatives (use [[reconstructSmooth]]).
+    *   - When the data is inherently discrete (use [[reconstructDiscrete]]).
+    *   - When you specifically want a histogram-like model (use [[reconstructStep]]).
+    *
     * ==Round-Trip Property==
     *
     * The reconstructed distribution approximately preserves quantiles:
@@ -201,18 +308,12 @@ trait Quantiles[T] {
     * {{{
     * val original = Uncertain.normal(50, 10)
     * val quartiles = Quantiles.quartiles(original, sampleCount = 10_000)
-    * val reconstructed = quartiles.toContinuousUncertain
+    * val reconstructed = quartiles.reconstructLinear
     *
     * // Reconstructed distribution has similar quartiles to original
     * val newQuartiles = Quantiles.quartiles(reconstructed, sampleCount = 10_000)
     * // quartiles ≈ newQuartiles (within sampling error)
     * }}}
-    *
-    * ==When to Use==
-    *
-    *   - Works well with any number of quantiles but has "corners"
-    *   - Ideal for tertiles, quartiles as opposed to [[reconstructSmooth]]
-    *   - Fast and predictable behavior
     *
     * @param num
     *   numeric evidence for type T
@@ -225,9 +326,11 @@ trait Quantiles[T] {
     * @see
     *   [[reconstructDiscrete]] for discrete reconstruction (samples only boundary values)
     * @see
+    *   [[reconstructStep]] for histogram-like reconstruction
+    * @see
     *   [[reconstructSmooth]] for smoother reconstruction using cubic splines
     */
-  def reconstructFast(using num: Numeric[T], random: Random = new Random()): Uncertain[Double] = {
+  def reconstructLinear(using num: Numeric[T], random: Random = new Random()): Uncertain[Double] = {
     val values: List[T] = this.toList()
     require(values.length >= 2, "Need at least 2 quantile boundaries for continuous reconstruction")
 
@@ -270,8 +373,8 @@ trait Quantiles[T] {
 
   /** Reconstructs quantiles as a continuous distribution using monotonic cubic spline interpolation.
     *
-    * Creates a smoother continuous distribution than [[reconstructFast]] by using Fritsch-Carlson monotonic cubic Hermite splines. This produces C1-continuous curves (smooth first
-    * derivatives) while maintaining monotonicity.
+    * Creates a smoother continuous distribution than [[reconstructLinear]] by using Fritsch-Carlson monotonic cubic Hermite splines. This produces C1-continuous curves (smooth
+    * first derivatives) while maintaining monotonicity.
     *
     * ==Interpolation Properties==
     *
@@ -281,27 +384,24 @@ trait Quantiles[T] {
     *   - Passes through all quantile boundary points exactly
     *   - No external dependencies (self-contained implementation)
     *
+    * ==Comparison with Other Methods==
+    *
+    *   - vs [[reconstructLinear]]: Smooth removes "corners" at boundaries; Linear is simpler.
+    *   - vs [[reconstructStep]]: Smooth is a continuous curve; Step is a "staircase".
+    *   - vs [[reconstructDiscrete]]: Smooth allows any value in the range; Discrete is fixed points.
+    *
     * ==When to Use==
     *
-    *   - When you have many quantile boundaries (deciles, percentiles)
-    *   - For visualization or plotting smooth CDFs/PDFs
-    *   - When you believe the underlying distribution is genuinely smooth
-    *   - When you need C1 continuity (smooth derivatives)
+    *   - When you have many quantile boundaries (e.g., Deciles, Percentiles).
+    *   - For visualization or plotting where smooth CDFs/PDFs are preferred.
+    *   - When you believe the underlying distribution is genuinely smooth (e.g., Normal-like).
+    *   - When you need C1 continuity (smooth derivatives) for downstream calculations.
     *
     * ==When NOT to Use==
     *
-    *   - With few quantiles (tertiles, quartiles) - linear is better
-    *   - When the original distribution has discontinuities
-    *   - When simple, predictable behavior is more important than smoothness
-    *
-    * ==Example==
-    *
-    * {{{
-    * val percentiles = Quantiles.percentiles(uncertain, sampleCount = 100_000)
-    * val smooth = percentiles.toContinuousUncertainSmooth
-    * // Produces smoother samples than linear interpolation
-    * // Better for plotting or when underlying distribution is smooth like Normal
-    * }}}
+    *   - With few quantiles (e.g., Tertiles, Quartiles) - linear is usually safer.
+    *   - When the original distribution has sharp discontinuities or corners.
+    *   - When simple, predictable behavior is more important than visual smoothness.
     *
     * ==Performance==
     *
@@ -316,11 +416,13 @@ trait Quantiles[T] {
     * @return
     *   [[Uncertain]][Double] using monotonic cubic spline interpolated inverse CDF
     * @note
-    *   Requires at least 3 quantile boundaries. For fewer boundaries or when in doubt, use [[reconstructFast]] instead.
-    * @see
-    *   [[reconstructFast]] for default linear interpolation (recommended for most cases)
+    *   Requires at least 3 quantile boundaries. For fewer boundaries or when in doubt, use [[reconstructLinear]] instead.
     * @see
     *   [[reconstructDiscrete]] for discrete reconstruction
+    * @see
+    *   [[reconstructStep]] for histogram-like reconstruction
+    * @see
+    *   [[reconstructLinear]] for default linear interpolation (recommended for most cases)
     */
   def reconstructSmooth(using num: Numeric[T], random: Random = new Random()): Uncertain[Double] = {
     val values: List[T]      = this.toList()
@@ -478,4 +580,10 @@ object Quantiles {
       }
     }
   }
+
+  private[uncertaintee] def fromBoundaryValues[T](list: List[T]): Quantiles[T] = new Quantiles[T] {
+    override val quantileIntervals: Int = list.length - 1
+    override def apply(index: Int): T   = list(index)
+  }
+
 }

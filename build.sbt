@@ -24,6 +24,7 @@ ThisBuild / tlSiteHelium := Helium.defaults
 lazy val root = tlCrossRootProject.aggregate(
   uncertainTee,
   uncertainTeeCats,
+  uncertainTeeCirce,
   uncertainTeeZio,
   uncertainTeeScalacheck,
   uncertainTeeSquants
@@ -45,7 +46,17 @@ lazy val uncertainTeeCats = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.cats,
     libraryDependencies ++= Dependencies.test
   )
-  .dependsOn(uncertainTee)
+  .dependsOn(uncertainTee % "compile->compile;test->test")
+
+lazy val uncertainTeeCirce = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uncertain-tee-circe"))
+  .settings(
+    name := "uncertain-tee-circe",
+    libraryDependencies ++= Dependencies.circe,
+    libraryDependencies ++= Dependencies.test
+  )
+  .dependsOn(uncertainTee % "compile->compile;test->test")
 
 lazy val uncertainTeeZio = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -55,7 +66,7 @@ lazy val uncertainTeeZio = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.zio,
     libraryDependencies ++= Dependencies.test
   )
-  .dependsOn(uncertainTee)
+  .dependsOn(uncertainTee % "compile->compile;test->test")
 
 lazy val uncertainTeeScalacheck = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -65,7 +76,7 @@ lazy val uncertainTeeScalacheck = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.scalaCheck,
     libraryDependencies ++= Dependencies.test
   )
-  .dependsOn(uncertainTee)
+  .dependsOn(uncertainTee % "compile->compile;test->test")
 
 lazy val uncertainTeeSquants = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -75,7 +86,7 @@ lazy val uncertainTeeSquants = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Dependencies.squants,
     libraryDependencies ++= Dependencies.test
   )
-  .dependsOn(uncertainTee)
+  .dependsOn(uncertainTee % "compile->compile;test->test")
 
 lazy val docs = project
   .in(file("site"))
@@ -87,6 +98,9 @@ lazy val benchmarks = project
   .dependsOn(uncertainTee.jvm)
 
 addCommandAlias("benchmark", "benchmarks/Jmh/clean; benchmarks/Jmh/run")
+addCommandAlias("commitCheck", "clean; compile; scalafmtAll; scalafixAll; test;")
+addCommandAlias("cc", "commitCheck")
+
 
 lazy val Dependencies = new {
 
@@ -96,17 +110,21 @@ lazy val Dependencies = new {
     val scalacheck      = "1.19.0"
     val cats            = "2.13.0"
     val catsLaws        = "2.13.0"
+    val circe           = "0.14.15"
     val squants         = "1.8.3"
+    val zioPrelude      = "1.0.0-RC44"
   }
 
   val cats = Seq(
     "org.typelevel" %% "cats-core" % V.cats
   )
 
+  val circe = Seq(
+    "io.circe" %% "circe-core" % V.circe
+  )
+
   val zio = Seq(
-    "dev.zio" %% "zio"         % "2.1.24",
-    "dev.zio" %% "zio-prelude" % "1.0.0-RC44",
-    "dev.zio" %% "zio-test"    % "2.1.24"
+    "dev.zio" %% "zio-prelude" % V.zioPrelude
   )
 
   val squants = Seq(
@@ -122,6 +140,8 @@ lazy val Dependencies = new {
     "org.scalameta"  %% "munit-scalacheck" % V.munit           % Test,
     "org.scalacheck" %% "scalacheck"       % V.scalacheck      % Test,
     "org.typelevel"  %% "cats-laws"        % V.catsLaws        % Test,
-    "org.typelevel"  %% "discipline-munit" % V.munitDiscipline % Test
+    "org.typelevel"  %% "discipline-munit" % V.munitDiscipline % Test,
+    "io.circe"       %% "circe-parser"     % V.circe           % Test,
+    "io.circe"       %% "circe-literal"    % V.circe           % Test
   )
 }
