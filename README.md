@@ -8,8 +8,7 @@
   <h5>(uncertain-tee)</h2>
 </div>
 
-`uncertain-tee` is a library for probabilistic computing. Uncertain-tee is a **monte carlo simulation based** and *
-*correlation preserving** library for working with uncertain distributions of data, called an **Uncertain[T]**.
+`uncertain-tee` is a library for probabilistic computing. It is a **correlation preserving** library for modelling and working with uncertainty around data, using the concept of an **Uncertain[T]**, without having to hand-roll complex statistics-code.
 
 An `Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
 any value that has uncertainty. Instead of just working with single values, you work with *distributions* of possible
@@ -39,9 +38,11 @@ a big block of statistics-calculating-code.
 The primary guarantee of this library is **correlation preserving** operations that make combining, calculating and
 composing `Uncertain[T]` instances safe and correct. The core idea revolves around the monadic `Uncertain[T]` (it
 provides a constructor and a `.map` and a `.flatMap`) that uses a memoized computation graph internally to preserve
-correlation.
-This makes it very flexible - as well as allow composition via for-comprehensions, leading to very legible
-code despite a complex statistical domain.
+correlation. Getting a value from an `Uncertain[T]` - sampling - is done via **monte carlo simulation**.
+
+It is very flexible and intuitive; it allows composition via for-comprehensions, leading to very legible
+code with guaranteed correctness, despite a complex statistical domain. It allows non-statisticians and statisticians alike
+to work with Uncertainty in a deterministic manner.
 
 ## Installation
 
