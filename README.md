@@ -15,6 +15,9 @@ any value that has uncertainty. Instead of just working with single values, you 
 values.
 
 ```scala
+import mostly.uncertaintee.*
+import mostly.uncertaintee.syntax.*
+
 val frontend = Uncertain.triangular(5, 10, 20) // days
 val backend = Uncertain.triangular(8, 15, 30)
 val testing = Uncertain.triangular(3, 5, 10)
