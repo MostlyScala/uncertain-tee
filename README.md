@@ -49,7 +49,7 @@ to work with Uncertainty in a deterministic manner.
 
 ## Installation
 
-🦺🚧🏗️- library is still under construction/testing, not yet released to the wild.
+🏗️ library is currently in pre-release; PRs and feedback are always welcome!
 
 | Build Tool    | Instruction                                                              |
 |:--------------|:-------------------------------------------------------------------------|
