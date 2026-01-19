@@ -8,11 +8,17 @@
   <h5>(uncertain-tee)</h2>
 </div>
 
-`uncertain-tee` is a library for probabilistic computing. It is a **correlation preserving** library for modelling and working with uncertainty around data, using the concept of an **Uncertain[T]**, without having to hand-roll complex statistics-code.
+Uncertain[T] (`uncertain-tee`) is a Scala library for working with uncertain data in a mathematically sound way. Instead of dealing with single values, you work with distributions of possible values while automatically preserving statistical correlations. It allows non-statisticians and statisticians alike
+to work with uncertainty in a deterministic manner. 
 
-An `Uncertain[T]` helps you work with data that isn't exact, like measurements with error, user behavior predictions, or
-any value that has uncertainty. Instead of just working with single values, you work with *distributions* of possible
-values.
+When coding with uncertainty, you don't say "the user will click the button," instead we say "there's a 75% chance the
+user will click the button" - and write code that handles that uncertainty, without needing to hand-roll
+a big block of statistics-calculating-code.
+
+> ℹ️ 
+> The statistical guarantees of the Uncertain[T] monad originate from the research paper:
+> * `Uncertain<T>`: A First-Order Type for Uncertain Data. (https://www.microsoft.com/en-us/research/publication/uncertaint-a-first-order-type-for-uncertain-data-2/)
+
 
 ```scala
 import mostly.uncertaintee.*
@@ -33,10 +39,6 @@ println(s"Probability of finishing in 30 days: $onTimeProb")
 
 ```
 
-When coding with uncertainty, you don't say "the user will click the button," instead we say "there's a 75% chance the
-user
-will click the button" - and write code that handles that uncertainty, without needing to hand-roll
-a big block of statistics-calculating-code.
 
 The primary guarantee of this library is **correlation preserving** operations that make combining, calculating and
 composing `Uncertain[T]` instances safe and correct. The core idea revolves around the monadic `Uncertain[T]` (it
@@ -44,8 +46,7 @@ provides a constructor and a `.map` and a `.flatMap`) that uses a memoized compu
 correlation. Getting a value from an `Uncertain[T]` - sampling - is done via **monte carlo simulation**.
 
 It is very flexible and intuitive; it allows composition via for-comprehensions, leading to very legible
-code with guaranteed correctness, despite a complex statistical domain. It allows non-statisticians and statisticians alike
-to work with Uncertainty in a deterministic manner.
+code with guaranteed correctness, despite a complex statistical domain. 
 
 ## Installation
 
