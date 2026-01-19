@@ -298,8 +298,7 @@ val userCount = Uncertain.mixture(Map(
 The library uses smart sampling techniques:
 
 - **Lazy evaluation**: Computations happen only when you request samples
-- **Automatic sample sizing**: Statistical tests use only as many samples as needed
-- **Efficient hypothesis testing**: Uses Sequential Probability Ratio Test (SPRT) instead of fixed large sample sizes
+- For analytical and statistical methods outside of just a single sample, generally you trade compute time for accuracy; the higher the sample count you use, the longer the computation will take but the more precise it will be. As a rule of thumb, anything under 10K sample is likely not enough; 100K is often a sweet spot, and 1 million might be overkill; depending on what your needs are. You will have to test to make this tradeoff yourself.
 
 ### Continuous vs Discrete Distributions
 
