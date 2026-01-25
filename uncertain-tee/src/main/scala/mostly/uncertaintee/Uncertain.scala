@@ -18,9 +18,6 @@ package mostly.uncertaintee
 
 import mostly.uncertaintee.internal.*
 
-import java.util.UUID
-import scala.util.Random
-
 /** A type for working with uncertain data - values that have some randomness or measurement error.
   *
   * Instead of working with single values like `speed = 65.0`, you can work with uncertain values like `speed = "somewhere between 60-70 mph"` and let the library handle the math
@@ -30,7 +27,7 @@ import scala.util.Random
   *   Basic usage:
   *   {{{
   *     import mostly.uncertaintee.Uncertain
-  *    import mostly.uncertaintee.syntax.*
+  *     import mostly.uncertaintee.syntax.*
   *
   *    // Create uncertain speed with measurement error
   *    val speed    = Uncertain.normal(65.0, 5.0)  // 65 mph ± 5 mph
@@ -308,14 +305,12 @@ object Uncertain {
     *
     * @param sampler
     *   Function that produces a new sample each time it's called and has access to summoning a Random instance (if necessary) when calculating the sample
-    * @param random
-    *   Random number generator to use (defaults to a new Random instance)
     * @return
     *   New uncertain value that calls the sampler function for each sample
     */
-  def apply[T](sampler: () => T)(using random: Random = new Random()): Uncertain[T] = {
-    val id = UUID.nameUUIDFromBytes(random.nextBytes(16))
-    val s  = sampler
+  def apply[T](sampler: () => T): Uncertain[T] = {
+    val id: Long   = ComputationTree.idGen.getAndIncrement()
+    val s: () => T = sampler
     new Uncertain[T] {
       override val sampler: () => T                    = s
       override val computationTree: ComputationTree[T] = ComputationLeaf(id = id, sampler = s)

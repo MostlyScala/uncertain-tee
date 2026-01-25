@@ -47,7 +47,7 @@ trait AllDistributionOps
       * @return
       *   An uncertain value that always samples to the given value
       */
-    def point[T](value: T)(using random: Random = new Random()): Uncertain[T] = Uncertain(() => value)(using random)
+    def point[T](value: T): Uncertain[T] = Uncertain(() => value)
 
     def mixture[T](components: Map[Uncertain[T], Double])(using random: Random = new Random()): Uncertain[T] =
       Uncertain.mixtureViaDouble(components)

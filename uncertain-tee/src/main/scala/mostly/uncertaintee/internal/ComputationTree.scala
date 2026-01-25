@@ -18,8 +18,8 @@ package mostly.uncertaintee.internal
 
 import mostly.uncertaintee.Uncertain
 
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
+import scala.collection.mutable
 import scala.util.control.TailCalls
 
 /** Internal: A node in the computation graph (tree).
@@ -79,10 +79,10 @@ sealed private[uncertaintee] trait ComputationTree[+T] {
   * @tparam T
   *   the type of value produced by the sampler
   * @note
-  *   Each UUID is permanently bound to exactly one sampler type. This invariant is enforced by construction: UUIDs are generated randomly per leaf and never exposed or reused.
+  *   Each ID is permanently bound to exactly one sampler type. This invariant is enforced by construction: IDs are generated per leaf and never exposed or reused.
   */
 final private[uncertaintee] case class ComputationLeaf[T](
-  id: UUID,
+  id: Long,
   sampler: () => T
 ) extends ComputationTree[T]
 
@@ -132,17 +132,11 @@ final private[uncertaintee] case class ComputationFlatMapping[T, B](
   *
   * Example: If `x = Uncertain.uniform(0, 1)` and we compute `x + x`, both references to `x` should use the same sampled value to correctly compute `2 * sample`, rather than two
   * different samples.
-  *
-  * @note
-  *   Thread-safety is provided by ConcurrentHashMap with atomic computeIfAbsent operations, ensuring each UUID is sampled exactly once even under concurrent access.
   */
 final private[uncertaintee] class SampleContext {
-  private val memoizedValues = new ConcurrentHashMap[UUID, Any]()
+  private val memoizedValues = new mutable.LongMap[Any]
 
-  /** Atomically gets an existing sample or computes and stores a new one if not yet memoized.
-    *
-    * This method ensures that the sampler is called at most once per UUID, even under concurrent access. This prevents race conditions where multiple threads might both see no
-    * existing sample and both call the sampler, which would violate the correlation guarantee that the same uncertain value always produces the same sample within a context.
+  /** gets an existing sample or computes and stores a new one if not yet memoized.
     *
     * @param id
     *   the unique identifier for the uncertainty source
@@ -153,11 +147,21 @@ final private[uncertaintee] class SampleContext {
     * @return
     *   the memoized or newly computed sample
     * @note
-    *   Uses unchecked cast from Any to T. This is safe because each UUID is bound to exactly one sampler type at construction time (see [[ComputationLeaf]]), making type confusion
+    *   Uses unchecked cast from Any to T. This is safe because each ID is bound to exactly one sampler type at construction time (see [[ComputationLeaf]]), making type confusion
     *   impossible through the public API.
     */
-  def getOrComputeSample[T](id: UUID, sampler: () => T): T = {
-    val result = memoizedValues.computeIfAbsent(id, _ => sampler())
+  def getOrComputeSample[T](id: Long, sampler: () => T): T = {
+    val result = memoizedValues.getOrElseUpdate(id, sampler())
     result.asInstanceOf[T]
+  }
+}
+
+object ComputationTree {
+
+  /** even if we generated 1 billion IDs per second, it would take ~600 years to exhaust this range, so wrapping is unlikely to be a concern.*/
+  private[uncertaintee] val idGen: AtomicLong = {
+    val lng = new AtomicLong()
+    lng.set(Long.MinValue)
+    lng
   }
 }

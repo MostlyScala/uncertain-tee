@@ -60,7 +60,7 @@ trait GenUncertainOps {
           seed = Seed(random.nextLong()),
           retries = retries
         )
-      }(using random)
+      }
   }
   extension [T](u: Uncertain[T]) {
 
