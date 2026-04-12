@@ -8,7 +8,7 @@
   <h5>(uncertain-tee)</h2>
 </div>
 
-`Uncertain[T]` (pronounced uncertain-tee) is a Scala library for working with uncertainty and distributions in a mathematically sound way. Instead of dealing with single values, you work with distributions of possible values while automatically preserving statistical correlations. It allows non-statisticians and statisticians alike
+`Uncertain[T]` (pronounced uncertain-tee) is a Scala library for working with uncertainty and distributions in a mathematically sound way. Instead of dealing with single values, you work with distributions of possible values while automatically preserving statistical correlations. It allows a non-statistician and statistician alike
 to work with uncertainty in a deterministic manner. The goal of the library is to be highly intuitive for application devs, data scientists, without having to be a functional programming guru nor staistician to work with probability in a mathematically correct way.
 
 > The statistical guarantees of the Uncertain[T] monad are discussed in this research paper:
