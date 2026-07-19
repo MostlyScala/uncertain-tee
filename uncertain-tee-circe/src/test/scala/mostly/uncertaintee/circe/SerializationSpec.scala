@@ -4,8 +4,6 @@ import io.circe.literal.*
 import mostly.uncertaintee.quantiles.Quantiles
 import mostly.uncertaintee.{RngSuite, Uncertain}
 
-import scala.util.Random
-
 class SerializationSpec extends RngSuite {
 
   test("Quantiles should roundtrip via Encoder/Decoder") {

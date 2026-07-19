@@ -15,11 +15,9 @@ ThisBuild / developers       := List(
 
 ThisBuild / tlSitePublishBranch := Some("main")
 
-val scala3 = "3.3.7"
+val scala3 = "3.8.4"
 ThisBuild / crossScalaVersions := Seq(scala3)
 ThisBuild / scalaVersion       := scala3
-
-ThisBuild / tlSiteHelium := Helium.defaults
 
 lazy val root = tlCrossRootProject.aggregate(
   uncertainTee,
@@ -105,14 +103,14 @@ addCommandAlias("cc", "commitCheck")
 lazy val Dependencies = new {
 
   object V {
-    val munit           = "1.2.0"
+    val munit           = "1.3.0"
     val munitDiscipline = "2.0.0"
     val scalacheck      = "1.19.0"
     val cats            = "2.13.0"
     val catsLaws        = "2.13.0"
-    val circe           = "0.14.15"
+    val circe           = "0.14.16"
     val squants         = "1.8.3"
-    val zioPrelude      = "1.0.0-RC44"
+    val zioPrelude      = "1.0.0-RC47"
   }
 
   val cats = Seq(

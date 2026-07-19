@@ -19,8 +19,6 @@ package mostly.uncertaintee
 import mostly.uncertaintee.syntax.*
 import munit.FunSuite
 
-import scala.util.Random
-
 class PreconditionSpec extends RngSuite {
 
   val sampleCount = 100_000

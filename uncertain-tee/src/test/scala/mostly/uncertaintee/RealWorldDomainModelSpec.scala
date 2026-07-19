@@ -19,7 +19,6 @@ package mostly.uncertaintee
 import mostly.uncertaintee.syntax.*
 
 import scala.math.abs
-import scala.util.Random
 
 /** This spec showcases the library by contextualising it with "real-world" use-cases
   *

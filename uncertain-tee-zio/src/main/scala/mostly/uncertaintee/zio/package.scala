@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 /** End users are expected to import `mostly.uncertaintee.zio.*` */
 package object zio {
 
-  implicit val monad: CovariantIdentityBoth[Uncertain] with IdentityFlatten[Uncertain] =
+  implicit val monad: CovariantIdentityBoth[Uncertain] & IdentityFlatten[Uncertain] =
     new CovariantIdentityBoth[Uncertain] with IdentityFlatten[Uncertain] {
       override def map[A, B](f: A => B): Uncertain[A] => Uncertain[B]                      = _.map(f)
       override def both[A, B](fa: => Uncertain[A], fb: => Uncertain[B]): Uncertain[(A, B)] = fa.product(fb)
