@@ -42,7 +42,7 @@ correlation. Getting a value from an `Uncertain[T]` - sampling - is done via **m
 
 ## Installation
 
-🏗️ library is currently in pre-release; PRs and feedback are always welcome!
+🏗️ library is currently in pre-release while statistical properties and bug testing are being ironed out; PRs and feedback are always welcome!
 
 | Build Tool    | Instruction                                                              |
 |:--------------|:-------------------------------------------------------------------------|
