@@ -45,7 +45,7 @@ class BinomialDistributionSpec extends RngSuite {
   }
 
   rngTest("Binomial distribution's sample variance should approximate its theoretical variance (n*p*(1-p))") {
-    val trials      = 50
+    val trials      = 5000
     val probability = 0.25
     val binomial    = Uncertain.binomial(trials, probability)
 

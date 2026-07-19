@@ -63,10 +63,10 @@ trait ComparisonOps {
       val min: T = ord.min(a, b)
       val max: T = ord.max(a, b)
       (minInclusive, maxInclusive) match {
-        case (true, false)  => lhs.map(x => ord.gteq(min, x) && ord.lt(max, x))
-        case (true, true)   => lhs.map(x => ord.gteq(min, x) && ord.lteq(max, x))
-        case (false, false) => lhs.map(x => ord.gt(min, x) && ord.lt(max, x))
-        case (false, true)  => lhs.map(x => ord.gt(min, x) && ord.lteq(max, x))
+        case (true, false)  => lhs.map(x => ord.gteq(x, min) && ord.lt(x, max))
+        case (true, true)   => lhs.map(x => ord.gteq(x, min) && ord.lteq(x, max))
+        case (false, false) => lhs.map(x => ord.gt(x, min) && ord.lt(x, max))
+        case (false, true)  => lhs.map(x => ord.gt(x, min) && ord.lteq(x, max))
       }
     }
 

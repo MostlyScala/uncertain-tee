@@ -27,9 +27,8 @@ trait DistributionOpsShort {
       minInclusive: Short,
       maxExclusive: Short
     )(using random: Random = new Random()): Uncertain[Short] = {
-      require(maxExclusive >= minInclusive, s"max ($maxExclusive) must be >= min ($minInclusive).")
-      if (minInclusive == maxExclusive) Uncertain.always(minInclusive)
-      else Uncertain(() => random.between(minInclusive.toInt, maxExclusive.toInt).toShort)
+      require(maxExclusive > minInclusive, s"max ($maxExclusive) must be > min ($minInclusive).")
+      Uncertain(() => random.between(minInclusive.toInt, maxExclusive.toInt).toShort)
     }
   }
 

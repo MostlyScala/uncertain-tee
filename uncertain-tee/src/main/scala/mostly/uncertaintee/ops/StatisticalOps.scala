@@ -34,7 +34,7 @@ trait StatisticalOps {
 
     /** Finds the most common sample value (best for discrete distributions). */
     def mode(sampleCount: Int): T = {
-      require(sampleCount > 0, "Sample count must be positive.")
+      require(sampleCount > 0, "sample count must be positive.")
       uncertain.take(sampleCount).groupBy(identity).view.maxBy((_, elems) => elems.length)._1
     }
 
@@ -46,7 +46,7 @@ trait StatisticalOps {
 
     /** Estimates the information entropy (randomness) of the distribution. */
     def entropy(sampleCount: Int): Double = {
-      require(sampleCount > 0, "Sample count must be positive.")
+      require(sampleCount > 0, "sample count must be positive.")
       val samples = uncertain.take(sampleCount)
       val counts  = samples.groupBy(identity).values.map(_.length)
       val total   = samples.length.toDouble
@@ -105,7 +105,7 @@ trait StatisticalOps {
       effectivelyZero: Double = 1e-12
     ): Kurtosis = {
       require(sampleCount > 3, "sampleCount must be greater than 3.")
-      require(mesokurticTolerance >= 0, "Threshold must be non-negative.")
+      require(mesokurticTolerance >= 0, "mesokurticTolerance must be non-negative.")
       // Mutable state for the single-pass Welford-Knuth algorithm
       // These track n, mean, and the central moments M2, M3, M4
       var n: Long      = 0

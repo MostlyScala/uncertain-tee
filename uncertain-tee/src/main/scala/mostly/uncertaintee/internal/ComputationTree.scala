@@ -158,7 +158,7 @@ final private[uncertaintee] class SampleContext {
 
 object ComputationTree {
 
-  /** even if we generated 1 billion IDs per second, it would take ~600 years to exhaust this range, so wrapping is unlikely to be a concern.*/
+  /** even if we generated 1 billion IDs per second, it would take ~600 years to exhaust this range, so wrapping is unlikely to be a concern. */
   private[uncertaintee] val idGen: AtomicLong = {
     val lng = new AtomicLong()
     lng.set(Long.MinValue)

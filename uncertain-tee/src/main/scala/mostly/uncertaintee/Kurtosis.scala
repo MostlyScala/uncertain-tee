@@ -76,7 +76,7 @@ object Kurtosis {
   final case class Leptokurtic(excessValue: Double) extends DefinedKurtosis {
     require(
       excessValue > 0,
-      s"Leptokurtic excess kurtosis must be positive, got $excessValue"
+      s"Invalid case class construction: Leptokurtic excess kurtosis must be positive, got $excessValue"
     )
   }
 
@@ -103,7 +103,7 @@ object Kurtosis {
   final case class Platykurtic(excessValue: Double) extends DefinedKurtosis {
     require(
       excessValue < 0,
-      s"Platykurtic excess kurtosis must be negative, got $excessValue"
+      s"Invalid case class construction: Platykurtic excess kurtosis must be negative, got $excessValue"
     )
   }
 
@@ -122,8 +122,7 @@ object Kurtosis {
     *   A `DefinedKurtosis` instance (`Leptokurtic`, `Mesokurtic`, or `Platykurtic`).
     */
   def apply(excessValue: Double, mesokurticTolerance: Double = 0.5): DefinedKurtosis =
-    require(!excessValue.isNaN && !excessValue.isInfinity, s"Invalid kurtosis value: $excessValue")
-
+    require(!excessValue.isNaN && !excessValue.isInfinity, s"Invalid case class construction: Invalid kurtosis value: $excessValue")
     if (excessValue > mesokurticTolerance) {
       Leptokurtic(excessValue)
     } else if (excessValue < -mesokurticTolerance) {

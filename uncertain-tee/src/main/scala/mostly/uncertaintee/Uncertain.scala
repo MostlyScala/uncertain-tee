@@ -204,7 +204,7 @@ sealed abstract class Uncertain[+T] {
     *   List containing n random samples from this uncertain value
     */
   def take(n: Int): List[T] = {
-    require(n >= 0, "Number of samples must be non-negative.")
+    require(n >= 0, " number of samples must be non-negative.")
     iterator.take(n).toList
   }
 

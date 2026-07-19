@@ -870,8 +870,8 @@ trait DiceRollingOps {
       require(numberOfDice >= 0, s"Cannot roll negative number of dice (was: $numberOfDice)")
       require(sides >= 2, s"Exploding die must have at least 2 sides, got: $sides")
       require(
-        successThreshold >= 1 && successThreshold <= sides,
-        s"Success threshold must be within the die's range [1, $sides], got: $successThreshold"
+        successThreshold >= 1,
+        s"Success threshold must be at least 1, got: $successThreshold"
       )
       require(
         explodeThreshold >= 1 && explodeThreshold <= sides,
@@ -992,8 +992,8 @@ trait DiceRollingOps {
       require(numberOfDice >= 0, s"Cannot roll negative number of dice (was: $numberOfDice)")
       require(sides >= 2, s"Exploding die must have at least 2 sides, got: $sides")
       require(
-        successThreshold >= 1 && successThreshold <= sides,
-        s"Success threshold must be within the die's range [1, $sides], got: $successThreshold"
+        successThreshold >= 1,
+        s"Success threshold must be at least 1, got: $successThreshold"
       )
       require(
         explodeThreshold >= 1 && explodeThreshold <= sides,

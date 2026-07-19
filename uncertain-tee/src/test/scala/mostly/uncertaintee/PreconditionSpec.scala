@@ -157,6 +157,9 @@ class PreconditionSpec extends RngSuite {
       Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = -0.1, sampleCount = sampleCount)
     }
     intercept[IllegalArgumentException] {
+      Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = 1.0, sampleCount = sampleCount)
+    }
+    intercept[IllegalArgumentException] {
       Uncertain.bernoulli(0.5).probabilityExceeds(exceeds = 1.1, sampleCount = sampleCount)
     }
   }
@@ -221,6 +224,24 @@ class PreconditionSpec extends RngSuite {
   rngTest("`cdf` should throw IllegalArgumentException for non-positive sample count") {
     intercept[IllegalArgumentException] {
       Uncertain.uniform(0.0, 1.0).cdf(0.5, 0)
+    }
+  }
+
+  rngTest("`uniformByte` should throw IllegalArgumentException when maxExclusive == minInclusive") {
+    intercept[IllegalArgumentException] {
+      Uncertain.uniformByte(5.toByte, 5.toByte)
+    }
+  }
+
+  rngTest("`uniformShort` should throw IllegalArgumentException when maxExclusive == minInclusive") {
+    intercept[IllegalArgumentException] {
+      Uncertain.uniformShort(5.toShort, 5.toShort)
+    }
+  }
+
+  rngTest("`uniformLong` should throw IllegalArgumentException when maxExclusive == minInclusive") {
+    intercept[IllegalArgumentException] {
+      Uncertain.uniformLong(5L, 5L)
     }
   }
 }

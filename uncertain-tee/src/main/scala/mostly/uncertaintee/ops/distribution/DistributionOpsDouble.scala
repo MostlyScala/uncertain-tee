@@ -46,7 +46,7 @@ trait DistributionOpsDouble {
       mean: Double,
       standardDeviation: Double
     )(using random: Random = new Random()): Uncertain[Double] = {
-      require(standardDeviation >= 0, "Standard deviation cannot be negative.")
+      require(standardDeviation >= 0, "standardDeviation cannot be negative.")
       if (standardDeviation == 0) {
         Uncertain.always(mean)
       } else {
@@ -184,7 +184,7 @@ trait DistributionOpsDouble {
       * See: https://en.wikipedia.org/wiki/Geometric_distribution
       *
       * @param probability
-      *   The probability of success ($p$) on any given trial. Must be in (0, 1].
+      *   The probability of success on any given trial. Must be between 0 (exclusive) and 1 (inclusive)
       * @return
       *   An `Uncertain[Int]` representing the 1-indexed trial number on which the first success occurred.
       * @note

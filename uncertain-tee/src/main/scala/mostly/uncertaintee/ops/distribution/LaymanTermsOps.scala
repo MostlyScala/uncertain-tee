@@ -119,9 +119,9 @@ trait LaymanTermsOps {
       firstChance: Double,
       secondChance: Double
     ): Uncertain[Boolean] = {
-      require(firstChance >= 0 && firstChance <= 1, s"Probability ($probabilityExceeds) must be between 0 and 1.")
-      require(secondChance >= 0 && secondChance <= 1, s"Probability ($probabilityExceeds) must be between 0 and 1.")
-      Uncertain.bernoulli(firstChance) && Uncertain.bernoulli(secondChance)
+      require(firstChance >= 0 && firstChance <= 1, s"firstChance probability ($firstChance) must be between 0 and 1.")
+      require(secondChance >= 0 && secondChance <= 1, s"secondChance probability ($secondChance) must be between 0 and 1.")
+      Uncertain.bernoulli(firstChance * secondChance)
     }
 
     /** "Backup plan" - try first option, if it fails try second. (alias for [[orElse]]) */

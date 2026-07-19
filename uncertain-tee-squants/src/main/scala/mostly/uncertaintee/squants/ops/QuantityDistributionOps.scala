@@ -44,7 +44,7 @@ trait QuantityDistributionOps {
       mean: Q,
       stdDev: Q
     )(using qs: QuantityStatisticallyConvertible[Q], random: Random = new Random()): Uncertain[Q] = {
-      require(qs.toDouble(stdDev) >= 0, "Standard deviation cannot be negative")
+      require(qs.toDouble(stdDev) >= 0, " standard deviation cannot be negative")
 
       // Reuse the existing normalDouble implementation
       u.normalDouble(
@@ -151,7 +151,7 @@ trait QuantityDistributionOps {
       value: Q,
       percentError: Double
     )(using qs: QuantityStatisticallyConvertible[Q], random: Random = new Random()): Uncertain[Q] = {
-      require(percentError >= 0, "Percent error cannot be negative")
+      require(percentError >= 0, "percent error cannot be negative")
       val valueDouble = qs.toDouble(value)
       val errorDouble = math.abs(valueDouble * percentError / 100.0)
       normalQuantity(

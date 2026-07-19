@@ -107,7 +107,7 @@ trait ChanceOps {
       require(n >= 0, s"Favorable outcomes must be non-negative, got $n")
       require(outOf > 0, s"Total outcomes must be positive, got $outOf")
       require(n <= outOf, s"Favorable outcomes ($n) cannot exceed total outcomes ($outOf)")
-      Uncertain.bernoulliViaDouble(probability = n.toDouble / outOf)
+      Uncertain.xInY(n, outOf)
     }
 
     // ------------------
@@ -300,7 +300,7 @@ trait ChanceOps {
       *   // One short straw among ten
       *   val drewShort = Uncertain.drawStraws(10)
       *   // Multiple short straws
-      *   val drewOneOfTwoShort: Uncertaion[Boolean] = Uncertain.drawStraws(shortStraws = 2, totalStraws = 10)
+      *   val drewOneOfTwoShort: Uncertain[Boolean] = Uncertain.drawStraws(shortStraws = 2, totalStraws = 10)
       *   }}}
       */
     def drawStraws(

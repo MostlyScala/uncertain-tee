@@ -122,6 +122,30 @@ class ComparisonOperationsSpec extends RngSuite {
     )
   }
 
+  test("between should return true for values inside [min, max)") {
+    val isBetween = Uncertain
+      .always(5)
+      .between(
+        a = 1,
+        b = 10,
+        minInclusive = true,
+        maxInclusive = false
+      )
+    assertEquals(obtained = isBetween.sample(), expected = true)
+  }
+
+  test("between with uncertain bounds should normalize order and respect inclusivity") {
+    val isBetween = Uncertain
+      .always(5)
+      .between(
+        uncertainA = Uncertain.always(10),
+        uncertainB = Uncertain.always(1),
+        minInclusive = false,
+        maxInclusive = true
+      )
+    assertEquals(obtained = isBetween.sample(), expected = true)
+  }
+
   // --- Correlation Tests ---
 
   rngTest("Correlation: x > x should always be false") {

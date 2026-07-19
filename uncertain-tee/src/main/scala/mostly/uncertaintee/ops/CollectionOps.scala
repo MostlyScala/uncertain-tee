@@ -118,7 +118,7 @@ trait CollectionOps {
       */
     def slicesOfVaryingSize[T](ofSize: Range, from: List[T])(using random: Random = new Random()): Uncertain[List[T]] = {
       require(ofSize.last <= from.size, s"ofSize range's last element (${ofSize.last}) cannot exceed collection size (${from.size})")
-      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be positive")
+      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be non-negative")
       for {
         size         <- Uncertain.fromRange(ofSize)
         maxStartIndex = from.size - size
@@ -160,7 +160,7 @@ trait CollectionOps {
       */
     def subsequencesOfVaryingSize[T](ofSize: Range, from: List[T])(using random: Random = new Random()): Uncertain[List[T]] = {
       require(ofSize.last <= from.size, s"ofSize range's last element (${ofSize.last}) cannot exceed collection size (${from.size})")
-      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be positive")
+      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be non-negative")
       Uncertain
         .fromRange(ofSize)
         .flatMap(n =>
@@ -201,7 +201,7 @@ trait CollectionOps {
       */
     def combinationsOfVaryingSize[T](ofSize: Range, from: List[T])(using random: Random = new Random()): Uncertain[List[T]] = {
       require(ofSize.last <= from.size, s"ofSize range's last element (${ofSize.last}) cannot exceed collection size (${from.size})")
-      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be positive")
+      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be non-negative")
       Uncertain
         .fromRange(ofSize)
         .flatMap { n =>
@@ -240,7 +240,7 @@ trait CollectionOps {
       */
     def subsetsOfVaryingSize[T](ofSize: Range, from: Set[T])(using random: Random = new Random()): Uncertain[Set[T]] = {
       require(ofSize.last <= from.size, s"ofSize range's last element (${ofSize.last}) cannot exceed collection size (${from.size})")
-      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be positive")
+      require(ofSize.start >= 0, s"ofSize range's start (${ofSize.start}) must be non-negative")
       val items: List[T] = from.toList
       Uncertain.fromRange(ofSize).flatMap {
         case n if n == items.length => Uncertain.always(from) // for sets, ordering is irrelevant, so no need to randomize in this special case
@@ -274,7 +274,7 @@ trait CollectionOps {
       *   }}}
       */
     def subsetsOfFixedSize[T](size: Int, from: Set[T])(using random: Random = new Random()): Uncertain[Set[T]] = {
-      require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size}")
+      require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size})")
       subsetsOfVaryingSize(
         ofSize = size to size,
         from = from
@@ -303,7 +303,7 @@ trait CollectionOps {
       *   }}}
       */
     def subsequencesOfFixedSize[T](size: Int, from: List[T]): Uncertain[List[T]] = {
-      require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size}")
+      require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size})")
       Uncertain.subsequencesOfVaryingSize(
         ofSize = size to size,
         from = from
@@ -330,7 +330,7 @@ trait CollectionOps {
       *   }}}
       */
     def slicesOfFixedSize[T](size: Int, from: List[T]): Uncertain[List[T]] = {
-      require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size}")
+      require(size >= 0 && size <= from.size, s"size ($size) must be within size of the underlying collection (${from.size})")
       Uncertain.slicesOfVaryingSize(
         ofSize = size to size,
         from = from
@@ -360,7 +360,7 @@ trait CollectionOps {
       *   }}}
       */
     def combinationsOfFixedSize[T](size: Int, from: List[T])(using random: Random = new Random()): Uncertain[List[T]] = {
-      require(size >= 0 && size <= from.size, s"size (was: ${size}) must be within size of the underlying collection (${from.size}")
+      require(size >= 0 && size <= from.size, s"size (was: $size) must be within size of the underlying collection (${from.size})")
       combinationsOfVaryingSize(
         ofSize = size to size,
         from = from
@@ -628,7 +628,7 @@ trait CollectionOps {
 
   /** (Not to become part of public API) Takes n elements randomly without put-back, from items; n needs to be <= items.size) */
   private def rngTakeWithoutPutback[T](items: List[T], n: Int, retainRelativeOrder: Boolean = false)(using random: Random): Uncertain[Iterator[T]] = {
-    require(n <= items.size && n >= 0, s"n (real value: $n) was not within range of items to take from (0, ${items.size}))")
+    require(n <= items.size && n >= 0, s"n (real value: $n) was not within range of items to take from [0, ${items.size}]")
     Uncertain { () =>
       n match {
         case 0                         => Iterator.empty

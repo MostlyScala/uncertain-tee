@@ -24,7 +24,7 @@ import scala.util.Random
 trait DistributionOpsInt {
   extension (u: Uncertain.type) {
 
-    /** Creates a uniform distribution of Integers between (minInclusive, maxExclusive]
+    /** Creates a uniform distribution of Integers between [minInclusive, maxExclusive)
       *
       * See also [[mostly.uncertaintee.syntax.uniformIntInclusive]] and [[mostly.uncertaintee.syntax.fromRange]]
       */
@@ -33,7 +33,7 @@ trait DistributionOpsInt {
       Uncertain(() => random.between(minInclusive, maxExclusive))
     }
 
-    /** Creates a uniform distribution of Integers between (minInclusive, maxInclusive)
+    /** Creates a uniform distribution of Integers between [minInclusive, maxInclusive]
       *
       * See also [[mostly.uncertaintee.syntax.uniformInt]] and [[mostly.uncertaintee.syntax.fromRange]]
       */
@@ -91,7 +91,7 @@ trait DistributionOpsInt {
       * @param r
       *   The number of successes required (must be > 0).
       * @param probability
-      *   The probability of success on each trial (must be in (0, 1]).
+      *   The probability of success on each trial (must be between 0 (exclusive) and 1 (inclusive) (0, 1]).
       * @param random
       *   Random number generator to use for sampling.
       * @return
@@ -101,7 +101,7 @@ trait DistributionOpsInt {
       */
     def negativeBinomialInt(r: Int, probability: Double)(using random: Random = new Random()): Uncertain[Int] = {
       require(r > 0, "Number of successes (r) must be positive.")
-      require(probability > 0 && probability <= 1, s"Probability of success (p) must be in (0, 1], got $probability.")
+      require(probability > 0 && probability <= 1, s"Probability of success must be in (0, 1], was $probability.")
       if (probability == 1.0) {
         // If success is guaranteed, there are always 0 failures.
         Uncertain.always(0)

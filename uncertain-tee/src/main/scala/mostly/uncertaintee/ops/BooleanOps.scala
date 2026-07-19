@@ -112,10 +112,10 @@ trait BooleanOps {
       delta: Option[Double] = None,
       sampleCount: Int
     ): Boolean = {
-      require(exceeds >= 0 && exceeds <= 1, s"Threshold ($exceeds) must be between 0 and 1.")
-      require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1.")
-      require(beta > 0 && beta < 1, s"Beta ($beta) must be between 0 and 1.")
-      require(sampleCount > 0, "Max samples must be positive.")
+      require(exceeds >= 0 && exceeds < 1, s"exceeds ($exceeds) must be in [0, 1).")
+      require(alpha > 0 && alpha < 1, s"alpha ($alpha) must be between 0 and 1.")
+      require(beta > 0 && beta < 1, s"beta ($beta) must be between 0 and 1.")
+      require(sampleCount > 0, "sampleCount must be positive.")
 
       val effectSize = delta.getOrElse(math.max(0.01, 0.1 * (One - exceeds)))
       require(exceeds + effectSize <= One, s"Threshold + effect size too large: ${exceeds + effectSize}")
@@ -155,8 +155,9 @@ trait BooleanOps {
       require(alpha > 0 && alpha < 1, s"Alpha ($alpha) must be between 0 and 1.")
       require(beta > 0 && beta < 1, s"Beta ($beta) must be between 0 and 1.")
       require(delta > 0, s"Effect size delta ($delta) must be positive.")
+      require(delta > 0, s"Effect size delta ($delta) must be positive.")
       require(threshold + delta <= One, s"Threshold + delta (${threshold + delta}) must be ≤ 1.0")
-      require(sampleCount > 0, "Maximum samples must be positive.")
+      require(sampleCount > 0, "sampleCount must be positive.")
 
       val p0 = threshold
       val p1 = threshold + delta

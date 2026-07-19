@@ -698,7 +698,7 @@ trait CoinFlipOps {
       totalFlips: Int,
       chanceOfHeads: Double = 0.5
     )(using random: Random = new Random()): Uncertain[Int] = {
-      require(chanceOfHeads > 0 && chanceOfHeads <= 1, s"chanceOfHeads ($chanceOfHeads) must be between 0 and 1")
+      require(chanceOfHeads > 0 && chanceOfHeads <= 1, s"chanceOfHeads ($chanceOfHeads) must be in (0, 1]")
       require(totalFlips > 0, "Total flips must be a positive int")
 
       if (chanceOfHeads == 1) {
