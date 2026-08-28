@@ -44,6 +44,8 @@ package object uncertaintee {
     *   import mostly.uncertaintee.syntax.option.*
     *   import mostly.uncertaintee.syntax.quantile.*
     *   import mostly.uncertaintee.syntax.statistical.*
+    *   import mostly.uncertaintee.syntax.chance.*
+    *   import mostly.uncertaintee.syntax.equivalence.*
     * }}}
     */
   object syntax extends ops.AllOps {
@@ -61,6 +63,7 @@ package object uncertaintee {
     val option: ops.OptionOps                    = this
     val quantile: ops.QuantileOps                = this
     val statistical: ops.StatisticalOps          = this
+    val equivalence: ops.EquivalenceOps          = this
   }
 
   // To avoid any funky accidents where I mistype numbers or round floats or something

@@ -39,6 +39,7 @@ trait AllOps
     with FunctionalProgrammingOps
     with OptionOps
     with QuantileOps
-    with StatisticalOps {
+    with StatisticalOps
+    with EquivalenceOps {
   // See traits
 }
